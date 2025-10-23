@@ -121,9 +121,9 @@ const inventarioItems = [
 ]
 
 const gestionItems = [
-  { title: 'Proveedores', icon: 'mdi-truck-outline', value: 'proveedores', to: '/path' },
-  { title: 'Empleados', icon: 'mdi-account-group ', value: 'empleados', to: '/path' },
-  { title: 'Productos', icon: 'mdi-package-variant-closed', value: 'productos', to: '/path' },
+  { title: 'Proveedores', icon: 'mdi-truck-outline', value: 'proveedores', to: '/managment/provider' },
+  { title: 'Empleados', icon: 'mdi-account-group ', value: 'empleados', to: '/managment/employee' },
+  { title: 'Productos', icon: 'mdi-package-variant-closed', value: 'productos', to: '/managment/product' },
   { title: 'Categorias', icon: 'mdi-account', value: 'categorias', to: '/path' },
 ]
 
