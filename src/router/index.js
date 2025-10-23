@@ -13,11 +13,15 @@ const router = createRouter({
       component: DashboardLayout,
       children: [
         {
-          path: '/home',
+          path: '',
+          redirect: '/home',
+        },
+        {
+          path: 'home',
           component: HomeView,
         },
         {
-          path: '/about',
+          path: 'about',
           component: AboutView,
         },
       ],
@@ -26,6 +30,7 @@ const router = createRouter({
       path: '/login',
       component: LoginView,
     },
+    { path: '/:pathMatch(.*)*', redirect: '/login' },
   ],
 })
 
