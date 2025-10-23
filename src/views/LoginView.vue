@@ -13,8 +13,10 @@ function handleLogin() {
 </script>
 
 <template>
-  <h1>Login</h1>
-  <v-text-field label="Label" v-model="username"></v-text-field>
-  <p>{{ username }}</p>
-  <v-btn color="success" @click="handleLogin">login</v-btn>
+  <div>
+    <h1>Login</h1>
+    <v-text-field label="Label" v-model="username"></v-text-field>
+    <p>{{ username }}</p>
+    <v-btn color="success" @click="handleLogin">login</v-btn>
+  </div>
 </template>
