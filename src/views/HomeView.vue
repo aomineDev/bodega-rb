@@ -2,6 +2,14 @@
 
 import ActionMenu from '@/components/ActionMenu.vue';
 
+const headers = [
+  { title: 'Nombre', key: 'name' },
+  { title: 'Especie', key: 'species' },
+  { title: 'Dieta', key: 'diet' },
+  { title: 'Hábitat', key: 'habitat' },
+  { title: 'Acciones', key: 'actions', sortable: false },
+]
+
 const items = [
   {
     name: 'African Elephant',
@@ -26,25 +34,13 @@ const items = [
 
 
 <template>
-  <v-data-table :items="items">
-    <template #headers>
-      <tr>
-        <th>Nombre</th>
-        <th>Especie</th>
-        <th>Acciones</th>
-      </tr>
-    </template>
 
-    <template #item="{ item }">
-      <tr>
-        <td>{{ item.name }}</td>
-        <td>{{ item.species }}</td>
-        <td>
-          <ActionMenu @action="(type) => handleAction(type, item)" />
-        </td>
-      </tr>
+  <v-data-table :headers="headers" :items="items">
+    <template #[`item.actions`]="{ item }">
+      <ActionMenu @action="(type) => handleAction(type, item)" />
     </template>
   </v-data-table>
+
 </template>
 
 <style scoped></style>

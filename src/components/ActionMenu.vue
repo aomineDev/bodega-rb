@@ -5,7 +5,7 @@ defineProps({
     default: () => [
       { label: 'Ver detalles', value: 'view', icon: 'mdi-eye' },
       { label: 'Editar', value: 'edit', icon: 'mdi-pencil' },
-      { label: 'Eliminar', value: 'delete', icon: 'mdi-delete' },
+      { label: 'Eliminar', value: 'delete', icon: 'mdi-delete', color: 'red' },
     ],
   },
 })
@@ -22,11 +22,13 @@ defineEmits(['action'])
       <v-list-item v-for="action in actions" :key="action.value" @click="$emit('action', action.value)"
         class="cursor-pointer">
         <template #prepend>
-          <v-icon>{{ action.icon }}</v-icon>
+          <v-icon :color="action.color || undefined">{{ action.icon }}</v-icon>
         </template>
 
         <template #title>
-          {{ action.label }}
+          <span :class="action.color ? `text-${action.color}` : ''">
+            {{ action.label }}
+          </span>
         </template>
       </v-list-item>
     </v-list>
