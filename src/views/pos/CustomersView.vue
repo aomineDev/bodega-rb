@@ -1,9 +1,8 @@
 <script setup>
-
-import ActionMenu from '@/components/ActionMenu.vue';
+import ActionMenu from '@/components/ActionMenu.vue'
 import { VDateInput } from 'vuetify/labs/VDateInput'
-import { ref } from 'vue';
-import { useValidation } from '@/composables/formValidation';
+import { ref } from 'vue'
+import { useValidation } from '@/composables/formValidation'
 
 // Variables reactivas
 const clienteFormModal = ref(false)
@@ -81,17 +80,31 @@ const closeModal = () => {
   <v-card elevation="0" class="mb-4 pa-4">
     <v-row>
       <v-col cols="12" md="6">
-        <v-text-field v-model="search" label="Buscar cliente" prepend-inner-icon="mdi-magnify" variant="underlined"
-          hide-details />
+        <v-text-field
+          v-model="search"
+          label="Buscar cliente"
+          prepend-inner-icon="mdi-magnify"
+          variant="underlined"
+          hide-details
+        />
       </v-col>
 
       <v-col cols="12" md="4">
-        <v-select label="Tipo de cliente" :items="['Cliente Natural', 'Cliente Jurídico']" variant="underlined"
-          hide-details />
+        <v-select
+          label="Tipo de cliente"
+          :items="['Cliente Natural', 'Cliente Jurídico']"
+          variant="underlined"
+          hide-details
+        />
       </v-col>
 
       <v-col cols="12" md="2" class="d-flex justify-end align-center">
-        <v-btn prepend-icon="mdi-plus" color="primary" elevation="1" @click="clienteFormModal = true">
+        <v-btn
+          prepend-icon="mdi-plus"
+          color="primary"
+          elevation="1"
+          @click="clienteFormModal = true"
+        >
           Crear Cliente
         </v-btn>
       </v-col>
@@ -100,7 +113,7 @@ const closeModal = () => {
 
   <!-- Tabla -->
   <v-data-table :headers="headers" :items="items">
-    <template #[`item.actions`]="{ item }">
+    <template #item.actions="{ item }">
       <action-menu @action="(type) => handleAction(type, item)" />
     </template>
   </v-data-table>
@@ -109,9 +122,7 @@ const closeModal = () => {
   <template>
     <v-dialog v-model="clienteFormModal" max-width="600">
       <template #activator="{ props }">
-        <v-btn v-bind="props" prepend-icon="mdi-account" variant="tonal">
-          Crear Cliente
-        </v-btn>
+        <v-btn v-bind="props" prepend-icon="mdi-account" variant="tonal"> Crear Cliente </v-btn>
       </template>
 
       <v-card title="Crear Cliente">
@@ -119,42 +130,77 @@ const closeModal = () => {
           <v-form ref="clienteForm">
             <v-row dense>
               <v-col cols="12" md="6">
-                <v-text-field v-model="form.nombre" label="Nombre" :rules="[rules.required]" variant="underlined" />
+                <v-text-field
+                  v-model="form.nombre"
+                  label="Nombre"
+                  :rules="[rules.required]"
+                  variant="underlined"
+                />
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-text-field v-model="form.apellidoPaterno" label="Apellido Paterno" :rules="[rules.required]"
-                  variant="underlined" />
+                <v-text-field
+                  v-model="form.apellidoPaterno"
+                  label="Apellido Paterno"
+                  :rules="[rules.required]"
+                  variant="underlined"
+                />
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-text-field v-model="form.apellidoMaterno" label="Apellido Materno" :rules="[rules.required]"
-                  variant="underlined" />
+                <v-text-field
+                  v-model="form.apellidoMaterno"
+                  label="Apellido Materno"
+                  :rules="[rules.required]"
+                  variant="underlined"
+                />
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-text-field v-model="form.dni" label="DNI" :counter="8" :rules="[rules.required]"
-                  variant="underlined" />
+                <v-text-field
+                  v-model="form.dni"
+                  label="DNI"
+                  :counter="8"
+                  :rules="[rules.required]"
+                  variant="underlined"
+                />
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-text-field v-model="form.direccion" label="Dirección" :rules="[rules.required]"
-                  variant="underlined" />
+                <v-text-field
+                  v-model="form.direccion"
+                  label="Dirección"
+                  :rules="[rules.required]"
+                  variant="underlined"
+                />
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-text-field v-model="form.telefono" label="Teléfono" :counter="9" :rules="[rules.required]"
-                  variant="underlined" />
+                <v-text-field
+                  v-model="form.telefono"
+                  label="Teléfono"
+                  :counter="9"
+                  :rules="[rules.required]"
+                  variant="underlined"
+                />
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-text-field v-model="form.email" label="Email" :rules="[rules.required, rules.email]"
-                  variant="underlined" />
+                <v-text-field
+                  v-model="form.email"
+                  label="Email"
+                  :rules="[rules.required, rules.email]"
+                  variant="underlined"
+                />
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-date-input v-model="form.fechaNacimiento" label="Fecha de nacimiento" :rules="[rules.required]"
-                  variant="underlined"></v-date-input>
+                <v-date-input
+                  v-model="form.fechaNacimiento"
+                  label="Fecha de nacimiento"
+                  :rules="[rules.required]"
+                  variant="underlined"
+                ></v-date-input>
               </v-col>
             </v-row>
           </v-form>
@@ -165,11 +211,9 @@ const closeModal = () => {
           <v-btn text="Cerrar" variant="plain" @click="closeModal()" />
           <v-btn color="primary" text="Crear" variant="tonal" @click="save" />
         </v-card-actions>
-
       </v-card>
     </v-dialog>
   </template>
-
 </template>
 
 <style scoped></style>
