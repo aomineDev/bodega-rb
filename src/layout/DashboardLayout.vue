@@ -74,7 +74,7 @@
     </template>
 
     <v-app-bar-title>
-      <v-breadcrumbs :items="['Dashboard', 'Home']">
+      <v-breadcrumbs :items="['Dashboard', currentTitle]">
         <template #divider>
           <v-icon color="grey-lighten-1">mdi-chevron-right</v-icon>
         </template>
@@ -98,9 +98,9 @@
 </template>
 
 <script setup>
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import router from '@/router'
 import { useDisplay } from 'vuetify'
 
@@ -111,12 +111,12 @@ const rail = ref(false)
 // const userMenu = ref(false)
 
 const cajaitems = [
-  { title: 'Ventas', icon: 'mdi-view-dashboard', value: 'dashboard', to: '/path' },
-  { title: 'Clientes', icon: 'mdi-account', value: 'clientes', to: '/about' },
-  { title: 'Boletas / Facturas', icon: 'mdi-cog', value: 'boletas', to: '/path' },
+  { title: 'Ventas', icon: 'mdi-view-dashboard', value: 'ventas', to: '/caja/ventas' },
+  { title: 'Clientes', icon: 'mdi-account', value: 'clientes', to: '/caja/clientes' },
+  { title: 'Comprobantes', icon: 'mdi-cog', value: 'comprobantes', to: '/caja/comprobantes' },
 ]
 const inventarioItems = [
-  { title: 'Tima de inventario', icon: 'mdi-account', value: 'inventario', to: '/path' },
+  { title: 'Toma de inventario', icon: 'mdi-account', value: 'inventario', to: '/path' },
   { title: 'Auditoria', icon: 'mdi-account', value: 'inventario', to: '/path' },
 ]
 
@@ -126,6 +126,9 @@ const gestionItems = [
   { title: 'Productos', icon: 'mdi-package-variant-closed', value: 'productos', to: '/managment/product' },
   { title: 'Categorias', icon: 'mdi-account', value: 'categorias', to: '/path' },
 ]
+
+const route = useRoute() //obtener ruta actual
+const currentTitle = computed(() => route.meta.title || 'Dashboard')
 
 const logout = () => {
   setUser(null)
