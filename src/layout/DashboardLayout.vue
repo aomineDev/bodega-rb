@@ -23,7 +23,7 @@
       <v-divider></v-divider>
       <v-list-subheader>Caja</v-list-subheader>
 
-      <v-list-item v-for="item in positems" :key="item.value" :title="item.title" :prepend-icon="item.icon"
+      <v-list-item v-for="item in cajaitems" :key="item.value" :title="item.title" :prepend-icon="item.icon"
         :value="item.value" :to="item.to" color="primary"></v-list-item>
 
       <v-divider></v-divider>
@@ -108,10 +108,10 @@ const { mobile } = useDisplay()
 const drawer = ref(true)
 const rail = ref(false)
 
-const positems = [
-  { title: 'Ventas', icon: 'mdi-view-dashboard', value: 'sales', to: '/pos/sales' },
-  { title: 'Clientes', icon: 'mdi-account', value: 'customers', to: '/pos/customers' },
-  { title: 'Comprobantes', icon: 'mdi-cog', value: 'vouchers', to: '/pos/vouchers' },
+const cajaitems = [
+  { title: 'Ventas', icon: 'mdi-view-dashboard', value: 'ventas', to: '/caja/ventas' },
+  { title: 'Clientes', icon: 'mdi-account', value: 'clientes', to: '/caja/clientes' },
+  { title: 'Comprobantes', icon: 'mdi-cog', value: 'comprobantes', to: '/caja/comprobantes' },
 ]
 const inventarioItems = [
   { title: 'Toma de inventario', icon: 'mdi-account', value: 'inventario', to: '/path' },

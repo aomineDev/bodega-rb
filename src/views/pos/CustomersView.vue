@@ -1,9 +1,8 @@
 <script setup>
-
-import ActionMenu from '@/components/ActionMenu.vue';
+import ActionMenu from '@/components/ActionMenu.vue'
 import { VDateInput } from 'vuetify/labs/VDateInput'
 import { ref } from 'vue';
-import { useValidation } from '@/composables/formValidation';
+import { useValidation } from '@/composables/useFormValidation';
 
 // Variables reactivas
 const clienteFormModal = ref(false)
@@ -100,7 +99,7 @@ const closeModal = () => {
 
   <!-- Tabla -->
   <v-data-table :headers="headers" :items="items">
-    <template #[`item.actions`]="{ item }">
+    <template #item.actions="{ item }">
       <action-menu @action="(type) => handleAction(type, item)" />
     </template>
   </v-data-table>
@@ -109,9 +108,7 @@ const closeModal = () => {
   <template>
     <v-dialog v-model="clienteFormModal" max-width="600">
       <template #activator="{ props }">
-        <v-btn v-bind="props" prepend-icon="mdi-account" variant="tonal">
-          Crear Cliente
-        </v-btn>
+        <v-btn v-bind="props" prepend-icon="mdi-account" variant="tonal"> Crear Cliente </v-btn>
       </template>
 
       <v-card title="Crear Cliente">
@@ -165,11 +162,9 @@ const closeModal = () => {
           <v-btn text="Cerrar" variant="plain" @click="closeModal()" />
           <v-btn color="primary" text="Crear" variant="tonal" @click="save" />
         </v-card-actions>
-
       </v-card>
     </v-dialog>
   </template>
-
 </template>
 
 <style scoped></style>

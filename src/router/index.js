@@ -26,7 +26,6 @@ const router = createRouter({
         {
           path: 'home',
           component: HomeView,
-          meta: { title: 'Home' },
         },
         {
           path: 'about',
@@ -56,23 +55,20 @@ const router = createRouter({
       ],
     },
     {
-      path: '/pos',
+      path: '/caja',
       component: DashboardLayout,
       children: [
         {
-          path: 'sales',
+          path: 'ventas',
           component: SalesView,
-          meta: { title: 'Ventas' },
         },
         {
-          path: 'vouchers',
+          path: 'comprobantes',
           component: VouchersView,
-          meta: { title: 'Comprobantes' },
         },
         {
-          path: 'customers',
+          path: 'clientes',
           component: CustomersView,
-          meta: { title: 'Clientes' },
         },
       ],
     },
