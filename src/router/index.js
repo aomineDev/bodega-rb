@@ -7,9 +7,9 @@ import LoginView from '@/views/LoginView.vue'
 import ProviderView from '@/views/managment/ProviderView.vue'
 import EmployeeView from '@/views/managment/EmployeeView.vue'
 import ProductView from '@/views/managment/ProductView.vue'
-import VentasView from '@/views/caja/VentasView.vue'
-import ComprobantesView from '@/views/caja/ComprobantesView.vue'
-import ClientesView from '@/views/caja/ClientesView.vue'
+import SalesView from '@/views/pos/CustomersView.vue'
+import CustomersView from '@/views/pos/CustomersView.vue'
+import VouchersView from '@/views/pos/VouchersView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,22 +60,22 @@ const router = createRouter({
       ],
     },
     {
-      path: '/caja',
+      path: '/pos',
       component: DashboardLayout,
       children: [
         {
-          path: 'ventas',
-          component: VentasView,
+          path: 'sales',
+          component: SalesView,
           meta: { title: 'Ventas' },
         },
         {
-          path: 'comprobantes',
-          component: ComprobantesView,
+          path: 'vouchers',
+          component: VouchersView,
           meta: { title: 'Comprobantes' },
         },
         {
-          path: 'clientes',
-          component: ClientesView,
+          path: 'customers',
+          component: CustomersView,
           meta: { title: 'Clientes' },
         },
       ],
