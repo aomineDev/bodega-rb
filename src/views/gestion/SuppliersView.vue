@@ -1,10 +1,9 @@
 <script setup>
 import ActionMenu from '@/components/ActionMenu.vue';
 import { VDateInput } from 'vuetify/labs/VDateInput'
-
 import { useValidation } from '@/composables/formValidation';
 import { ref } from 'vue'
-
+import { useSnackbar } from '@/stores/snackbar';
 //data example
 const suppliers = [
     {
@@ -98,7 +97,7 @@ const supplier = ref({
 const supplierForm = ref(false)
 const supplierFormModal = ref(false)
 const { rules, resetForm } = useValidation()
-
+const { showSuccessSnackbar } = useSnackbar()
 //fuctions
 const save = async () => {
     const { valid } = await supplierForm.value.validate()
@@ -115,6 +114,7 @@ function handleAction(type, item) {
     console.log("click aqui")
     if (type == "view") {
         console.log("ver detalle " + item.id)
+        showSuccessSnackbar("xd")
     }
     if (type == "edit") {
         console.log("editar " + item.id)
