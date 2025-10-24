@@ -1,9 +1,11 @@
 <script setup>
 import ActionMenu from '@/components/ActionMenu.vue';
+import { VDateInput } from 'vuetify/labs/VDateInput'
+
 import { useValidation } from '@/composables/formValidation';
 import { ref } from 'vue'
 
-// datos prueba
+//data example
 const suppliers = [
     {
         id: 1,
@@ -66,7 +68,7 @@ const suppliers = [
         email: 'soporte@tecnoperu.pe'
     }
 ];
-// cabezeras de la tabla
+//data header
 const headers = [
     { title: 'Nombre comercial', key: 'nombreComercial' },
     { title: 'Tipo de contribuyente', key: 'tipoContribuyente' },
@@ -79,7 +81,7 @@ const headers = [
     { title: 'Email', key: 'email' },
     { title: 'Acción', key: 'actions', sortable: false }
 ]
-// modaledo del formulario
+//data model
 const supplier = ref({
     nombreComercial: '',
     tipoContribuyente: '',
@@ -92,8 +94,36 @@ const supplier = ref({
     email: ''
 })
 
-const dialog = ref(false)
-const { rules } = useValidation()
+//const
+const supplierForm = ref(false)
+const supplierFormModal = ref(false)
+const { rules, resetForm } = useValidation()
+
+//fuctions
+const save = async () => {
+    const { valid } = await supplierForm.value.validate()
+    if (!valid) return
+    supplierFormModal.value = false
+
+}
+const close = () => {
+    resetForm(supplierForm, supplier)
+    supplierFormModal.value = false
+}
+
+function handleAction(type, item) {
+    console.log("click aqui")
+    if (type == "view") {
+        console.log("ver detalle " + item.id)
+    }
+    if (type == "edit") {
+        console.log("editar " + item.id)
+    }
+    if (type == "delete") {
+        console.log("eliminar " + item.id)
+    }
+
+}
 </script>
 
 <template>
@@ -108,8 +138,8 @@ const { rules } = useValidation()
         </v-col>
 
         <v-col cols="12" md="6" class="d-flex justify-md-end">
-            <v-btn color="primary" prepend-icon="mdi-plus" @click="dialog = true">
-                Agregar proveedor
+            <v-btn color="primary" prepend-icon="mdi-plus" @click="supplierFormModal = true">
+                Crear Proveedor
             </v-btn>
         </v-col>
     </v-row>
@@ -122,10 +152,10 @@ const { rules } = useValidation()
     </v-data-table>
 
     <!-- modal añadir -->
-    <v-dialog v-model="dialog" max-width="600">
+    <v-dialog v-model="supplierFormModal" max-width="600">
         <v-card title="Agregar proveedor">
 
-            <v-form v-model="valid" class="pa-3">
+            <v-form ref="supplierForm" class="pa-3">
                 <v-container fluid>
                     <v-row>
                         <v-col cols="12" md="6">
@@ -135,40 +165,42 @@ const { rules } = useValidation()
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Actividad economica" variant="underlined"
-                                v-model="supplier.actividadEconomica"></v-text-field>
+                                v-model="supplier.actividadEconomica" :rules="[rules.required]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Ruc" variant="underlined" v-model="supplier.ruc"></v-text-field>
+                            <v-text-field label="Ruc" variant="underlined" v-model="supplier.ruc"
+                                :rules="[rules.required]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Telefono" variant="underlined"
-                                v-model="supplier.telefono"></v-text-field>
+                            <v-text-field label="Telefono" variant="underlined" :counter="9" v-model="supplier.telefono"
+                                :rules="[rules.phone]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Email" variant="underlined" v-model="supplier.email"></v-text-field>
+                            <v-text-field label="Email" variant="underlined" v-model="supplier.email"
+                                :rules="[rules.email]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre comercial" variant="underlined"
-                                v-model="supplier.nombreComercial"></v-text-field>
+                                v-model="supplier.nombreComercial" :rules="[rules.required]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Tipo contribuyente" variant="underlined"
-                                v-model="supplier.tipoContribuyente"></v-text-field>
+                                v-model="supplier.tipoContribuyente" :rules="[rules.required]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Direccion" variant="underlined"
-                                v-model="supplier.direccion"></v-text-field>
+                            <v-text-field label="Direccion" variant="underlined" v-model="supplier.direccion"
+                                :rules="[rules.required]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field prepend-icon="mdi-calendar-month" label="Fecha de registro"
-                                variant="underlined" v-model="supplier.fechaRegistro"></v-text-field>
+                            <v-date-input v-model="supplier.fechaRegistro" label="Fecha de registro"
+                                :rules="[rules.required]" variant="underlined"></v-date-input>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -176,8 +208,8 @@ const { rules } = useValidation()
 
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="dialog = false"></v-btn>
-                <v-btn class="ms-auto" text="Agregar" color="primary"></v-btn>
+                <v-btn class="ms-auto" text="Cerrar" @click="close()"></v-btn>
+                <v-btn class="ms-auto" text="Crear" variant="tonal" color="primary" @click="save"></v-btn>
 
             </v-card-actions>
 
