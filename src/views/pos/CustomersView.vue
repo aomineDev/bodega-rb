@@ -3,7 +3,7 @@
 import ActionMenu from '@/components/ActionMenu.vue';
 import { VDateInput } from 'vuetify/labs/VDateInput'
 import { ref } from 'vue';
-import { useValidation } from '@/composables/formValidation';
+import { useValidation } from '@/composables/useFormValidation';
 
 // Variables reactivas
 const clienteFormModal = ref(false)

@@ -1,7 +1,7 @@
 <script setup>
 import ActionMenu from '@/components/ActionMenu.vue';
 import { VDateInput } from 'vuetify/labs/VDateInput'
-import { useValidation } from '@/composables/formValidation';
+import { useValidation } from '@/composables/useFormValidation';
 import { ref } from 'vue'
 import { useSnackbar } from '@/stores/snackbar';
 //data example

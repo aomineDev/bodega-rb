@@ -7,7 +7,7 @@ import DashboardLayout from '@/layout/DashboardLayout.vue'
 import SuppliersView from '@/views/gestion/SuppliersView.vue'
 import EmployeesView from '@/views/gestion/EmployeesView.vue'
 import ProductsView from '@/views/gestion/ProductsView.vue'
-import SalesView from '@/views/pos/CustomersView.vue'
+import SalesView from '@/views/pos/SalesView.vue'
 import CustomersView from '@/views/pos/CustomersView.vue'
 import VouchersView from '@/views/pos/VouchersView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
@@ -26,7 +26,6 @@ const router = createRouter({
         {
           path: 'home',
           component: HomeView,
-          meta: { title: 'Home' },
         },
         {
           path: 'about',
@@ -56,23 +55,20 @@ const router = createRouter({
       ],
     },
     {
-      path: '/pos',
+      path: '/caja',
       component: DashboardLayout,
       children: [
         {
-          path: 'sales',
+          path: 'ventas',
           component: SalesView,
-          meta: { title: 'Ventas' },
         },
         {
-          path: 'vouchers',
+          path: 'comprobantes',
           component: VouchersView,
-          meta: { title: 'Comprobantes' },
         },
         {
-          path: 'customers',
+          path: 'clientes',
           component: CustomersView,
-          meta: { title: 'Clientes' },
         },
       ],
     },
