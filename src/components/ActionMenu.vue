@@ -9,6 +9,7 @@ defineProps({
     ],
   },
 })
+
 defineEmits(['action'])
 </script>
 
