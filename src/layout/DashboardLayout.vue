@@ -35,7 +35,7 @@
       <v-list-subheader>Caja</v-list-subheader>
 
       <v-list-item
-        v-for="item in cajaitems"
+        v-for="item in positems"
         :key="item.value"
         :title="item.title"
         :prepend-icon="item.icon"
@@ -164,10 +164,10 @@ const { mobile } = useDisplay()
 const drawer = ref(true)
 const rail = ref(false)
 
-const cajaitems = [
-  { title: 'Ventas', icon: 'mdi-view-dashboard', value: 'ventas', to: '/caja/ventas' },
-  { title: 'Clientes', icon: 'mdi-account', value: 'clientes', to: '/caja/clientes' },
-  { title: 'Comprobantes', icon: 'mdi-cog', value: 'comprobantes', to: '/caja/comprobantes' },
+const positems = [
+  { title: 'Ventas', icon: 'mdi-view-dashboard', value: 'sales', to: '/pos/sales' },
+  { title: 'Clientes', icon: 'mdi-account', value: 'customers', to: '/pos/customers' },
+  { title: 'Comprobantes', icon: 'mdi-cog', value: 'vouchers', to: '/pos/vouchers' },
 ]
 const inventarioItems = [
   { title: 'Toma de inventario', icon: 'mdi-account', value: 'inventario', to: '/path' },
@@ -179,14 +179,14 @@ const gestionItems = [
     title: 'Proveedores',
     icon: 'mdi-truck-outline',
     value: 'proveedores',
-    to: '/managment/provider',
+    to: '/gestion/suppliers',
   },
-  { title: 'Empleados', icon: 'mdi-account-group ', value: 'empleados', to: '/managment/employee' },
+  { title: 'Empleados', icon: 'mdi-account-group ', value: 'empleados', to: '/gestion/employees' },
   {
     title: 'Productos',
     icon: 'mdi-package-variant-closed',
     value: 'productos',
-    to: '/managment/product',
+    to: '/gestion/products',
   },
   { title: 'Categorias', icon: 'mdi-account', value: 'categorias', to: '/path' },
 ]

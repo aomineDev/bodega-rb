@@ -3,13 +3,14 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import AboutView from '@/views/AboutView.vue'
 import DashboardLayout from '@/layout/DashboardLayout.vue'
-import LoginView from '@/views/auth/LoginView.vue'
-import ProviderView from '@/views/managment/ProviderView.vue'
-import EmployeeView from '@/views/managment/EmployeeView.vue'
-import ProductView from '@/views/managment/ProductView.vue'
-import VentasView from '@/views/caja/VentasView.vue'
-import ComprobantesView from '@/views/caja/ComprobantesView.vue'
-import ClientesView from '@/views/caja/ClientesView.vue'
+import LoginView from '@/views/LoginView.vue'
+
+import SuppliersView from '@/views/gestion/SuppliersView.vue'
+import EmployeesView from '@/views/gestion/EmployeesView.vue'
+import ProductsView from '@/views/gestion/ProductsView.vue'
+import SalesView from '@/views/pos/CustomersView.vue'
+import CustomersView from '@/views/pos/CustomersView.vue'
+import VouchersView from '@/views/pos/VouchersView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,43 +35,43 @@ const router = createRouter({
       ],
     },
     {
-      path: '/managment',
+      path: '/gestion',
       component: DashboardLayout,
       children: [
         {
-          path: 'provider',
-          component: ProviderView,
+          path: 'suppliers',
+          component: SuppliersView,
           meta: { title: 'Proveedores' },
         },
         {
-          path: 'employee',
-          component: EmployeeView,
+          path: 'employees',
+          component: EmployeesView,
           meta: { title: 'Empleados' },
         },
         {
-          path: 'product',
-          component: ProductView,
+          path: 'products',
+          component: ProductsView,
           meta: { title: 'Productos' },
         },
       ],
     },
     {
-      path: '/caja',
+      path: '/pos',
       component: DashboardLayout,
       children: [
         {
-          path: 'ventas',
-          component: VentasView,
+          path: 'sales',
+          component: SalesView,
           meta: { title: 'Ventas' },
         },
         {
-          path: 'comprobantes',
-          component: ComprobantesView,
+          path: 'vouchers',
+          component: VouchersView,
           meta: { title: 'Comprobantes' },
         },
         {
-          path: 'clientes',
-          component: ClientesView,
+          path: 'customers',
+          component: CustomersView,
           meta: { title: 'Clientes' },
         },
       ],
