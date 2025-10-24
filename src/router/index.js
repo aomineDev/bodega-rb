@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import HomeView from '../views/HomeView.vue'
+import HomeView from '@/views/HomeView.vue'
 import AboutView from '@/views/AboutView.vue'
 import DashboardLayout from '@/layout/DashboardLayout.vue'
-import LoginView from '@/views/LoginView.vue'
+import LoginView from '@/views/auth/LoginView.vue'
 import ProviderView from '@/views/managment/ProviderView.vue'
 import EmployeeView from '@/views/managment/EmployeeView.vue'
 import ProductView from '@/views/managment/ProductView.vue'
@@ -33,11 +33,6 @@ const router = createRouter({
         },
       ],
     },
-    {
-      path: '/login',
-      component: LoginView,
-    },
-    { path: '/:pathMatch(.*)*', redirect: '/login' },
     {
       path: '/managment',
       component: DashboardLayout,
@@ -80,6 +75,11 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: '/login',
+      component: LoginView,
+    },
+    { path: '/:pathMatch(.*)*', redirect: '/login' },
   ],
 })
 

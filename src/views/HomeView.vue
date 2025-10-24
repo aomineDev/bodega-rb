@@ -1,45 +1,13 @@
 <script setup>
+import { useSnackbar } from '@/stores/snackbar'
 
-import ActionMenu from '@/components/ActionMenu.vue';
-
-const headers = [
-  { title: 'Nombre', key: 'name' },
-  { title: 'Especie', key: 'species' },
-  { title: 'Dieta', key: 'diet' },
-  { title: 'Hábitat', key: 'habitat' },
-  { title: 'Acciones', key: 'actions', sortable: false },
-]
-
-const items = [
-  {
-    name: 'African Elephant',
-    species: 'Loxodonta africana',
-    diet: 'Herbivore',
-    habitat: 'Savanna, Forests',
-  },
-  {
-    name: 'African Elephant',
-    species: 'Loxodonta africana',
-    diet: 'Herbivore',
-    habitat: 'Savanna, Forests',
-  },
-  {
-    name: 'African Elephant',
-    species: 'Loxodonta africana',
-    diet: 'Herbivore',
-    habitat: 'Savanna, Forests',
-  },
-]
+const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 </script>
 
 <template>
-
-  <v-data-table :headers="headers" :items="items">
-    <template #[`item.actions`]="{ item }">
-      <action-menu @action="(type) => handleAction(type, item)" />
-    </template>
-  </v-data-table>
-
+  <h1>Home</h1>
+  <v-btn @click="showSuccessSnackbar('Snackbar')">Success Snackbar</v-btn>
+  <v-btn @click="showErrorSnackbar('Snackbar')">Error Snackbar</v-btn>
 </template>
 
 <style scoped></style>

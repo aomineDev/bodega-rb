@@ -1,7 +1,7 @@
 <script setup>
 import router from '@/router'
 import { ref } from 'vue'
-import { useUserStore } from '../stores/user'
+import { useUserStore } from '../../stores/user'
 
 const username = ref('')
 
