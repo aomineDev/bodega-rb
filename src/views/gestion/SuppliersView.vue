@@ -129,8 +129,8 @@ const { rules } = useValidation()
                 <v-container fluid>
                     <v-row>
                         <v-col cols="12" md="6">
-                            <v-text-field label="Razon social" variant="underlined"
-                                v-model="supplier.razonSocial"></v-text-field>
+                            <v-text-field label="Razon social" variant="underlined" v-model="supplier.razonSocial"
+                                :rules="[rules.required]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">

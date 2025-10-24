@@ -7,5 +7,20 @@ export function useValidation() {
     phone: (v) => /^\d{9}$/.test(v) || 'Teléfono inválido',
   }
 
-  return { rules }
+  /**
+   * @param {Ref} formRef
+   * @param {Ref} dataRef
+   */
+  const resetForm = (formRef, dataRef) => {
+    if (dataRef && dataRef.value) {
+      Object.keys(dataRef.value).forEach((key) => {
+        dataRef.value[key] = ''
+      })
+    }
+    if (formRef && formRef.value) {
+      formRef.value.resetValidation()
+    }
+  }
+
+  return { rules, resetForm }
 }

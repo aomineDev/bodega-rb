@@ -9,6 +9,7 @@ import { useValidation } from '@/composables/formValidation';
 const clienteFormModal = ref(false)
 const clienteForm = ref(null)
 const search = ref('')
+const { rules, resetForm } = useValidation()
 
 const headers = [
   { title: 'Nombre', key: 'name' },
@@ -60,13 +61,16 @@ const form = ref({
   fechaNacimiento: '',
 })
 
-const { rules } = useValidation()
-
 const save = async () => {
   const { valid } = await clienteForm.value.validate()
   if (!valid) return
 
   console.log('Formulario válido:', form.value)
+  clienteFormModal.value = false
+}
+
+const closeModal = () => {
+  resetForm(clienteForm, form)
   clienteFormModal.value = false
 }
 </script>
@@ -158,7 +162,7 @@ const save = async () => {
 
         <v-card-actions>
           <v-spacer />
-          <v-btn text="Cerrar" variant="plain" @click="clienteFormModal = false" />
+          <v-btn text="Cerrar" variant="plain" @click="closeModal()" />
           <v-btn color="primary" text="Crear" variant="tonal" @click="save" />
         </v-card-actions>
 
