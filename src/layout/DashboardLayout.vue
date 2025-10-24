@@ -86,7 +86,7 @@
       <v-divider></v-divider>
 
       <v-menu location="end">
-        <template v-slot:activator="{ props }">
+        <template #activator="{ props }">
           <v-list-item
             prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
             subtitle="admin"
