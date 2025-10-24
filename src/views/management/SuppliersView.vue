@@ -97,13 +97,16 @@ const supplier = ref({
 const supplierForm = ref(false)
 const supplierFormModal = ref(false)
 const { rules, resetForm } = useValidation()
-const { showSuccessSnackbar } = useSnackbar()
+const { showSuccessSnackbar, showWarningSnackbar } = useSnackbar()
 //fuctions
 const save = async () => {
     const { valid } = await supplierForm.value.validate()
-    if (!valid) return
+    if (!valid) {
+        showWarningSnackbar("Datos incorrectos")
+        return
+    }
     supplierFormModal.value = false
-
+    showSuccessSnackbar("Creado exitosamente")
 }
 const close = () => {
     resetForm(supplierForm, supplier)
@@ -114,13 +117,13 @@ function handleAction(type, item) {
     console.log("click aqui")
     if (type == "view") {
         console.log("ver detalle " + item.id)
-        showSuccessSnackbar("xd")
     }
     if (type == "edit") {
         console.log("editar " + item.id)
     }
     if (type == "delete") {
         console.log("eliminar " + item.id)
+        showSuccessSnackbar("Eliminado correctamente")
     }
 
 }
