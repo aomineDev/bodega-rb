@@ -35,8 +35,8 @@
       <v-divider></v-divider>
       <v-list-subheader>Almacen</v-list-subheader>
 
-      <v-list-item title="Ingreso de productos" prepend-icon="mdi-view-dashboard" value="ingrteso"
-        active-color="primary" to="/path"></v-list-item>
+      <v-list-item title="Ingreso de productos" prepend-icon="mdi-package-variant-plus" value="ingreso"
+        active-color="primary" to="/managment/products-entry"></v-list-item>
 
       <v-divider></v-divider>
       <v-list-subheader>Gestion</v-list-subheader>
