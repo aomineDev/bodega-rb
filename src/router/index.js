@@ -4,12 +4,12 @@ import HomeView from '../views/HomeView.vue'
 import AboutView from '@/views/AboutView.vue'
 import DashboardLayout from '@/layout/DashboardLayout.vue'
 import LoginView from '@/views/LoginView.vue'
-import ProviderView from '@/views/managment/ProviderView.vue'
-import EmployeeView from '@/views/managment/EmployeeView.vue'
-import ProductView from '@/views/managment/ProductView.vue'
 import VentasView from '@/views/caja/VentasView.vue'
 import ComprobantesView from '@/views/caja/ComprobantesView.vue'
 import ClientesView from '@/views/caja/ClientesView.vue'
+import SuppliersView from '@/views/gestion/suppliersView.vue'
+import EmployeesView from '@/views/gestion/EmployeesView.vue'
+import ProductsView from '@/views/gestion/ProductsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,22 +39,22 @@ const router = createRouter({
     },
     { path: '/:pathMatch(.*)*', redirect: '/login' },
     {
-      path: '/managment',
+      path: '/gestion',
       component: DashboardLayout,
       children: [
         {
-          path: 'provider',
-          component: ProviderView,
+          path: 'suppliers',
+          component: SuppliersView,
           meta: { title: 'Proveedores' },
         },
         {
-          path: 'employee',
-          component: EmployeeView,
+          path: 'employees',
+          component: EmployeesView,
           meta: { title: 'Empleados' },
         },
         {
-          path: 'product',
-          component: ProductView,
+          path: 'products',
+          component: ProductsView,
           meta: { title: 'Productos' },
         },
       ],
