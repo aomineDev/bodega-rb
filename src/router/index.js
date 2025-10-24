@@ -4,10 +4,10 @@ import HomeView from '@/views/HomeView.vue'
 import AboutView from '@/views/AboutView.vue'
 import DashboardLayout from '@/layout/DashboardLayout.vue'
 
-import SuppliersView from '@/views/gestion/SuppliersView.vue'
-import EmployeesView from '@/views/gestion/EmployeesView.vue'
-import ProductsView from '@/views/gestion/ProductsView.vue'
-import SalesView from '@/views/pos/SalesView.vue'
+import SuppliersView from '@/views/management/SuppliersView.vue'
+import EmployeesView from '@/views/management/EmployeesView.vue'
+import ProductsView from '@/views/management/ProductsView.vue'
+import SalesView from '@/views/pos/CustomersView.vue'
 import CustomersView from '@/views/pos/CustomersView.vue'
 import VouchersView from '@/views/pos/VouchersView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
@@ -38,17 +38,17 @@ const router = createRouter({
       component: DashboardLayout,
       children: [
         {
-          path: 'suppliers',
+          path: 'proveedores',
           component: SuppliersView,
           meta: { title: 'Proveedores' },
         },
         {
-          path: 'employees',
+          path: 'empleados',
           component: EmployeesView,
           meta: { title: 'Empleados' },
         },
         {
-          path: 'products',
+          path: 'productos',
           component: ProductsView,
           meta: { title: 'Productos' },
         },

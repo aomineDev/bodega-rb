@@ -123,14 +123,14 @@ const gestionItems = [
     title: 'Proveedores',
     icon: 'mdi-truck-outline',
     value: 'proveedores',
-    to: '/gestion/suppliers',
+    to: '/gestion/proveedores',
   },
-  { title: 'Empleados', icon: 'mdi-account-group ', value: 'empleados', to: '/gestion/employees' },
+  { title: 'Empleados', icon: 'mdi-account-group ', value: 'empleados', to: '/gestion/empleados' },
   {
     title: 'Productos',
     icon: 'mdi-package-variant-closed',
     value: 'productos',
-    to: '/gestion/products',
+    to: '/gestion/productos',
   },
   { title: 'Categorias', icon: 'mdi-account', value: 'categorias', to: '/path' },
 ]
