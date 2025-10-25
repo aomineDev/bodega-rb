@@ -18,6 +18,11 @@ const vuetify = createVuetify({
   icons: {
     defaultSet: 'mdi',
   },
+  defaults: {
+    VTextField: {
+      variant: 'underlined',
+    },
+  },
 })
 
 const app = createApp(App)

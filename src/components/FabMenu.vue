@@ -24,7 +24,7 @@ const open = ref(false)
 </script>
 
 <template>
-  <div class="fab-fixed">
+  <div class="position-fixed bottom-0 right-0 pa-4">
     <v-speed-dial v-model="open" :location="`bottom center`" :direction="direction">
       <template #activator="{ props: activatorProps }">
         <v-fab v-bind="activatorProps" :color="color" icon elevation="2">
@@ -52,12 +52,3 @@ const open = ref(false)
     </v-speed-dial>
   </div>
 </template>
-
-<style scoped>
-.fab-fixed {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 1000;
-}
-</style>
