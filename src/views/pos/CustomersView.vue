@@ -109,7 +109,6 @@ const handleActionFabMenu = (type) => {
   if (type === 'add') {
     customerEdit.value = false
     customerId.value = null
-    resetForm()
     clienteFormModal.value = true
   }
   if (type === 'filter') filterDialog.value = true
@@ -199,7 +198,7 @@ const selectFilter = [
         <v-card-text>
           <v-form ref="clienteForm">
             <v-row dense>
-              <template v-if="tipoCliente === 'Natural'">
+              <template v-if="filtros.tipoCliente === 'Natural'">
                 <v-col cols="12" md="6">
                   <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]" />
                 </v-col>
