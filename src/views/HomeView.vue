@@ -6,13 +6,17 @@ const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 
 import { useForm } from '@/composables/useForm'
 
-const { formRef, rules, handleSubmit, username, state } = useForm({
+const { formRef, rules, handleSubmit, username, state, file, name } = useForm({
   username: '',
+  name: '',
   state: null,
+  file: null,
 })
 
 const handleLogin = () => {
-  alert(username.value + ' ' + state.value)
+  console.log(file.value)
+  alert(username.value + ' ' + state.value + ' ' + file.value)
+  // file.value = null
 }
 
 const dialog = ref(false)
@@ -25,12 +29,19 @@ const dialog = ref(false)
   <h1>{{ username }}</h1>
   <v-form ref="formRef">
     <v-text-field label="Label" v-model="username" :rules="[rules.required]"></v-text-field>
+    <v-text-field label="Nombre" v-model="name" :rules="[rules.required]"></v-text-field>
     <v-select
       label="Estado"
       :items="['California', 'Colorado', 'Florida', 'Georgia', 'Texas', 'Wyoming']"
       v-model="state"
       :rules="[rules.required]"
     ></v-select>
+    <v-file-input
+      label="File input"
+      v-model="file"
+      clearable
+      :rules="[rules.required]"
+    ></v-file-input>
     <v-btn color="success" @click="handleSubmit(handleLogin)">login</v-btn>
   </v-form>
 
