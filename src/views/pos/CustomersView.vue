@@ -77,9 +77,7 @@ const form = ref({
 
 //dropdown
 const handleAction = (type, item) => {
-  if (type === 'view') {
-    console.log('Ver detalles de', item.nombre || item.razonSocial)
-  } else if (type === 'edit') {
+  if (type === 'edit') {
     customerEdit.value = true
     customerId.value = item.personaId || null
     clienteFormModal.value = true
@@ -135,7 +133,10 @@ const save = async () => {
   <!-- Tabla -->
   <v-data-table :headers="headers" :items="items">
     <template #item.actions="{ item }">
-      <action-menu @action="(type) => handleAction(type, item)" />
+      <action-menu :actions="[
+        { label: 'Editar', value: 'edit', icon: 'mdi-pencil' },
+        { label: 'Eliminar', value: 'delete', icon: 'mdi-delete', color: 'red' },
+      ]" @action="(type) => handleAction(type, item)" />
     </template>
   </v-data-table>
 
