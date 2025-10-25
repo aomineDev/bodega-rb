@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from 'vue'
-import { VBtn, VIcon, VTooltip } from 'vuetify/components'
 
 defineProps({
   actions: {
@@ -14,6 +13,10 @@ defineProps({
     type: String,
     default: 'primary',
   },
+  direction: {
+    type: String,
+    default: 'up',
+  },
 })
 
 defineEmits(['action'])
@@ -21,66 +24,40 @@ const open = ref(false)
 </script>
 
 <template>
-  <div class="fab-menu">
-    <transition-group name="fab-slide" tag="div">
-      <template v-if="open">
-        <div
-          v-for="(action, index) in actions"
-          :key="action.type"
-          class="fab-action"
-          :style="{ bottom: `${70 + index * 60}px` }"
-        >
-          <v-tooltip location="left">
-            <template #activator="{ props: tooltipProps }">
-              <v-btn
-                v-bind="tooltipProps"
-                :color="action.color"
-                icon
-                elevation="3"
-                @click="$emit('action', action.type)"
-              >
-                <v-icon>{{ action.icon }}</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ action.label }}</span>
-          </v-tooltip>
-        </div> </template
-      >``
-    </transition-group>
+  <div class="fab-fixed">
+    <v-speed-dial v-model="open" :location="`bottom center`" :direction="direction">
+      <template #activator="{ props: activatorProps }">
+        <v-fab v-bind="activatorProps" :color="color" icon elevation="2">
+          <v-icon size="large">{{ open ? 'mdi-close' : 'mdi-cog' }}</v-icon>
+        </v-fab>
+      </template>
 
-    <!-- Botón principal -->
-    <v-btn color="primary" icon elevation="4" @click="open = !open">
-      <v-icon>{{ open ? 'mdi-close' : 'mdi-cog' }}</v-icon>
-    </v-btn>
+      <!-- Botones secundarios -->
+      <template v-for="action in actions" :key="action.type">
+        <v-tooltip location="left">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              :color="action.color"
+              icon
+              elevation="2"
+              @click="$emit('action', action.type)"
+            >
+              <v-icon>{{ action.icon }}</v-icon>
+            </v-btn>
+          </template>
+          <span>{{ action.label }}</span>
+        </v-tooltip>
+      </template>
+    </v-speed-dial>
   </div>
 </template>
 
 <style scoped>
-.fab-menu {
+.fab-fixed {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 1100;
-}
-
-.fab-action {
-  position: absolute;
-  right: 0;
-  transition: all 0.25s ease;
-}
-
-.fab-slide-enter-active,
-.fab-slide-leave-active {
-  transition: all 0.25s ease;
-}
-
-.fab-slide-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.fab-slide-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
+  z-index: 1000;
 }
 </style>
