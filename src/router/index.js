@@ -11,6 +11,9 @@ import SalesView from '@/views/pos/CustomersView.vue'
 import CustomersView from '@/views/pos/CustomersView.vue'
 import VouchersView from '@/views/pos/VouchersView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
+import TakeInventoryView from '@/views/inventory/TakeInventoryView.vue'
+import AuditView from '@/views/inventory/AuditView.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,6 +72,20 @@ const router = createRouter({
         {
           path: 'clientes',
           component: CustomersView,
+        },
+      ],
+    },
+{
+      path: '/inventory',
+      component: DashboardLayout,
+      children: [
+        {
+          path: 'toma-inventario',
+          component: TakeInventoryView,
+        },
+        {
+          path: 'auditoria',
+          component: AuditView,
         },
       ],
     },

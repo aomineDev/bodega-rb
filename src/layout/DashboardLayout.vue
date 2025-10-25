@@ -114,8 +114,8 @@ const cajaitems = [
   { title: 'Comprobantes', icon: 'mdi-cog', value: 'comprobantes', to: '/caja/comprobantes' },
 ]
 const inventarioItems = [
-  { title: 'Toma de inventario', icon: 'mdi-account', value: 'inventario', to: '/path' },
-  { title: 'Auditoria', icon: 'mdi-account', value: 'auditoria', to: '/path' },
+  { title: 'Toma de inventario', icon: 'mdi-clipboard-list', value: 'toma-inventario', to: '/inventory/toma-inventario' },
+  { title: 'Auditoría', icon: 'mdi-magnify', value: 'auditoria', to: '/inventory/auditoria' },
 ]
 
 const gestionItems = [
