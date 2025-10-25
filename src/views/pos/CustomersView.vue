@@ -177,7 +177,7 @@ const selectFilter = [
       <v-card-text>
         <base-filter v-model:search="search" :filters="[
           { key: 'tipoCliente', label: 'Tipo de cliente', type: 'select', items: ['Natural', 'Jurídico'], model: tipoCliente }
-        ]" @update:filter="({ key, value }) => tipoCliente = value" />
+        ]" @update:filter="({ key, value }) => filtros[key] = value" />
       </v-card-text>
 
       <v-card-actions>
