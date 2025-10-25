@@ -19,7 +19,7 @@ function handleLogin() {
 <template>
   <div>
     <h1>Login</h1>
-    <v-text-field label="Label" v-model="username" variant="underlined"></v-text-field>
+    <v-text-field label="Label" v-model="username"></v-text-field>
     <v-btn color="success" @click="handleLogin">login</v-btn>
   </div>
 </template>
