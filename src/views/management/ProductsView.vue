@@ -11,6 +11,7 @@ const categorias = ref(['Enlatados', 'Conservas', 'Carnes'])
 const productForm = ref(false)
 const productFormModal = ref(false)
 const productDetailModal = ref(false)
+const productDeleteModal = ref(false)
 const product = ref({
     codigoBarra: '',
     nombre: '',
@@ -26,20 +27,40 @@ const product = ref({
     proveedor: ''
 })
 
-const producto = ref({
-    codigoBarra: '1234567890123',
-    nombre: 'Atún en lata',
-    descripcion: 'Atún en trozo gloria 170g',
-    precioUnitario: 8.50,
-    precioPromocion: 6.50,
-    inicioPromocion: '2025-10-20',
-    finPromocion: '2025-10-31',
-    stockActual: 85,
-    unidadMedida: 'unidad',
-    imagen: '/public/milk.png',
-    categoria: 'Conservas',
-    proveedor: 'Alicorp'
-})
+const producto = ref([
+    {
+        id: 1,
+        codigoBarra: '1234567890123',
+        nombre: 'Leche gloria',
+        descripcion: 'Leche de toro',
+        precioUnitario: 8.50,
+        precioPromocion: 6.50,
+        inicioPromocion: '2025-10-20',
+        finPromocion: '2025-10-31',
+        stockActual: 85,
+        unidadMedida: 'unidad',
+        imagen: '/public/milk.png',
+        categoria: 'Conservas',
+        proveedor: 'Alicorp'
+    },
+    {
+        id: 2,
+        codigoBarra: '1234567890123',
+        nombre: 'Atun',
+        descripcion: 'Leche de toro',
+        precioUnitario: 8.50,
+        precioPromocion: 6.50,
+        inicioPromocion: '2025-10-20',
+        finPromocion: '2025-10-31',
+        stockActual: 85,
+        unidadMedida: 'unidad',
+        imagen: '/public/milk.png',
+        categoria: 'Conservas',
+        proveedor: 'Alicorp'
+    }
+]
+
+)
 const save = async () => {
     const { valid } = await productForm.value.validate()
     if (!valid) {
@@ -58,57 +79,24 @@ function handleAction(type, item) {
     console.log("click aqui")
     if (type == "view") {
         console.log("detail producto" + item.nombre)
-        productDetailModal.value = true
+        productDetailModal.value = item
     }
     if (type == "edit") {
         console.log("editar " + item.id)
     }
     if (type == "delete") {
         console.log("eliminar " + item.id)
-        showSuccessSnackbar("Eliminado correctamente")
+        productDeleteModal.value = true
     }
 
 }
-const productos = [
-    {
-        nombre: "Atún en aceite",
-        precio: 8.5,
-        stock: 12,
-        imagen: "/public/atun.jpg",
-    },
-    {
-        nombre: "Leche fresca",
-        precio: 5.9,
-        stock: 0,
-        imagen: "/public/milk.png",
-    },
-    {
-        nombre: "Galletas integrales",
-        precio: 3.5,
-        stock: 5,
-        imagen: "/public/galleta.png",
-    }, {
-        nombre: "Galletas integrales",
-        precio: 3.5,
-        stock: 5,
-        imagen: "/public/galleta.png",
-    }, {
-        nombre: "Galletas integrales",
-        precio: 3.5,
-        stock: 5,
-        imagen: "/public/galleta.png",
-    }, {
-        nombre: "Galletas integrales",
-        precio: 3.5,
-        stock: 5,
-        imagen: "/public/galleta.png",
-    }, {
-        nombre: "Galletas integrales",
-        precio: 3.5,
-        stock: 5,
-        imagen: "/public/galleta.png",
-    },
-];
+const deleteModal = () => {
+    console.log("Elominado")
+    productDeleteModal.value = false
+    showSuccessSnackbar("Eliminado correctamente")
+
+}
+
 </script>
 <template>
 
@@ -129,21 +117,21 @@ const productos = [
 
     <!-- cartas -->
     <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(producto, index) in productos" :key="index">
+        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in producto" :key="index">
             <v-card elevation="1" rounded="xl">
-                <v-img height="220px" :src="producto.imagen" contain></v-img>
+                <v-img height="220px" :src="item.imagen" contain></v-img>
                 <v-divider :thickness="3"></v-divider>
 
                 <v-card-title class="d-flex justify-space-between align-center">
-                    <span>{{ producto.nombre }}</span>
-                    <ActionMenu @action="(type) => handleAction(type, producto)"></ActionMenu>
+                    <span>{{ item.nombre }}</span>
+                    <ActionMenu @action="(type) => handleAction(type, item)"></ActionMenu>
                 </v-card-title>
                 <div class="font-weight-bold mx-4">
                     Embasados
                 </div>
                 <v-card-text class="text-end">
-                    <span :class="producto.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
-                        {{ producto.stock > 0 ? producto.stock + ' Unidades' : 'Agotado' }}
+                    <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
+                        {{ item.stock > 0 ? item.stock + ' Unidades' : 'Agotado' }}
                     </span>
                 </v-card-text>
             </v-card>
@@ -239,12 +227,12 @@ const productos = [
             </v-card-title>
 
             <v-card-text class="pa-6">
-                <v-row class="flex-column flex-md-row">
+                <v-row class="flex-column flex-md-row" v-for="(item, index) in producto" :key="index">
                     <!-- columna imagen -->
                     <v-col cols="12" md="5" class="d-flex">
 
                         <v-card class="pa-1 d-flex align-center flex-grow-1" elevation="0">
-                            <v-img :src="producto.imagen" contain max-width="100%" height="400"
+                            <v-img :src="item.imagen" contain max-width="100%" height="400"
                                 class="product-detail-img"></v-img>
                         </v-card>
                     </v-col>
@@ -255,7 +243,7 @@ const productos = [
                         <v-card class=" d-flex flex-column justify-center columna-centra" elevation="0"
                             style="height: 100%">
                             <h2 class="text-h5 font-weight-bold mb-4 text-primary ">
-                                {{ producto.nombre }}
+                                {{ item.nombre }}
                             </h2>
 
                             <div class="text-subtitle-3 font-weight-bold mb-4 ">
@@ -272,7 +260,7 @@ const productos = [
 
                             <div class="mb-3 ">
                                 <span class="text-h4 font-weight-bold text-primary mr-3">
-                                    S/ {{ producto.precioUnitario.toFixed(2) }}
+                                    S/ {{ producto.precioUnitario }}
                                 </span>
                             </div>
 
@@ -282,7 +270,7 @@ const productos = [
 
                             <div class="">
                                 <span class="text-h4 font-weight-bold text-success mr-3">
-                                    S/ {{ producto.precioPromocion.toFixed(2) }}
+                                    S/ {{ producto.precioPromocion }}
                                 </span>
                                 <!-- <v-chip color="success" size="small" class="font-weight-bold">
                                     OFERTA
@@ -392,6 +380,32 @@ const productos = [
                     prepend-icon="mdi-close" size="large">
                     CERRAR
                 </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+    <!-- modal eliminar -->
+    <v-dialog v-model="productDeleteModal" max-width="500">
+        <v-card>
+            <!-- Título centrado, grande y negro -->
+            <v-card-title class="text-h5 font-weight-bold  text-black mb-8">
+                Eliminar producto
+            </v-card-title>
+
+            <!-- Ícono centrado -->
+            <div class="text-center mb-4">
+                <v-icon size="100" color="error">mdi-alert-octagon-outline</v-icon>
+            </div>
+
+            <!-- Texto descriptivo -->
+            <v-card-text class="text-center text-body-2">
+                ¿Está seguro que desea eliminar este producto? <br />
+                <strong>Esta acción no se puede deshacer.</strong>
+            </v-card-text>
+
+            <!-- Botones alineados -->
+            <v-card-actions class="justify-end">
+                <v-btn text="Cerrar" @click="close()"></v-btn>
+                <v-btn text="Eliminar" color="error" @click="deleteModal"></v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
