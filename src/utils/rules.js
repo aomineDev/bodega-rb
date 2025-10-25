@@ -14,4 +14,7 @@ export const rules = {
   fecha: (v) => !!v || 'Seleccione una fecha',
   lote: (v) => (!!v && v.trim().length > 0) || 'Lote obligatorio',
   categoria: (v) => !!v || 'Seleccione una categoría',
+  proveedor: (v) => !!v || 'Seleccione un proveedor',
+  unidadMedida: (v) => !!v || 'Seleccione una unidad de medida',
+
 }

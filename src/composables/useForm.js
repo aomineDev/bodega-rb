@@ -6,7 +6,9 @@ export const useForm = (initialValue) => {
   const formRef = ref(null)
 
   const resetForm = () => {
-    if (existsFormRef()) formRef.value.reset()
+    if (!existsFormRef()) return
+
+    Object.keys(formData.value).forEach((key) => (formData.value[key] = null))
   }
 
   const isValid = async () => {
