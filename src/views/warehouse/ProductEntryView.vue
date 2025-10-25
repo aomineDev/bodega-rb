@@ -1,13 +1,18 @@
 <script setup>
 
 import ActionMenu from '@/components/ActionMenu.vue';
-// import { VDateInput } from 'vuetify/labs/VDateInput'
 import { ref } from 'vue';
-import { useValidation } from '@/composables/formValidation';
+import { useValidation } from '@/composables/useFormValidation';
+import { useSnackbar } from '@/stores/snackbar';
+// import { useDisplay } from 'vuetify/lib/composables/display';
 
 const productFormModal = ref(false)
 const productForm = ref(null)
 const search = ref('')
+const productDeleteModal = ref(false)
+
+const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
+// const {mdAndUp, smAndDown} = useDisplay()
 
 const categorias = ['Carnes', 'Lácteos', 'Bebidas']
 
@@ -108,9 +113,11 @@ const handleAction = (type, item) => {
   if (type === 'view') {
     console.log('Ver detalles de', item.name)
   } else if (type === 'edit') {
+    productFormModal.value = true;
     console.log('Editar', item.name)
   } else if (type === 'delete') {
     console.log('Eliminar', item.name)
+    productDeleteModal.value = true;
   }
 }
 
@@ -124,19 +131,39 @@ const form = ref({
   lote: '',
 })
 
-const { rules } = useValidation()
+const { rules, resetForm } = useValidation()
 
 const save = async () => {
   const { valid } = await productForm.value.validate()
   if (!valid) return
 
-  console.log('Formulario validar', form.value)
+  showSuccessSnackbar("Se agrego un nuevo producto")
+  console.log('Formulario', form.value)
+  resetForm(productForm, form)
+
+}
+
+const close = () => {
+  resetForm(productForm, form)
+  // productFormModal.value = false
+}
+
+
+const finishEntryProduct = () => {
+  showSuccessSnackbar("Se registro correctamente los productos")
   productFormModal.value = false
+
+}
+
+const deleteIngreso = () => {
+  showErrorSnackbar("Se elimino correctamente el ingreso")
+  productDeleteModal.value = false
 }
 </script>
 
 <template>
   <h1>Ingreso de Productos</h1>
+
   <v-card elevation="0" class="mb-4 pt-5">
     <v-row class="d-flex justify-space-between">
       <v-col cols="12" md="4">
@@ -169,14 +196,8 @@ const save = async () => {
     </template>
   </v-data-table>
 
-  <!-- Modal -->
-  <template>
+  <!-- Modal nuevo ingreso productos -->
     <v-dialog v-model="productFormModal" max-width="95%">
-      <template #activator="{ props }">
-        <v-btn v-bind="props" prepend-icon="mdi-account" variant="tonal">
-          Crear Cliente
-        </v-btn>
-      </template>
 
       <v-card elevation="2" class="pa-0">
         <v-card-title class="text-h6 font-weight-bold">
@@ -271,8 +292,8 @@ const save = async () => {
                     />
                   </v-col>
 
-                  <v-col cols="12" class="d-flex justify-end mb-3">
-                    <v-btn color="blue" variant="outlined">
+                  <v-col cols="12" class="d-flex justify-end mb-3 pa-3">
+                    <v-btn color="blue" variant="outlined" @click="close()">
                       Cancelar
                     </v-btn>
                     <v-btn color="primary" variant="flat" @click="save">
@@ -302,7 +323,7 @@ const save = async () => {
 
               <v-row justify="end" class="mt-4">
                 <v-col cols="auto">
-                  <v-btn color="primary" variant="flat">
+                  <v-btn color="primary" variant="flat" @click="finishEntryProduct">
                     Finalizar Registro
                   </v-btn>
                 </v-col>
@@ -311,12 +332,30 @@ const save = async () => {
             </v-row>
           </v-card-text>
         </v-card>
-
-
-
     </v-dialog>
-  </template>
 
+  <!-- Modal eliminar ingreso-->
+    <v-dialog v-model="productDeleteModal" max-width="500">
+        <v-card>
+            <v-card-title class="text-h5 font-weight-bold  text-black mb-8">
+                Eliminar ingreso
+            </v-card-title>
+
+            <div class="text-center mb-4">
+                <v-icon size="100" color="error">mdi-alert-octagon-outline</v-icon>
+            </div>
+
+            <v-card-text class="text-center text-body-2">
+                ¿Está seguro que desea eliminar el ingreso? <br />
+                <strong>Esta acción no se puede deshacer.</strong>
+            </v-card-text>
+
+            <v-card-actions class="justify-end">
+                <v-btn text="Cerrar" @click="productDeleteModal = false"></v-btn>
+                <v-btn text="Eliminar" color="error" @click="deleteIngreso"></v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>
 
 <style scoped></style>
