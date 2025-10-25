@@ -1,18 +1,16 @@
 <script setup>
-import ActionMenu from '@/components/ActionMenu.vue'
-import FabMenu from '@/components/FabMenu.vue'
-import { VDateInput } from 'vuetify/labs/VDateInput'
-import { computed, ref, watch } from 'vue'
-import { useValidation } from '@/composables/useFormValidation'
-import { useDisplay } from 'vuetify'
-import SearchFilter from '@/components/customer/SearchFilter.vue'
 
-const { rules, resetForm } = useValidation()
-const { mdAndUp, smAndDown } = useDisplay()
+import ActionMenu from '@/components/ActionMenu.vue'
+import FabMenu from '@/components/FabMenu.vue';
+import BaseFilter from '@/components/BaseFilter.vue';
+import { VDateInput } from 'vuetify/labs/VDateInput'
+import { computed, reactive, ref, watch } from 'vue';
+import { useDisplay } from 'vuetify'
+import { useForm } from '@/composables/useForm'
 
 /* --------------- Relleno Tabla ---------------*/
 const headers = computed(() => {
-  if (tipoCliente.value === 'Natural') {
+  if (filtros.tipoCliente === 'Natural') {
     return [
       { title: 'Nombre', key: 'nombre' },
       { title: 'Apellido Paterno', key: 'apellidoPaterno' },
@@ -34,72 +32,73 @@ const headers = computed(() => {
 })
 
 const items = computed(() => {
-  return tipoCliente.value === 'Natural'
+  return filtros.tipoCliente === 'Natural'
     ? [
-        {
-          personaId: 1,
-          nombre: 'Juan',
-          apellidoPaterno: 'Pérez',
-          apellidoMaterno: 'López',
-          dni: '12345678',
-          direccion: 'maz q lt 3',
-          telefono: '987527333',
-          email: 'cslis@gmail.com',
-          fechaNacimiento: '2006/06/23',
-        },
-      ]
+      { personaId: 1, nombre: 'Juan', apellidoPaterno: 'Pérez', apellidoMaterno: 'López', dni: '12345678', direccion: 'maz q lt 3', telefono: '987527333', email: 'cslis@gmail.com', fechaNacimiento: '2006/06/23' },
+    ]
     : [
-        {
-          personaId: 2,
-          razonSocial: 'Tech S.A.C.',
-          ruc: '20123456789',
-          representante: 'Carlos Ramos',
-        },
-      ]
+      { personaId: 2, razonSocial: 'Tech S.A.C.', ruc: '20123456789', representante: 'Carlos Ramos' },
+    ]
 })
 /* --------------------------------------------*/
 
-const customerEdit = ref(false)
-const customerId = ref(null)
-const modalTitle = computed(() => (customerEdit.value ? 'Editar Cliente' : 'Crear Cliente'))
-const actionLabel = computed(() => (customerEdit.value ? 'Actualizar' : 'Crear'))
+const {
+  formData,
+  formRef: clienteForm,
+  handleSubmit,
+  resetForm,
+  rules,
 
-// Modales
-const clienteFormModal = ref(false)
-const filterDialog = ref(false)
-
-// Variables
-const clienteForm = ref(null)
-const tipoCliente = ref('Natural') //select
-const search = ref('') //busqueda
-const form = ref({
+  nombre,
+  apellidoPaterno,
+  apellidoMaterno,
+  dni,
+  fechaNacimiento,
+  razonSocial,
+  ruc,
+  nombreComercial,
+  tipoContribuyente,
+  actividadEconomica,
+  direccion,
+  telefono,
+  email,
+} = useForm({
   nombre: '',
   apellidoPaterno: '',
   apellidoMaterno: '',
   dni: '',
   fechaNacimiento: '',
-
   razonSocial: '',
   ruc: '',
   nombreComercial: '',
   tipoContribuyente: '',
   actividadEconomica: '',
-
   direccion: '',
   telefono: '',
   email: '',
 })
 
+const { mdAndUp, smAndDown } = useDisplay()
+const customerEdit = ref(false)
+const customerId = ref(null)
+const modalTitle = computed(() => customerEdit.value ? 'Editar Cliente' : 'Crear Cliente')
+const actionLabel = computed(() => customerEdit.value ? 'Actualizar' : 'Crear')
+
+// Modales
+const clienteFormModal = ref(false)
+const filterDialog = ref(false)
+
 //dropdown
 const handleAction = (type, item) => {
-  if (type === 'view') {
-    console.log('Ver detalles de', item.nombre || item.razonSocial)
-  } else if (type === 'edit') {
+  if (type === 'edit') {
+
     customerEdit.value = true
     customerId.value = item.personaId || null
     clienteFormModal.value = true
-    Object.assign(form.value, item)
+
+    Object.assign(formData.value, item)
     console.log('Editar', item)
+
   } else if (type === 'delete') {
     console.log('Eliminar', item.nombre || item.razonSocial)
   }
@@ -110,7 +109,7 @@ const handleActionFabMenu = (type) => {
   if (type === 'add') {
     customerEdit.value = false
     customerId.value = null
-    resetForm(clienteForm, form)
+    resetForm()
     clienteFormModal.value = true
   }
   if (type === 'filter') filterDialog.value = true
@@ -118,18 +117,27 @@ const handleActionFabMenu = (type) => {
 
 //Cuando el modal se cierra
 watch(clienteFormModal, (isOpen) => {
-  if (!isOpen) resetForm(clienteForm, form)
+  if (!isOpen) resetForm()
 })
 
+//Acciones Modal
 const closeModal = () => (clienteFormModal.value = false)
 
 const save = async () => {
-  const { valid } = await clienteForm.value.validate()
-  if (!valid) return
-
-  console.log('Formulario válido:', form.value)
+  console.log('Formulario válido:', formData.value)
   clienteFormModal.value = false
 }
+
+/* --------------- Filtros ---------------*/
+const filtros = reactive({
+  tipoCliente: 'Natural',
+})
+const search = ref('') //busqueda
+
+const selectFilter = [
+  { label: 'Editar', value: 'edit', icon: 'mdi-pencil' },
+  { label: 'Eliminar', value: 'delete', icon: 'mdi-delete', color: 'red' },
+]
 </script>
 
 <template>
@@ -138,14 +146,18 @@ const save = async () => {
   <!-- Filtros -->
   <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
     <v-row>
-      <search-filter v-model:search="search" v-model:tipo-cliente="tipoCliente" />
+      <base-filter v-model:search="search" :filters="[
+        {
+          key: 'tipoCliente',
+          label: 'Tipo de cliente',
+          type: 'select',
+          items: ['Natural', 'Jurídico'],
+          model: filtros.tipoCliente
+        }
+      ]" @update:filter="({ key, value }) => filtros[key] = value" />
+
       <v-col cols="12" md="2" class="d-flex justify-end align-center">
-        <v-btn
-          prepend-icon="mdi-plus"
-          color="primary"
-          elevation="1"
-          @click="handleActionFabMenu('add')"
-        >
+        <v-btn prepend-icon="mdi-plus" color="primary" elevation="1" @click="handleActionFabMenu('add')">
           Crear Cliente
         </v-btn>
       </v-col>
@@ -155,7 +167,7 @@ const save = async () => {
   <!-- Tabla -->
   <v-data-table :headers="headers" :items="items">
     <template #item.actions="{ item }">
-      <action-menu @action="(type) => handleAction(type, item)" />
+      <action-menu :actions="selectFilter" @action="(type) => handleAction(type, item)" />
     </template>
   </v-data-table>
 
@@ -163,7 +175,9 @@ const save = async () => {
   <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
     <v-card title="Filtrar Clientes">
       <v-card-text>
-        <search-filter v-model:search="search" v-model:tipo-cliente="tipoCliente" />
+        <base-filter v-model:search="search" :filters="[
+          { key: 'tipoCliente', label: 'Tipo de cliente', type: 'select', items: ['Natural', 'Jurídico'], model: tipoCliente }
+        ]" @update:filter="({ key, value }) => tipoCliente = value" />
       </v-card-text>
 
       <v-card-actions>
@@ -187,152 +201,73 @@ const save = async () => {
             <v-row dense>
               <template v-if="tipoCliente === 'Natural'">
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.nombre"
-                    label="Nombre"
-                    :rules="[rules.required, rules.text]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.apellidoPaterno"
-                    label="Apellido Paterno"
-                    :rules="[rules.required, rules.text]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="apellidoPaterno" label="Apellido Paterno"
+                    :rules="[rules.required, rules.text]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.apellidoMaterno"
-                    label="Apellido Materno"
-                    :rules="[rules.required, rules.text]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="apellidoMaterno" label="Apellido Materno"
+                    :rules="[rules.required, rules.text]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.dni"
-                    label="DNI"
-                    :counter="8"
-                    :rules="[rules.required, rules.dni]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="dni" label="DNI" :counter="8" :rules="[rules.required, rules.dni]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.direccion"
-                    label="Dirección"
-                    :rules="[rules.required]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="direccion" label="Dirección" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.telefono"
-                    label="Teléfono"
-                    :counter="9"
-                    :rules="[rules.required, rules.phone]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="telefono" label="Teléfono" :counter="9"
+                    :rules="[rules.required, rules.phone]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.email"
-                    label="Email"
-                    :rules="[rules.required, rules.email]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="email" label="Email" :rules="[rules.required, rules.email]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-date-input
-                    v-model="form.fechaNacimiento"
-                    label="Fecha de nacimiento"
-                    :rules="[rules.required]"
-                    variant="underlined"
-                  ></v-date-input>
+                  <v-date-input v-model="fechaNacimiento" label="Fecha de nacimiento"
+                    :rules="[rules.required]"></v-date-input>
                 </v-col>
               </template>
 
               <template v-else>
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.razonSocial"
-                    label="Razón Social"
-                    :rules="[rules.required]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="razonSocial" label="Razón Social" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.ruc"
-                    label="RUC"
-                    counter="11"
-                    :rules="[rules.required, rules.ruc]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="ruc" label="RUC" counter="11" :rules="[rules.required, rules.ruc]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.nombreComercial"
-                    label="Nombre Comercial"
-                    :rules="[rules.required]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="nombreComercial" label="Nombre Comercial" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.tipoContribuyente"
-                    label="Tipo Contribuyente"
-                    :rules="[rules.required]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="tipoContribuyente" label="Tipo Contribuyente" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.actividadEconomica"
-                    label="Actividad Economica"
-                    :rules="[rules.required]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="actividadEconomica" label="Actividad Economica" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.direccion"
-                    label="Dirección"
-                    :rules="[rules.required]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="direccion" label="Dirección" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.telefono"
-                    label="Teléfono"
-                    :counter="9"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="telefono" label="Teléfono" :counter="9" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.email"
-                    label="Email"
-                    :rules="[rules.required, rules.email]"
-                    variant="underlined"
-                  />
+                  <v-text-field v-model="email" label="Email" :rules="[rules.required, rules.email]" />
                 </v-col>
               </template>
             </v-row>
@@ -342,7 +277,7 @@ const save = async () => {
         <v-card-actions>
           <v-spacer />
           <v-btn text="Cerrar" variant="plain" @click="closeModal()" />
-          <v-btn color="primary" :text="actionLabel" variant="tonal" @click="save" />
+          <v-btn color="primary" :text="actionLabel" variant="tonal" @click="handleSubmit(save)" />
         </v-card-actions>
       </v-card>
     </v-dialog>

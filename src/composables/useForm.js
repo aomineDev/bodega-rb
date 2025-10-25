@@ -31,6 +31,7 @@ export const useForm = (initialValue) => {
 
   return {
     ...toRefs(formData.value),
+    formData,
     formRef,
     isValid,
     resetForm,
