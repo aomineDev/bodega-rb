@@ -17,7 +17,7 @@
     </template>
 
     <v-list density="compact" nav>
-      <v-list-item title="Dashboard" prepend-icon="mdi-view-dashboard" value="dashboard" active-color="primary"
+      <v-list-item title="Dashboard" prepend-icon="mdi-view-dashboard" value="dashboard" color="primary"
         to="/home"></v-list-item>
 
       <v-divider></v-divider>
@@ -30,7 +30,7 @@
       <v-list-subheader>Inventario</v-list-subheader>
 
       <v-list-item v-for="item in inventarioItems" :key="item.value" :title="item.title" :prepend-icon="item.icon"
-        :value="item.value" :to="item.to" active-color="primary"></v-list-item>
+        :value="item.value" :to="item.to" color="primary"></v-list-item>
 
       <v-divider></v-divider>
       <v-list-subheader>Almacen</v-list-subheader>
@@ -42,14 +42,14 @@
       <v-list-subheader>Gestion</v-list-subheader>
 
       <v-list-item v-for="item in gestionItems" :key="item.value" :title="item.title" :prepend-icon="item.icon"
-        :value="item.value" :to="item.to" active-color="primary"></v-list-item>
+        :value="item.value" :to="item.to" color="primary"></v-list-item>
     </v-list>
 
     <template v-slot:append>
       <v-divider></v-divider>
 
       <v-menu location="end">
-        <template v-slot:activator="{ props }">
+        <template #activator="{ props }">
           <v-list-item prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg" subtitle="admin" title="omar"
             class="pt-2 pb-2" v-bind="props" append-icon="mdi-chevron-right">
           </v-list-item>
@@ -73,13 +73,11 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" icon="mdi-collage"></v-app-bar-nav-icon>
     </template>
 
-    <v-app-bar-title>
-      <v-breadcrumbs :items="['Dashboard', currentTitle]">
-        <template #divider>
-          <v-icon color="grey-lighten-1">mdi-chevron-right</v-icon>
-        </template>
-      </v-breadcrumbs>
-    </v-app-bar-title>
+    <v-breadcrumbs :items="breandcrumbs">
+      <template #divider>
+        <v-icon color="grey-lighten-1">mdi-chevron-right</v-icon>
+      </template>
+    </v-breadcrumbs>
 
     <template #append>
       <v-btn icon="mdi-bell"></v-btn>
@@ -92,23 +90,23 @@
 
   <v-main>
     <v-container>
-      <RouterView />
+      <router-view />
     </v-container>
   </v-main>
 </template>
 
 <script setup>
-import { RouterView, useRoute } from 'vue-router'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { computed, ref } from 'vue'
-import router from '@/router'
 import { useDisplay } from 'vuetify'
+import { capitalize } from '@/utils/capitalize'
 
+const router = useRouter()
 const { setUser } = useUserStore()
 const { mobile } = useDisplay()
 const drawer = ref(true)
 const rail = ref(false)
-// const userMenu = ref(false)
 
 const cajaitems = [
   { title: 'Ventas', icon: 'mdi-view-dashboard', value: 'ventas', to: '/caja/ventas' },
@@ -116,22 +114,38 @@ const cajaitems = [
   { title: 'Comprobantes', icon: 'mdi-cog', value: 'comprobantes', to: '/caja/comprobantes' },
 ]
 const inventarioItems = [
-  { title: 'Toma de inventario', icon: 'mdi-account', value: 'inventario', to: '/path' },
-  { title: 'Auditoria', icon: 'mdi-account', value: 'inventario', to: '/path' },
+  { title: 'Toma de inventario', icon: 'mdi-clipboard-list', value: 'toma-inventario', to: '/inventory/toma-inventario' },
+  { title: 'Auditoría', icon: 'mdi-magnify', value: 'auditoria', to: '/inventory/auditoria' },
 ]
 
 const gestionItems = [
-  { title: 'Proveedores', icon: 'mdi-truck-outline', value: 'proveedores', to: '/managment/provider' },
-  { title: 'Empleados', icon: 'mdi-account-group ', value: 'empleados', to: '/managment/employee' },
-  { title: 'Productos', icon: 'mdi-package-variant-closed', value: 'productos', to: '/managment/product' },
+  {
+    title: 'Proveedores',
+    icon: 'mdi-truck-outline',
+    value: 'proveedores',
+    to: '/gestion/proveedores',
+  },
+  { title: 'Empleados', icon: 'mdi-account-group ', value: 'empleados', to: '/gestion/empleados' },
+  {
+    title: 'Productos',
+    icon: 'mdi-package-variant-closed',
+    value: 'productos',
+    to: '/gestion/productos',
+  },
   { title: 'Categorias', icon: 'mdi-account', value: 'categorias', to: '/path' },
 ]
 
-const route = useRoute() //obtener ruta actual
-const currentTitle = computed(() => route.meta.title || 'Dashboard')
+const route = useRoute()
 
+const breandcrumbs = computed(() => [
+  'Dashboard',
+  ...route.path.split('/').slice(1).map(capitalize),
+])
+
+// se movera a auth service
 const logout = () => {
   setUser(null)
   router.push('/login')
 }
 </script>
+npm
