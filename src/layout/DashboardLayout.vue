@@ -109,9 +109,9 @@ const drawer = ref(true)
 const rail = ref(false)
 
 const cajaitems = [
-  { title: 'Ventas', icon: 'mdi-view-dashboard', value: 'ventas', to: '/caja/ventas' },
+  { title: 'Ventas', icon: 'mdi-cash-register', value: 'ventas', to: '/caja/ventas' },
   { title: 'Clientes', icon: 'mdi-account', value: 'clientes', to: '/caja/clientes' },
-  { title: 'Comprobantes', icon: 'mdi-cog', value: 'comprobantes', to: '/caja/comprobantes' },
+  { title: 'Comprobantes', icon: 'mdi-invoice-list', value: 'comprobantes', to: '/caja/comprobantes' },
 ]
 const inventarioItems = [
   { title: 'Toma de inventario', icon: 'mdi-clipboard-list', value: 'toma-inventario', to: '/inventory/toma-inventario' },
