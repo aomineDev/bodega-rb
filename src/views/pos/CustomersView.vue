@@ -243,7 +243,7 @@ const closeModal = () => {
     </v-dialog>
   </template>
 
-  <FabMenu v-if="smAndDown" @action="handleActionFabMenu" />
+  <fab-menu v-if="smAndDown" @action="handleActionFabMenu" />
 </template>
 
 <style scoped></style>
