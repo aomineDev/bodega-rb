@@ -2,31 +2,29 @@
 import ActionMenu from '@/components/ActionMenu.vue';
 import { VDateInput } from 'vuetify/labs/VDateInput'
 import { useSnackbar } from '@/stores/snackbar';
-import { useValidation } from '@/composables/useFormValidation';
 import { ref } from 'vue';
+import { useForm } from '@/composables/useForm';
 
-const { showSuccessSnackbar, showWarningSnackbar } = useSnackbar()
-const { rules, resetForm } = useValidation()
+const { showSuccessSnackbar } = useSnackbar()
 const categorias = ref(['Enlatados', 'Conservas', 'Carnes'])
-const productForm = ref(false)
 const productFormModal = ref(false)
 const productDetailModal = ref(false)
 const productDeleteModal = ref(false)
-const product = ref({
-    codigoBarra: '',
-    nombre: '',
-    descripcion: '',
-    precioUnitario: '',
-    precioPromocion: '',
-    inicioPromocion: '',
-    finPromocion: '',
-    stockActual: '',
-    unidadMedida: '',
-    imagen: '',
-    categoria: '',
-    proveedor: ''
+
+
+const { formRef, resetForm, rules, handleSubmit, imagen, codigoBarra, nombre, descripcion, proveedor, precioUnitario, precioPromocion,
+    stockActual, categoria, inicioPromocion, finPromocion, unidadMedida
+} = useForm({
+    imagen: '', codigoBarra: '', nombre: '',
+    descripcion: '', categoria: '', proveedor: '',
+    precioUnitario: '', precioPromocion: '', stockActual: '',
+    inicioPromocion: '', finPromocion: '', unidadMedida: ''
 })
 
+const handleCreateProduct = () => {
+    showSuccessSnackbar('Creado exitosamente')
+    productFormModal.value = false
+}
 const producto = ref([
     {
         id: 1,
@@ -61,20 +59,6 @@ const producto = ref([
 ]
 
 )
-const save = async () => {
-    const { valid } = await productForm.value.validate()
-    if (!valid) {
-        showWarningSnackbar("Datos incorrectos")
-        return
-    }
-    productForm.value = false
-    showSuccessSnackbar("Creado exitosamente")
-}
-const close = () => {
-    resetForm(productForm, product)
-    productFormModal.value = false
-}
-
 function handleAction(type, item) {
     console.log("click aqui")
     if (type == "view") {
@@ -94,9 +78,11 @@ const deleteModal = () => {
     console.log("Elominado")
     productDeleteModal.value = false
     showSuccessSnackbar("Eliminado correctamente")
-
 }
-
+const closeFormModal = () => {
+    productFormModal.value = false
+    resetForm()
+}
 </script>
 <template>
 
@@ -139,80 +125,81 @@ const deleteModal = () => {
 
 
     </v-row>
-
     <!-- modal crear -->
     <v-dialog v-model="productFormModal" max-width="600">
         <v-card title="Crear Producto">
 
-            <v-form ref="productForm" class="pa-3">
+            <v-form ref="formRef" class="pa-3">
                 <v-container fluid>
                     <v-row>
                         <!-- imagen -->
                         <v-col cols="12" md="6">
-                            <v-file-input label="Imagen" variant="underlined" v-model="product.imagen"
+                            <v-file-input label="Imagen" variant="underlined" v-model="imagen"
                                 :rules="[rules.required]"></v-file-input>
                         </v-col>
                         <!-- codigo de barra -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Codigo de barra" variant="underlined" v-model="product.codigoBarra"
+                            <v-text-field label="Codigo de barra" variant="underlined" v-model="codigoBarra"
                                 :rules="[rules.required]"></v-text-field>
                         </v-col>
+
                         <!-- nombre -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Nombre" variant="underlined" v-model="product.nombre"
+                            <v-text-field label="Nombre" variant="underlined" v-model="nombre"
                                 :rules="[rules.required]"></v-text-field>
                         </v-col>
                         <!-- categoria -->
                         <v-col cols="12" md="6">
-                            <v-select label="Categoria" variant="underlined" :items="categorias"
-                                v-model="product.categoria" :rules="[rules.required]"></v-select> </v-col>
+                            <v-select label="Categoria" variant="underlined" :items="categorias" v-model="categoria"
+                                :rules="[rules.categoria]"></v-select> </v-col>
                         <!-- descripcion -->
                         <v-col cols="12" md="12">
                             <v-textarea label="Descripcion" variant="underlined" rows="2" auto-grow
-                                v-model="product.descripcion" :rules="[rules.required]"></v-textarea>
+                                v-model="descripcion" :rules="[rules.required]"></v-textarea>
                         </v-col>
                         <!-- proveedor -->
                         <v-col cols="12" md="6">
-                            <v-select label="Proveedor" variant="underlined" :items="categorias"
-                                v-model="product.proveedor" :rules=[rules.required]></v-select> </v-col>
+                            <v-select label="Proveedor" variant="underlined" :items="categorias" v-model="proveedor"
+                                :rules=[rules.proveedor]></v-select> </v-col>
                         <!-- precio unitario -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Precio unitario" type="number" variant="underlined"
-                                v-model="product.precioUnitario" step="1" :rules="[rules.required]"></v-text-field>
+                                v-model="precioUnitario" step="1" :rules="[rules.precio]"></v-text-field>
                         </v-col>
                         <!-- precio promociom -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Precio promocion" type="number" variant="underlined"
-                                v-model="product.precioPromocion" step="0.01"></v-text-field>
+                                v-model="precioPromocion" step="0.01"></v-text-field>
                         </v-col>
                         <!-- stock -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Stock" variant="underlined" v-model="product.stockActual"
-                                :rules="[rules.required]"></v-text-field>
+                            <v-text-field label="Stock" variant="underlined" v-model="stockActual"
+                                :rules="[rules.cantidad]"></v-text-field>
                         </v-col>
                         <!-- inicion promocio -->
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="product.inicioPromocion" label="Inicio de promocion"
+                            <v-date-input v-model="inicioPromocion" label="Inicio de promocion"
                                 variant="underlined"></v-date-input>
                         </v-col>
                         <!-- fin promocion -->
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="product.finPromocion" label="Fin de promocion"
-                                :rules="[rules.required]" variant="underlined"></v-date-input>
+                            <v-date-input v-model="finPromocion" label="Fin de promocion"
+                                variant="underlined"></v-date-input>
                         </v-col>
 
                         <!-- unidad de medida -->
                         <v-col cols="12" md="6">
                             <v-select label="Unidad de medidad" variant="underlined" :items="categorias"
-                                v-model="product.unidadMedida" :rules=[rules.required]></v-select> </v-col>
+                                v-model="unidadMedida" :rules=[rules.unidadMedida]></v-select> </v-col>
                     </v-row>
                 </v-container>
             </v-form>
 
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="close()"></v-btn>
-                <v-btn class="ms-auto" text="Crear" variant="tonal" color="primary" @click="save"></v-btn>
+                <v-btn class="ms-auto" text="Cerrar" @click="closeFormModal()"></v-btn>
+                <v-btn class="ms-auto" text="Crear" variant="tonal" color="primary"
+                    @click="handleSubmit(handleCreateProduct)"></v-btn>
 
             </v-card-actions>
 

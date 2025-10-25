@@ -14,9 +14,7 @@ const { formRef, rules, handleSubmit, username, state, file, name } = useForm({
 })
 
 const handleLogin = () => {
-  console.log(file.value)
-  alert(username.value + ' ' + state.value + ' ' + file.value)
-  // file.value = null
+  alert(username.value + ' ' + state.value + ' ' + file.value.name)
 }
 
 const dialog = ref(false)
