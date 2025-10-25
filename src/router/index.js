@@ -10,6 +10,7 @@ import ProductView from '@/views/managment/ProductView.vue'
 import VentasView from '@/views/caja/VentasView.vue'
 import ComprobantesView from '@/views/caja/ComprobantesView.vue'
 import ClientesView from '@/views/caja/ClientesView.vue'
+import IngresoProductoView from '@/views/almacen/ProductEntryView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -78,6 +79,18 @@ const router = createRouter({
           component: ClientesView,
           meta: { title: 'Clientes' },
         },
+      ],
+    },
+
+    {
+      path: '/almacen',
+      component: DashboardLayout,
+      children: [
+        {
+          path: 'ingreso-productos',
+          component: IngresoProductoView,
+          meta: { title: 'Ingreso de Productos' },
+        }
       ],
     },
   ],
