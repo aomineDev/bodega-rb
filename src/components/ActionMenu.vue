@@ -20,8 +20,12 @@ defineEmits(['action'])
     </template>
 
     <v-list elevation="2">
-      <v-list-item v-for="action in actions" :key="action.value" @click="$emit('action', action.value)"
-        class="cursor-pointer">
+      <v-list-item
+        v-for="action in actions"
+        :key="action.value"
+        @click="$emit('action', action.value)"
+        class="cursor-pointer"
+      >
         <template #prepend>
           <v-icon :color="action.color || undefined">{{ action.icon }}</v-icon>
         </template>

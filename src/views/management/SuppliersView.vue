@@ -91,6 +91,7 @@ const supplier = ref({
     direccion: '',
     telefono: '',
     email: ''
+
 })
 
 //const
@@ -134,7 +135,7 @@ function handleAction(type, item) {
     <h1 class="mb-5">Proveedores</h1>
 
     <!-- filter -->
-    <v-row class="align-center mb-5">
+    <v-row class="mb-5">
         <v-col cols="12" md="6">
             <v-text-field density="compact" label="Buscar proveedor.." prepend-icon="mdi-magnify" variant="underlined"
                 hide-details></v-text-field>
