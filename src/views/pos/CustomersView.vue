@@ -1,11 +1,11 @@
 <script setup>
 import ActionMenu from '@/components/ActionMenu.vue'
-import FabMenu from '@/components/FabMenu.vue';
+import FabMenu from '@/components/FabMenu.vue'
 import { VDateInput } from 'vuetify/labs/VDateInput'
-import { computed, ref, watch } from 'vue';
-import { useValidation } from '@/composables/useFormValidation';
+import { computed, ref, watch } from 'vue'
+import { useValidation } from '@/composables/useFormValidation'
 import { useDisplay } from 'vuetify'
-import SearchFilter from '@/components/customer/SearchFilter.vue';
+import SearchFilter from '@/components/customer/SearchFilter.vue'
 
 const { rules, resetForm } = useValidation()
 const { mdAndUp, smAndDown } = useDisplay()
@@ -36,18 +36,33 @@ const headers = computed(() => {
 const items = computed(() => {
   return tipoCliente.value === 'Natural'
     ? [
-      { personaId: 1, nombre: 'Juan', apellidoPaterno: 'Pérez', apellidoMaterno: 'López', dni: '12345678', direccion: 'maz q lt 3', telefono: '987527333', email: 'cslis@gmail.com', fechaNacimiento: '2006/06/23' },
-    ]
+        {
+          personaId: 1,
+          nombre: 'Juan',
+          apellidoPaterno: 'Pérez',
+          apellidoMaterno: 'López',
+          dni: '12345678',
+          direccion: 'maz q lt 3',
+          telefono: '987527333',
+          email: 'cslis@gmail.com',
+          fechaNacimiento: '2006/06/23',
+        },
+      ]
     : [
-      { personaId: 2, razonSocial: 'Tech S.A.C.', ruc: '20123456789', representante: 'Carlos Ramos' },
-    ]
+        {
+          personaId: 2,
+          razonSocial: 'Tech S.A.C.',
+          ruc: '20123456789',
+          representante: 'Carlos Ramos',
+        },
+      ]
 })
 /* --------------------------------------------*/
 
 const customerEdit = ref(false)
 const customerId = ref(null)
-const modalTitle = computed(() => customerEdit.value ? 'Editar Cliente' : 'Crear Cliente')
-const actionLabel = computed(() => customerEdit.value ? 'Actualizar' : 'Crear')
+const modalTitle = computed(() => (customerEdit.value ? 'Editar Cliente' : 'Crear Cliente'))
+const actionLabel = computed(() => (customerEdit.value ? 'Actualizar' : 'Crear'))
 
 // Modales
 const clienteFormModal = ref(false)
@@ -125,7 +140,12 @@ const save = async () => {
     <v-row>
       <search-filter v-model:search="search" v-model:tipo-cliente="tipoCliente" />
       <v-col cols="12" md="2" class="d-flex justify-end align-center">
-        <v-btn prepend-icon="mdi-plus" color="primary" elevation="1" @click="handleActionFabMenu('add')">
+        <v-btn
+          prepend-icon="mdi-plus"
+          color="primary"
+          elevation="1"
+          @click="handleActionFabMenu('add')"
+        >
           Crear Cliente
         </v-btn>
       </v-col>
@@ -167,84 +187,152 @@ const save = async () => {
             <v-row dense>
               <template v-if="tipoCliente === 'Natural'">
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.nombre" label="Nombre" :rules="[rules.required, rules.text]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.nombre"
+                    label="Nombre"
+                    :rules="[rules.required, rules.text]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.apellidoPaterno" label="Apellido Paterno"
-                    :rules="[rules.required, rules.text]" variant="underlined" />
+                  <v-text-field
+                    v-model="form.apellidoPaterno"
+                    label="Apellido Paterno"
+                    :rules="[rules.required, rules.text]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.apellidoMaterno" label="Apellido Materno"
-                    :rules="[rules.required, rules.text]" variant="underlined" />
+                  <v-text-field
+                    v-model="form.apellidoMaterno"
+                    label="Apellido Materno"
+                    :rules="[rules.required, rules.text]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.dni" label="DNI" :counter="8" :rules="[rules.required, rules.dni]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.dni"
+                    label="DNI"
+                    :counter="8"
+                    :rules="[rules.required, rules.dni]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.direccion" label="Dirección" :rules="[rules.required]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.direccion"
+                    label="Dirección"
+                    :rules="[rules.required]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.telefono" label="Teléfono" :counter="9"
-                    :rules="[rules.required, rules.phone]" variant="underlined" />
+                  <v-text-field
+                    v-model="form.telefono"
+                    label="Teléfono"
+                    :counter="9"
+                    :rules="[rules.required, rules.phone]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.email" label="Email" :rules="[rules.required, rules.email]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.email"
+                    label="Email"
+                    :rules="[rules.required, rules.email]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-date-input v-model="form.fechaNacimiento" label="Fecha de nacimiento" :rules="[rules.required]"
-                    variant="underlined"></v-date-input>
+                  <v-date-input
+                    v-model="form.fechaNacimiento"
+                    label="Fecha de nacimiento"
+                    :rules="[rules.required]"
+                    variant="underlined"
+                  ></v-date-input>
                 </v-col>
               </template>
 
               <template v-else>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.razonSocial" label="Razón Social" :rules="[rules.required]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.razonSocial"
+                    label="Razón Social"
+                    :rules="[rules.required]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.ruc" label="RUC" counter="11" :rules="[rules.required, rules.ruc]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.ruc"
+                    label="RUC"
+                    counter="11"
+                    :rules="[rules.required, rules.ruc]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.nombreComercial" label="Nombre Comercial" :rules="[rules.required]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.nombreComercial"
+                    label="Nombre Comercial"
+                    :rules="[rules.required]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.tipoContribuyente" label="Tipo Contribuyente" :rules="[rules.required]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.tipoContribuyente"
+                    label="Tipo Contribuyente"
+                    :rules="[rules.required]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.actividadEconomica" label="Actividad Economica" :rules="[rules.required]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.actividadEconomica"
+                    label="Actividad Economica"
+                    :rules="[rules.required]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.direccion" label="Dirección" :rules="[rules.required]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.direccion"
+                    label="Dirección"
+                    :rules="[rules.required]"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.telefono" label="Teléfono" :counter="9" variant="underlined" />
+                  <v-text-field
+                    v-model="form.telefono"
+                    label="Teléfono"
+                    :counter="9"
+                    variant="underlined"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.email" label="Email" :rules="[rules.required, rules.email]"
-                    variant="underlined" />
+                  <v-text-field
+                    v-model="form.email"
+                    label="Email"
+                    :rules="[rules.required, rules.email]"
+                    variant="underlined"
+                  />
                 </v-col>
               </template>
             </v-row>
