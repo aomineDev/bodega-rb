@@ -212,37 +212,64 @@ my-app/
 
 ### Explicación de cada carpeta:
 
-assets/
+#### assets/
+
 Recursos estáticos: imágenes, estilos globales, fuentes.
-components/
+
+#### components/
 
 common/: Componentes reutilizables base (botones, inputs, modales)
 layout/: Componentes de estructura (header, sidebar, footer)
 features/: Componentes específicos agrupados por funcionalidad
 
-views/
+#### views/
+
 Componentes de página, organizados por módulos/características.
-router/
+
+#### router/
+
 Configuración de rutas dividida en archivos por módulo, guards de navegación.
-store/
+
+#### store/
+
 Vuex o Pinia, dividido en módulos por dominio.
-composables/
+
+#### composables/
+
 Lógica reutilizable con Composition API (equivalente a hooks en React).
-services/
+
+#### services/
+
 Lógica de negocio y llamadas a APIs, organizada por recurso.
-utils/
+
+#### utils/
+
 Funciones helper, validadores, formateadores, constantes.
-plugins/
+
+#### plugins/
+
 Configuración de librerías externas (i18n, axios, etc.).
-middleware/
+
+#### middleware/
+
 Lógica que se ejecuta antes de entrar a rutas.
-directives/
+
+#### directives/
+
 Directivas personalizadas de Vue.
-locales/
+
+#### locales/
+
 Archivos de traducción para i18n.
-types/
+
+#### types/
+
 Definiciones de tipos (útil si usas TypeScript).
-config/
+
+#### config/
+
 Configuraciones centralizadas de la app.
-layouts/
+
+#### layouts/
+
 Templates de diseño que envuelven las views.
