@@ -1,9 +1,11 @@
 <script setup>
 import ActionMenu from '@/components/ActionMenu.vue';
+
 import { VDateInput } from 'vuetify/labs/VDateInput'
-import { useValidation } from '@/composables/useFormValidation';
 import { ref } from 'vue'
 import { useSnackbar } from '@/stores/snackbar';
+import { useForm } from '@/composables/useForm';
+
 //data example
 const suppliers = [
     {
@@ -80,8 +82,14 @@ const headers = [
     { title: 'Email', key: 'email' },
     { title: 'Acción', key: 'actions', sortable: false }
 ]
-//data model
-const supplier = ref({
+
+const supplierFormModal = ref(false)
+const { showSuccessSnackbar } = useSnackbar()
+const {
+    formRef, resetForm, rules, handleSubmit, nombreComercial
+    , tipoContribuyente, actividadEconomica, razonSocial,
+    fechaRegistro, ruc, direccion, telefono, email
+} = useForm({
     nombreComercial: '',
     tipoContribuyente: '',
     actividadEconomica: '',
@@ -91,27 +99,14 @@ const supplier = ref({
     direccion: '',
     telefono: '',
     email: ''
-
 })
-
-//const
-const supplierForm = ref(false)
-const supplierFormModal = ref(false)
-const { rules, resetForm } = useValidation()
-const { showSuccessSnackbar, showWarningSnackbar } = useSnackbar()
-//fuctions
-const save = async () => {
-    const { valid } = await supplierForm.value.validate()
-    if (!valid) {
-        showWarningSnackbar("Datos incorrectos")
-        return
-    }
+const handleCreateSupplier = () => {
+    showSuccessSnackbar('Creado exitosamente')
     supplierFormModal.value = false
-    showSuccessSnackbar("Creado exitosamente")
 }
-const close = () => {
-    resetForm(supplierForm, supplier)
+const closeFormModal = () => {
     supplierFormModal.value = false
+    resetForm()
 }
 
 function handleAction(type, item) {
@@ -159,52 +154,52 @@ function handleAction(type, item) {
     <v-dialog v-model="supplierFormModal" max-width="600">
         <v-card title="Agregar proveedor">
 
-            <v-form ref="supplierForm" class="pa-3">
+            <v-form ref="formRef" class="pa-3">
                 <v-container fluid>
                     <v-row>
                         <v-col cols="12" md="6">
-                            <v-text-field label="Razon social" variant="underlined" v-model="supplier.razonSocial"
+                            <v-text-field label="Razon social" variant="underlined" v-model="razonSocial"
                                 :rules="[rules.required]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Actividad economica" variant="underlined"
-                                v-model="supplier.actividadEconomica" :rules="[rules.required]"></v-text-field>
-                        </v-col>
-
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Ruc" variant="underlined" v-model="supplier.ruc"
+                            <v-text-field label="Actividad economica" variant="underlined" v-model="actividadEconomica"
                                 :rules="[rules.required]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Telefono" variant="underlined" :counter="9" v-model="supplier.telefono"
+                            <v-text-field label="Ruc" variant="underlined" v-model="ruc"
+                                :rules="[rules.ruc]"></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Telefono" variant="underlined" :counter="9" v-model="telefono"
                                 :rules="[rules.phone]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Email" variant="underlined" v-model="supplier.email"
+                            <v-text-field label="Email" variant="underlined" v-model="email"
                                 :rules="[rules.email]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Nombre comercial" variant="underlined"
-                                v-model="supplier.nombreComercial" :rules="[rules.required]"></v-text-field>
-                        </v-col>
-
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Tipo contribuyente" variant="underlined"
-                                v-model="supplier.tipoContribuyente" :rules="[rules.required]"></v-text-field>
-                        </v-col>
-
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Direccion" variant="underlined" v-model="supplier.direccion"
+                            <v-text-field label="Nombre comercial" variant="underlined" v-model="nombreComercial"
                                 :rules="[rules.required]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="supplier.fechaRegistro" label="Fecha de registro"
-                                :rules="[rules.required]" variant="underlined"></v-date-input>
+                            <v-text-field label="Tipo contribuyente" variant="underlined" v-model="tipoContribuyente"
+                                :rules="[rules.required]"></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"
+                                :rules="[rules.required]"></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <v-date-input v-model="fechaRegistro" label="Fecha de registro" :rules="[rules.fecha]"
+                                variant="underlined"></v-date-input>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -212,8 +207,9 @@ function handleAction(type, item) {
 
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="close()"></v-btn>
-                <v-btn class="ms-auto" text="Crear" variant="tonal" color="primary" @click="save"></v-btn>
+                <v-btn class="ms-auto" text="Cerrar" @click="closeFormModal()"></v-btn>
+                <v-btn class="ms-auto" text="Crear" variant="tonal" color="primary"
+                    @click="handleSubmit(handleCreateSupplier)"></v-btn>
 
             </v-card-actions>
 
