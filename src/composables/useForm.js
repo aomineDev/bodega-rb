@@ -2,20 +2,18 @@ import { ref, toRefs } from 'vue'
 import { rules } from '@/utils/rules'
 
 export const useForm = (initialValue) => {
-  const formData = ref(initialValue)
+  const formData = ref({ ...initialValue })
   const formRef = ref(null)
 
   const resetForm = () => {
     if (!existsFormRef()) return
-    console.log(formData.value)
 
-    // formData.value = null
+    Object.keys(formData.value).forEach((k) => {
+      if (!(k in initialValue)) delete formData.value[k]
+      else formData.value[k] = null
+    })
 
-    // formData.value = { ...initialValue }
-    Object.keys(formData.value).forEach((k) => (formData.value[k] = null))
-    // formRef.value.reset()
-    console.log(formData.value)
-    console.log(initialValue)
+    formRef.value.resetValidation()
   }
 
   const isValid = async () => {

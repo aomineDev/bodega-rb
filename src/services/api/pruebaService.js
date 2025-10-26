@@ -3,14 +3,14 @@ import { apiFetch } from './apiClient'
 const service = '/pruebas'
 
 export const pruebaService = {
-  getAll: async () => apiFetch(service),
+  getAll: () => apiFetch(service),
 
-  getById: async (id) => apiFetch(`${service}/${id}`),
+  getById: (id) => apiFetch(`${service}/${id}`),
 
-  create: async (data) => apiFetch(service, { method: 'POST', body: JSON.stringify(data) }),
+  create: (data) => apiFetch(service, { method: 'POST', body: JSON.stringify(data) }),
 
-  update: async ({ id, ...data }) =>
+  update: ({ id, ...data }) =>
     apiFetch(`${service}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  delete: async (id) => apiFetch(`${service}/${id}`, { method: 'DELETE' }),
+  delete: (id) => apiFetch(`${service}/${id}`, { method: 'DELETE' }),
 }
