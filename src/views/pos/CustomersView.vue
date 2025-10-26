@@ -2,6 +2,7 @@
 import ActionMenu from '@/components/ActionMenu.vue'
 import FabMenu from '@/components/FabMenu.vue'
 import BaseFilter from '@/components/BaseFilter.vue'
+import { useSnackbar } from '@/stores/snackbar'
 import { VDateInput } from 'vuetify/labs/VDateInput'
 import { computed, reactive, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
@@ -10,11 +11,15 @@ import { useForm } from '@/composables/useForm'
 import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer'
 import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer'
 
+const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
+
 const {
   naturalCustomers,
   isPending: isPendingNatural,
   isError: isErrorNatural,
   error: errorNatural,
+  createNaturalCustomerAsync,
+  updateNaturalCustomerAsync,
 } = useNaturalCustomer()
 
 const {
@@ -22,8 +27,9 @@ const {
   isPending: isPendingJuridical,
   isError: isErrorJuridical,
   error: errorJuridical,
+  createJuridicalCustomerAsync,
+  updateJuridicalCustomerAsync,
 } = useJuridicalCustomer()
-
 
 /* --------------- Relleno Tabla ---------------*/
 const headers = computed(() => {
@@ -77,6 +83,7 @@ const {
   formData,
   formRef: clienteForm,
   handleSubmit,
+  asignForm,
   resetForm,
   rules,
 
@@ -107,6 +114,7 @@ const {
   direccion: '',
   telefono: '',
   email: '',
+  fechaRegistro: '',
 })
 
 const { mdAndUp, smAndDown } = useDisplay()
@@ -121,13 +129,8 @@ const filterDialog = ref(false)
 /* --------------- MENU ACCIONES ---------------*/
 const handleEdit = (item) => {
   selectedItem.value = item
+  asignForm(selectedItem.value)
   clienteFormModal.value = true
-
-  Object.assign(formData.value, item)
-}
-
-const handleDelete = (item) => {
-  console.log('Eliminar', item.nombre || item.razonSocial)
 }
 
 const handleAdd = () => {
@@ -145,8 +148,35 @@ watch(clienteFormModal, (isOpen) => {
 const closeModal = () => (clienteFormModal.value = false)
 
 const save = async () => {
-  if (!selectedItem.value) console.log("Estas creando")
-  else console.log("Estas editando")
+
+  if (filtros.tipoCliente === "Natural") {
+    try {
+      if (selectedItem.value) {
+        await updateNaturalCustomerAsync({ ...formData.value, id: selectedItem.value.id })
+        showSuccessSnackbar('Cliente natural actualizado')
+      } else {
+        await createNaturalCustomerAsync({ ...formData.value, fechaRegistro: new Date().toISOString().split('T')[0] })
+        showSuccessSnackbar('Cliente natural creado')
+      }
+    } catch (error) {
+      showErrorSnackbar('Error al crear cliente natural')
+      console.log(error)
+    }
+  } else {
+    try {
+      if (selectedItem.value) {
+        await updateJuridicalCustomerAsync({ ...formData.value, id: selectedItem.value.id })
+        showSuccessSnackbar('Cliente juridico actualizado')
+      } else {
+        await createJuridicalCustomerAsync({ ...formData.value, fechaRegistro: new Date().toISOString().split('T')[0] })
+        showSuccessSnackbar('Cliente juridico creado')
+      }
+    } catch (error) {
+      showErrorSnackbar('Error al crear cliente juridico')
+      console.log(error)
+    }
+  }
+
   clienteFormModal.value = false
 }
 
@@ -186,7 +216,7 @@ const search = ref('') //busqueda
   <v-data-table :headers="headers" :items="items" :loading="isPending" loading-text="Cargando clientes..."
     no-data-text="No se encontraron clientes">
     <template #item.actions="{ item }">
-      <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
+      <action-menu @edit="handleEdit(item)" />
     </template>
   </v-data-table>
 

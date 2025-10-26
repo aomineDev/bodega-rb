@@ -6,25 +6,43 @@ import BaseFilter from '@/components/BaseFilter.vue';
 import { computed, reactive, ref } from 'vue';
 import { useDisplay } from 'vuetify'
 
+import { useTickets } from '@/composables/query/useTicket';
+import { useBills } from '@/composables/query/useBill';
+
+
+const {
+  tickets,
+  isPending: isPendingTicket,
+  isError: isErrorTicket,
+  error: errorTicket,
+} = useTickets()
+
+const {
+  bills,
+  isPending: isPendingBill,
+  isError: isErrorBill,
+  error: errorBill,
+} = useBills()
+
 /* --------------- Relleno Tabla ---------------*/
 const headers = computed(() => {
   if (filtros.tipoComprobante === 'Boletas') {
     return [
-      { title: 'N°', key: 'comprobanteId' },
+      { title: 'N° boleta', key: 'id' },
       { title: 'Fecha', key: 'fecha' },
       { title: 'Hora', key: 'hora' },
-      { title: 'Cliente', key: 'clienteNatural.nombre' },
-      { title: 'Cajero', key: 'cajero.nombre' },
+      { title: 'Cliente', key: 'clienteNatural' },
+      { title: 'Cajero', key: 'cajero' },
       { title: 'Total (S/)', key: 'precioTotal' },
       { title: 'Acciones', key: 'actions', sortable: false },
     ]
   } else {
     return [
-      { title: 'N°', key: 'comprobanteId' },
+      { title: 'N° factura', key: 'id' },
       { title: 'Fecha', key: 'fecha' },
       { title: 'Hora', key: 'hora' },
-      { title: 'Cliente', key: 'clienteJuridico.nombre' },
-      { title: 'Cajero', key: 'cajero.nombre' },
+      { title: 'Cliente', key: 'clienteJuridico' },
+      { title: 'Cajero', key: 'cajero' },
       { title: 'Total (S/)', key: 'precioTotal' },
       { title: 'Acciones', key: 'actions', sortable: false },
     ]
@@ -33,35 +51,21 @@ const headers = computed(() => {
 
 const items = computed(() => {
   return filtros.tipoComprobante === 'Boletas'
-    ? [
-      {
-        comprobanteId: 1,
-        fecha: '2025-10-23',
-        hora: '10:32',
-        clienteNatural: { nombre: 'Jhordan' },
-        cajero: { nombre: 'María López' },
-        precioTotal: 177.00,
-        detalleVentas: [
-          { codigo: '00023', descripcion: 'Producto A', cantidad: 2, precioUnit: 13, total: 26 },
-          { codigo: '00532', descripcion: 'Producto B', cantidad: 2, precioUnit: 4, total: 8 },
-        ],
-      },
-    ]
-    : [
-      {
-        comprobanteId: 2,
-        fecha: '2025-10-23',
-        hora: '10:32',
-        clienteJuridico: { nombre: 'Manuel' },
-        cajero: { nombre: 'María López' },
-        precioTotal: 177.00,
-        detalleVentas: [
-          { codigo: '01001', descripcion: 'Producto X', cantidad: 5, precioUnit: 50, total: 250 },
-          { codigo: '01002', descripcion: 'Producto Y', cantidad: 1, precioUnit: 70.5, total: 70.5 },
-        ],
-      },
-    ]
+    ? tickets.value || []
+    : bills.value || []
 })
+
+const isPending = computed(() =>
+  filtros.tipoComprobante === 'Boleta' ? isPendingTicket.value : isPendingBill.value
+)
+
+const isError = computed(() =>
+  filtros.tipoComprobante === 'Boleta' ? isErrorTicket.value : isErrorBill.value
+)
+
+const error = computed(() =>
+  filtros.tipoComprobante === 'Boleta' ? errorTicket.value : errorBill.value
+)
 
 /* --------------- Responsividad y modales ---------------*/
 const { mdAndUp, smAndDown } = useDisplay()
@@ -114,11 +118,16 @@ const search = ref('')
   </v-card>
 
   <!-- Tabla -->
-  <v-data-table :headers="headers" :items="items">
+  <v-data-table :headers="headers" :items="items" :loading="isPending" loading-text="Cargando comprobantes..."
+    no-data-text="No se encontraron comprobantes">
     <template #item.actions="{ item }">
       <action-menu @view="handleView(item)"></action-menu>
     </template>
   </v-data-table>
+
+  <v-alert v-if="isError" type="error" class="mt-2">
+    Error al cargar clientes: {{ error?.message }}
+  </v-alert>
 
   <!-- Filtro móvil -->
   <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
@@ -186,14 +195,16 @@ const search = ref('')
           <v-row dense>
             <template v-if="filtros.tipoComprobante === 'Facturas'">
               <v-col cols="6"><strong>Razón social:</strong> {{ selectedComprobante.clienteJuridico?.nombre }}</v-col>
-              <v-col cols="6"><strong>RUC:</strong> 20123456789</v-col>
+              <v-col cols="6"><strong>RUC:</strong> {{ selectedComprobante.clienteJuridico?.ruc }}</v-col>
+              <v-col cols="6"><strong>Dirección:</strong> {{ selectedComprobante.clienteJuridico?.direccion }}</v-col>
+              <v-col cols="6"><strong>Teléfono:</strong> {{ selectedComprobante.clienteJuridico?.telefono }}</v-col>
             </template>
             <template v-else>
               <v-col cols="6"><strong>Nombres:</strong> {{ selectedComprobante.clienteNatural?.nombre }}</v-col>
-              <v-col cols="6"><strong>DNI:</strong> 74657463</v-col>
+              <v-col cols="6"><strong>DNI:</strong> {{ selectedComprobante.clienteNatural?.dni }}</v-col>
+              <v-col cols="6"><strong>Dirección:</strong> {{ selectedComprobante.clienteNatural?.telefono }}</v-col>
+              <v-col cols="6"><strong>Teléfono:</strong> {{ selectedComprobante.clienteNatural?.telefono }}</v-col>
             </template>
-            <v-col cols="6"><strong>Dirección:</strong> CAL PEDRO RUIZ 129</v-col>
-            <v-col cols="6"><strong>Teléfono:</strong> 987654567</v-col>
           </v-row>
         </v-card>
 
@@ -204,7 +215,7 @@ const search = ref('')
           <thead>
             <tr>
               <th>Código</th>
-              <th>Descripción</th>
+              <th>Nombre</th>
               <th>Cantidad</th>
               <th>Precio Unit.</th>
               <th>Total</th>
@@ -212,11 +223,11 @@ const search = ref('')
           </thead>
           <tbody>
             <tr v-for="(det, i) in selectedComprobante.detalleVentas" :key="i">
-              <td>{{ det.codigo }}</td>
-              <td>{{ det.descripcion }}</td>
+              <td>{{ det.producto.codigoBarra }}</td>
+              <td>{{ det.producto.nombre }}</td>
               <td>{{ det.cantidad }}</td>
-              <td>S/ {{ det.precioUnit }}</td>
-              <td>S/ {{ det.total }}</td>
+              <td>S/ {{ det.precioUnitario }}</td>
+              <td>S/ {{ det.subTotal }}</td>
             </tr>
           </tbody>
         </v-table>
@@ -226,10 +237,10 @@ const search = ref('')
           <v-col cols="12" md="6">
             <v-row>
               <v-col cols="6" class="text-right font-weight-medium">Grabado:</v-col>
-              <v-col cols="6" class="text-right">S/ 200</v-col>
+              <v-col cols="6" class="text-right">S/ {{ selectedComprobante.grabado }}</v-col>
 
               <v-col cols="6" class="text-right font-weight-medium">IGV:</v-col>
-              <v-col cols="6" class="text-right">S/ 12</v-col>
+              <v-col cols="6" class="text-right">S/ {{ selectedComprobante.igv }}</v-col>
 
               <v-col cols="6" class="text-right font-weight-bold text-primary">Total:</v-col>
               <v-col cols="6" class="text-right font-weight-bold text-primary">S/ {{
