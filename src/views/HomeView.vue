@@ -26,9 +26,7 @@ const editingPrueba = ref(null)
 
 const handleLogin = async () => {
   try {
-    console.log(formData.value)
     if (editingPrueba.value) {
-      console.log(editingPrueba.value.id)
       await updatePruebaAsync({ ...formData.value, id: editingPrueba.value.id })
       showSuccessSnackbar('Prueba actualizada')
     } else {
@@ -67,6 +65,16 @@ const handleDelete = async () => {
     console.log(error)
   }
 }
+
+const ff = () => {
+  return 1
+}
+
+const test = async () => {
+  const response = await ff()
+  const data = await response.json()
+  console.log(data)
+}
 </script>
 
 <template>
@@ -86,14 +94,12 @@ const handleDelete = async () => {
   </div>
 
   <h1>Home</h1>
+  <v-btn color="yellow" @click="test" text="test"></v-btn>
   <v-btn @click="showSuccessSnackbar('Snackbar')">Success Snackbar</v-btn>
   <v-btn @click="showErrorSnackbar('Snackbar')">Error Snackbar</v-btn>
   <action-menu @edit="handleEdit" @delete="handleDelete"></action-menu>
-  <!-- {{ name }} -->
-  <v-btn @click="dialog = true"> Open Dialog </v-btn>
-  <!-- <v-text-field label="Nombre" v-model="name" :rules="[rules.required]"></v-text-field> -->
-  <!-- <v-file-input label="File input" v-model="file"></v-file-input> -->
-  <!-- <v-btn class="ms-auto" text="asd" @click="reset"></v-btn> -->
+
+  <v-btn @click="dialog = true">Open Dialog</v-btn>
 
   <v-dialog v-model="dialog" width="auto">
     <v-card
