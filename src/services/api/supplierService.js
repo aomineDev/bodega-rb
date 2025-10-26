@@ -1,7 +1,6 @@
 import { apiFetch } from "./apiClient";
-const service = '/productos'
-export const productService = {
-
+const service = '/proveedores'
+export const supplierService = {
     getAll: () => apiFetch(service),
     getById: (id) => apiFetch(`${service}/${id}`),
     create: (data) => apiFetch(service, { method: 'POST', body: JSON.stringify(data) }),

@@ -7,7 +7,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useSnackbar } from '@/stores/snackbar';
 import { useForm } from '@/composables/useForm';
 import { useDisplay } from 'vuetify';
-
+import { useSupplier } from '@/composables/query/useSupplier';
 const { showSuccessSnackbar } = useSnackbar()
 
 
@@ -22,7 +22,9 @@ const selectFilter = computed(() => [
         model: filtros.rangoFechas
     }
 ])
-
+const {
+    createSupplierAsync
+} = useSupplier()
 //data example
 const suppliers = [
     {
@@ -144,7 +146,8 @@ const handleDelete = (item) => {
     console.log("proveedor eliminado con id" + item.nombre)
 }
 //creare proveedor
-const handleCreateSupplier = () => {
+const handleCreateSupplier = async () => {
+    await createSupplierAsync(formData.value)
     showSuccessSnackbar('Creado exitosamente')
     supplierFormModal.value = false
 }
