@@ -64,7 +64,7 @@
         title="Ingreso de productos"
         prepend-icon="mdi-package-variant-plus"
         value="ingreso"
-        active-color="primary"
+        color="primary"
         to="/almacen/ingreso-productos"
       ></v-list-item>
 
@@ -214,4 +214,3 @@ const logout = () => {
   router.push('/login')
 }
 </script>
-npm

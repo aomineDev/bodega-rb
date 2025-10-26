@@ -7,8 +7,15 @@ export const useForm = (initialValue) => {
 
   const resetForm = () => {
     if (!existsFormRef()) return
+    console.log(formData.value)
 
-    Object.keys(formData.value).forEach((key) => (formData.value[key] = null))
+    // formData.value = null
+
+    // formData.value = { ...initialValue }
+    Object.keys(formData.value).forEach((k) => (formData.value[k] = null))
+    // formRef.value.reset()
+    console.log(formData.value)
+    console.log(initialValue)
   }
 
   const isValid = async () => {
@@ -16,7 +23,8 @@ export const useForm = (initialValue) => {
   }
 
   const asignForm = (data) => {
-    Object.assign(formData.value, data)
+    Object.assign(formData.value, { ...data })
+    console.log(formData.value)
   }
 
   const handleSubmit = async (callback) => {
