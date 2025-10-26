@@ -7,7 +7,7 @@ import { useSnackbar } from '@/stores/snackbar';
 import { computed, reactive, ref, watch } from 'vue';
 import { useDisplay } from 'vuetify'
 import { useForm } from '@/composables/useForm';
-
+import { useProduct } from '@/composables/query/useProduct';
 const { showSuccessSnackbar } = useSnackbar()
 // Por esto:
 const categorias = ref([
@@ -119,6 +119,11 @@ const producto = ref([
         proveedor: 'Alicorp'
     }
 ])
+const {
+
+    createProductAsync
+
+} = useProduct()
 //cerrar modal
 const closeFormModal = () => {
     productFormModal.value = false
@@ -148,12 +153,15 @@ watch(productFormModal, (isOpen) => {
 })
 
 //accion crear
-const handleCreateProduct = () => {
+const handleCreateProduct = async () => {
     const data = {
         ...formData.value, imagen: imagen.value.name, categoria: categoria.value, proveedor: proveedor.value, unidadMedida: unidadMedida.value
     }
-    console.log(JSON.stringify(data))
-    showSuccessSnackbar('Creado exitosamente')
+    await createProductAsync(data)
+    showSuccessSnackbar("Creado exieto")
+
+    //console.log(JSON.stringify(data))
+    //showSuccessSnackbar('Creado exitosamente')
 
     productFormModal.value = false
 }
@@ -181,7 +189,7 @@ const handleCreateProduct = () => {
     <v-row>
         <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in producto" :key="index">
             <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 5 : 1" rounded="xl" class="card-hover">
+                <v-card v-bind="props" :elevation="isHovering ? 8 : 1" rounded="xl" class="card-hover">
                     <v-img height="220px" :src="item.imagen" contain></v-img>
                     <v-divider :thickness="3"></v-divider>
 
