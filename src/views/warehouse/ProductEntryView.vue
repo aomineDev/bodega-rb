@@ -1,43 +1,68 @@
 <script setup>
+import { ref } from 'vue'
+import ActionMenu from '@/components/ActionMenu.vue'
+import { useValidation } from '@/composables/useFormValidation'
+import { useSnackbar } from '@/stores/snackbar'
 
-import ActionMenu from '@/components/ActionMenu.vue';
-import { ref } from 'vue';
-import { useValidation } from '@/composables/useFormValidation';
-import { useSnackbar } from '@/stores/snackbar';
-// import { useDisplay } from 'vuetify/lib/composables/display';
+// Snackbar  falta warning
+const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 
+// Modales y formularioss
 const productFormModal = ref(false)
 const productForm = ref(null)
-const search = ref('')
 const productDeleteModal = ref(false)
+const search = ref('')
 
-const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
-// const {mdAndUp, smAndDown} = useDisplay()
 
 const categorias = ['Carnes', 'Lácteos', 'Bebidas']
 
+// Cabeceras de tablas
 const headers = [
-  { title: "# Ingreso", key: "id" },
-  { title: "Proveedor", key: "proveedor" },
-  { title: "Documento", key: "documento" },
-  { title: "N° Documento", key: "nDocumento" },
-  { title: "Fecha", key: "fecha" },
-  { title: "Hora", key: "hora" },
-  { title: "Total", key: "total" },
-  { title: "Estado", key: "estado" },
-  { title: "Acciones", key: "actions", sortable: false },
-];
+  { title: '# Ingreso', key: 'id' },
+  { title: 'Proveedor', key: 'proveedor' },
+  { title: 'Documento', key: 'documento' },
+  { title: 'N° Documento', key: 'nDocumento' },
+  { title: 'Fecha', key: 'fecha' },
+  { title: 'Hora', key: 'hora' },
+  { title: 'Total', key: 'total' },
+  { title: 'Estado', key: 'estado' },
+  { title: 'Acciones', key: 'actions', sortable: false },
+]
 
 const headersProductos = [
-  { title: "Producto", key: "producto" },
-  { title: "Lote", key: "lote" },
-  { title: "Fecha Prod.", key: "fechaProduccion" },
-  { title: "Vencimiento", key: "vencimiento" },
-  { title: "Cantidad", key: "cantidad" },
-  { title: "Precio Compra", key: "precioCompra" },
-  { title: "Subtotal", key: "subtotal" },
-  { title: "Acciones", key: "actions", sortable: false },
-];
+  { title: 'Producto', key: 'producto' },
+  { title: 'Lote', key: 'lote' },
+  { title: 'Fecha Prod.', key: 'fechaProduccion' },
+  { title: 'Vencimiento', key: 'vencimiento' },
+  { title: 'Cantidad', key: 'cantidad' },
+  { title: 'Precio Compra', key: 'precioCompra' },
+  { title: 'Subtotal', key: 'subtotal' },
+  { title: 'Acciones', key: 'actions', sortable: false },
+]
+
+
+const items = [
+  {
+    id: 1,
+    proveedor: 'Distribuidora Norte',
+    documento: 'Factura',
+    nDocumento: 'F001-12345',
+    fecha: '2025-10-23',
+    hora: '10:30',
+    total: 'S/ 450.00',
+    estado: 'Pendiente',
+  },
+  {
+    id: 2,
+    proveedor: 'Alimentos del Sur',
+    documento: 'Boleta',
+    nDocumento: 'B002-9876',
+    fecha: '2025-10-22',
+    hora: '09:45',
+    total: 'S/ 780.00',
+    estado: 'Aprobado',
+  },
+]
 
 const itemsProductos = [
   {
@@ -75,53 +100,15 @@ const itemsProductos = [
     cantidad: 20,
     precioCompra: 3.5,
     subtotal: (20 * 3.5).toFixed(2),
-  },{
-    producto: 'Sal marina',
-    lote: 'S088',
-    fechaProduccion: '2025-08-20',
-    vencimiento: '2026-02-20',
-    cantidad: 20,
-    precioCompra: 3.5,
-    subtotal: (20 * 3.5).toFixed(2),
   },
 ]
 
-const items = [
-  {
-    id: 1,
-    proveedor: "Distribuidora Norte",
-    documento: "Factura",
-    nDocumento: "F001-12345",
-    fecha: "2025-10-23",
-    hora: "10:30",
-    total: "S/ 450.00",
-    estado: "Pendiente",
-  },
-  {
-    id: 2,
-    proveedor: "Alimentos del Sur",
-    documento: "Boleta",
-    nDocumento: "B002-9876",
-    fecha: "2025-10-22",
-    hora: "09:45",
-    total: "S/ 780.00",
-    estado: "Aprobado",
-  },
-]
-
-const handleAction = (type, item) => {
-  if (type === 'view') {
-    console.log('Ver detalles de', item.name)
-  } else if (type === 'edit') {
-    productFormModal.value = true;
-    console.log('Editar', item.name)
-  } else if (type === 'delete') {
-    console.log('Eliminar', item.name)
-    productDeleteModal.value = true;
-  }
-}
+// Reglas de validación y formulario
+const { rules, resetForm } = useValidation()
 
 const form = ref({
+  proveedor: '',
+  observaciones: '',
   producto: '',
   categoria: '',
   cantidad: '',
@@ -129,37 +116,77 @@ const form = ref({
   fechaProduccion: '',
   fechaVencimiento: '',
   lote: '',
+  unidadmedida: '',
 })
 
-const { rules, resetForm } = useValidation()
+//crud
 
+const handleView = (item) => {
+  console.log('Ver detalles de', item)
+  showSuccessSnackbar(`Viendo detalles del ingreso #${item.id || item.producto}`)
+}
+
+const handleEdit = (item) => {
+  console.log('Editar', item)
+  productFormModal.value = true
+  showSuccessSnackbar('Editando ingreso o producto seleccionado')
+}
+
+const handleDelete = (item) => {
+  console.log('Eliminar', item)
+  productDeleteModal.value = true
+}
+
+// Guardar producto dentro del modal
 const save = async () => {
   const { valid } = await productForm.value.validate()
   if (!valid) return
 
-  showSuccessSnackbar("Se agrego un nuevo producto")
+  showSuccessSnackbar('Se agregó un nuevo producto')
   console.log('Formulario', form.value)
   resetForm(productForm, form)
-
 }
 
+// Cerrar formulario sin guardar
 const close = () => {
   resetForm(productForm, form)
-  // productFormModal.value = false
-}
-
-
-const finishEntryProduct = () => {
-  showSuccessSnackbar("Se registro correctamente los productos")
   productFormModal.value = false
-
 }
 
+// Finalizar registro de productos
+const finishEntryProduct = () => {
+  showSuccessSnackbar('Se registraron correctamente los productos')
+  productFormModal.value = false
+}
+
+// Confirmar eliminación
 const deleteIngreso = () => {
-  showErrorSnackbar("Se elimino correctamente el ingreso")
+  showErrorSnackbar('Se eliminó correctamente el ingreso')
   productDeleteModal.value = false
 }
+
+
+
+// FUNCIONES PARA TABLA DE PRODUCTOS
+const handleViewProduct = (item) => {
+  console.log('Ver producto', item.producto)
+  showSuccessSnackbar(`Viendo producto: ${item.producto}`)
+}
+
+const handleEditProduct = (item) => {
+  console.log('Editar producto', item.producto)
+  productFormModal.value = true
+  form.value = { ...item }
+  showSuccessSnackbar(`Editando producto: ${item.producto}`)
+}
+
+const handleDeleteProduct = (item) => {
+  console.log('Eliminar producto', item.producto)
+  productDeleteModal.value = true
+}
+
 </script>
+
 
 <template>
   <h1>Ingreso de Productos</h1>
@@ -191,10 +218,14 @@ const deleteIngreso = () => {
 
 
   <v-data-table :headers="headers" :items="items">
-    <template #[`item.actions`]="{ item }">
-      <action-menu @action="(type) => handleAction(type, item)" />
-    </template>
-  </v-data-table>
+  <template #[`item.actions`]="{ item }">
+    <action-menu
+      @view="() => handleView(item)"
+      @edit="() => handleEdit(item)"
+      @delete="() => handleDelete(item)"
+    />
+  </template>
+</v-data-table>
 
   <!-- Modal nuevo ingreso productos -->
     <v-dialog v-model="productFormModal" max-width="95%">
@@ -240,7 +271,7 @@ const deleteIngreso = () => {
                       :items="categorias"
                       label="Categoría"
                       variant="underlined"
-                      :rules="[rules.categoria]"
+                      :rules="[rules.categoria, rules.required]"
                     />
                   </v-col>
 
@@ -250,7 +281,7 @@ const deleteIngreso = () => {
                       label="Cantidad"
                       type="number"
                       variant="underlined"
-                      :rules="[rules.cantidad]"
+                      :rules="[rules.cantidad, rules.required]"
                     />
                   </v-col>
                   <v-col cols="12" md="6">
@@ -270,7 +301,7 @@ const deleteIngreso = () => {
                       label="Fecha Producción"
                       type="date"
                       variant="underlined"
-                      :rules="[rules.fecha]"
+                      :rules="[rules.fecha, rules.required]"
                     />
                   </v-col>
                   <v-col cols="12" md="6">
@@ -279,7 +310,7 @@ const deleteIngreso = () => {
                       label="Fecha Vencimiento"
                       type="date"
                       variant="underlined"
-                      :rules="[rules.fecha]"
+                      :rules="[rules.fecha, rules.required]"
                     />
                   </v-col>
 
@@ -288,7 +319,16 @@ const deleteIngreso = () => {
                       v-model="form.lote"
                       label="Lote"
                       variant="underlined"
-                      :rules="[rules.lote]"
+                      :rules="[rules.lote, rules.required]"
+                    />
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-select
+                      v-model="form.unidadmedida"
+                      :items="['kg', 'litro', 'unidad']"
+                      label="Unidad Medida"
+                      variant="underlined"
+                      :rules="[rules.unidadMedida, rules.required]"
                     />
                   </v-col>
 
@@ -304,31 +344,42 @@ const deleteIngreso = () => {
               </v-form>
             </v-col>
 
+
             <v-col cols="12" md="9">
               <v-sheet
                 max-height="450"
                 class="overflow-y-auto"
               >
-              <v-data-table
-                :headers="headersProductos"
-                :items="itemsProductos"
-                class="elevation-1"
-                density="compact"
-              >
-                <template #[`item.actions`]="{ item }">
-                  <action-menu @action="(type) => handleAction(type, item)" />
-                </template>
-              </v-data-table>
-            </v-sheet>
+                <v-data-table
+                  :headers="headersProductos"
+                  :items="itemsProductos"
+                  class="elevation-1"
+                  density="compact"
+                >
+                  <template #[`item.actions`]="{ item }">
+                    <action-menu
+                      @view="() => handleViewProduct(item)"
+                      @edit="() => handleEditProduct(item)"
+                      @delete="() => handleDeleteProduct(item)"
+                    />
+                  </template>
+                </v-data-table>
+              </v-sheet>
 
               <v-row justify="end" class="mt-4">
                 <v-col cols="auto">
-                  <v-btn color="primary" variant="flat" @click="finishEntryProduct">
+                  <v-btn
+                    color="primary"
+                    variant="flat"
+                    @click="finishEntryProduct"
+                  >
                     Finalizar Registro
                   </v-btn>
                 </v-col>
               </v-row>
             </v-col>
+
+
             </v-row>
           </v-card-text>
         </v-card>
@@ -356,6 +407,8 @@ const deleteIngreso = () => {
             </v-card-actions>
         </v-card>
     </v-dialog>
+
+    <!-- <fab-menu v-model:FormModal="productFormModal" v-model:filterDialog="filterDialog" /> -->
 </template>
 
 <style scoped></style>
