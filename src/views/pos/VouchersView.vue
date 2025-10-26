@@ -248,7 +248,7 @@ const search = ref('')
     </v-card>
   </v-dialog>
 
-  <fab-menu v-if="smAndDown" @filter="() => (filterDialog = true)" />
+  <fab-menu v-model:filterDialog="filterDialog" />
 
 </template>
 
