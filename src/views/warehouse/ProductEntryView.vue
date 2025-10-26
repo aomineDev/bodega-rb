@@ -1,8 +1,14 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import ActionMenu from '@/components/ActionMenu.vue'
 import { useValidation } from '@/composables/useFormValidation'
 import { useSnackbar } from '@/stores/snackbar'
+import FabMenu from '@/components/FabMenu.vue'
+import { useDisplay } from 'vuetify'
+import BaseFilter from '@/components/BaseFilter.vue'
+import { VDateInput } from 'vuetify/labs/VDateInput'
+
+const { smAndDown, mdAndUp } = useDisplay()
 
 // Snackbar  falta warning
 const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
@@ -11,10 +17,47 @@ const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 const productFormModal = ref(false)
 const productForm = ref(null)
 const productDeleteModal = ref(false)
+const filterDialog = ref(false)
+
 const search = ref('')
 
 
-const categorias = ['Carnes', 'Lácteos', 'Bebidas']
+// const filtros = reactive({
+//   fecha: null, // una sola fecha
+// })
+
+
+// const selectFilter = computed(() => [
+//   {
+//     key: 'fecha',
+//     label: 'Fecha',
+//     type: 'range',
+//     model: filtros.fecha,
+//   },
+// ])
+const filtros = reactive({
+  rangoFechas: [],
+})
+
+const selectFilter = computed(() => [
+  {
+    key: 'rangoFechas',
+    label: 'Rango de fechas',
+    type: 'range',
+    model: filtros.rangoFechas,
+  },
+
+])
+
+// Acción de aplicar filtros
+// const aplicarFiltros = () => {
+//   console.log('Buscar:', search.value)
+//   console.log('Fecha:', filtros.value.fecha)
+//   filterDialog.value = false
+// }
+
+
+const categorias = ['Carnes', 'Lácteos', 'Bebidas', 'Embutidos', 'Conservas']
 
 // Cabeceras de tablas
 const headers = [
@@ -191,16 +234,11 @@ const handleDeleteProduct = (item) => {
 <template>
   <h1>Ingreso de Productos</h1>
 
-  <v-card elevation="0" class="mb-4 pt-5">
-    <v-row class="d-flex justify-space-between">
-      <v-col cols="12" md="4">
-        <v-text-field
-          v-model="search"
-          label="Buscar ingreso"
-          prepend-inner-icon="mdi-magnify"
-          variant="underlined"
-          hide-details
-        />
+  <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
+    <v-row class="align-center">
+      <v-col cols="12" md="9">
+        <base-filter v-model:search="search" :filters="selectFilter"
+            @update:filter="({ key, value }) => filtros[key] = value" />
       </v-col>
 
       <v-col cols="12" md="3" class="d-flex justify-end">
@@ -408,7 +446,48 @@ const handleDeleteProduct = (item) => {
         </v-card>
     </v-dialog>
 
-    <!-- <fab-menu v-model:FormModal="productFormModal" v-model:filterDialog="filterDialog" /> -->
+    <!-- modal filtro -->
+    <fab-menu
+      v-if="smAndDown"
+      v-model:filterDialog="filterDialog"
+      v-model:FormModal="productFormModal"
+    />
+
+    <!-- moviil Filtros -->
+    <v-dialog v-model="filterDialog" width="400">
+      <v-card>
+        <v-card-title class="text-h6 font-weight-bold">
+          Filtros
+        </v-card-title>
+
+        <v-card-text>
+          <v-text-field
+            v-model="search"
+            label="Buscar ingreso xddddddd"
+            prepend-inner-icon="mdi-magnify"
+            variant="underlined"
+            hide-details
+            class="mb-3"
+          />
+
+          <v-date-input
+            v-model="filtros.fecha"
+            label="Fecha"
+            variant="underlined"
+            hide-details
+            multiple="range"
+          />
+
+        </v-card-text>
+
+        <v-card-actions class="justify-end">
+          <v-btn text="Cerrar" @click="filterDialog = false" />
+          <v-btn color="primary" text="Aplicar" @click="filterDialog = false" />
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+
 </template>
 
 <style scoped></style>
