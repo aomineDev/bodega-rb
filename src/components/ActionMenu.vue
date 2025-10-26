@@ -1,16 +1,9 @@
 <script setup>
 defineProps({
-  actions: {
-    type: Array,
-    default: () => [
-      { label: 'Ver detalles', value: 'view', icon: 'mdi-eye' },
-      { label: 'Editar', value: 'edit', icon: 'mdi-pencil' },
-      { label: 'Eliminar', value: 'delete', icon: 'mdi-delete', color: 'red' },
-    ],
-  },
+  onView: Function,
+  onEdit: Function,
+  onDelete: Function,
 })
-
-defineEmits(['action'])
 </script>
 
 <template>
@@ -21,27 +14,29 @@ defineEmits(['action'])
 
     <v-list elevation="2">
       <v-list-item
-        v-for="action in actions"
-        :key="action.value"
-        @click="$emit('action', action.value)"
+        v-if="onView"
+        @click="onView"
         class="cursor-pointer"
+        prepend-icon="mdi-eye"
+        title="Ver detalles"
       >
-        <template #prepend>
-          <v-icon :color="action.color || undefined">{{ action.icon }}</v-icon>
-        </template>
-
-        <template #title>
-          <span :class="action.color ? `text-${action.color}` : ''">
-            {{ action.label }}
-          </span>
-        </template>
+      </v-list-item>
+      <v-list-item
+        v-if="onEdit"
+        @click="onEdit"
+        class="cursor-pointer"
+        prepend-icon="mdi-pencil"
+        title="Editar"
+      >
+      </v-list-item>
+      <v-list-item
+        v-if="onDelete"
+        @click="onDelete"
+        class="cursor-pointer text-red"
+        prepend-icon="mdi-delete"
+        title="Eliminar"
+      >
       </v-list-item>
     </v-list>
   </v-menu>
 </template>
-
-<style scoped>
-.cursor-pointer {
-  cursor: pointer;
-}
-</style>

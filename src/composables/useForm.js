@@ -15,6 +15,10 @@ export const useForm = (initialValue) => {
     return await formRef.value.validate()
   }
 
+  const asignForm = (data) => {
+    Object.assign(formData.value, data)
+  }
+
   const handleSubmit = async (callback) => {
     if (!existsFormRef()) return
 
@@ -39,5 +43,6 @@ export const useForm = (initialValue) => {
     resetForm,
     handleSubmit,
     rules,
+    asignForm,
   }
 }
