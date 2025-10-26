@@ -148,7 +148,7 @@ const close = () => {
     <v-row>
         <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in empleado" :key="index">
             <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 5 : 1" rounded="xl" class="card-hover">
+                <v-card v-bind="props" :elevation="isHovering ? 8 : 1" rounded="xl" class="card-hover">
 
                     <v-img height="220px" :src="item.imagen" contain>
                     </v-img>
