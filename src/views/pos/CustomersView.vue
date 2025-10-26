@@ -33,26 +33,26 @@ const headers = computed(() => {
 const items = computed(() => {
   return filtros.tipoCliente === 'Natural'
     ? [
-        {
-          personaId: 1,
-          nombre: 'Juan',
-          apellidoPaterno: 'Pérez',
-          apellidoMaterno: 'López',
-          dni: '12345678',
-          direccion: 'maz q lt 3',
-          telefono: '987527333',
-          email: 'cslis@gmail.com',
-          fechaNacimiento: '2006/06/23',
-        },
-      ]
+      {
+        personaId: 1,
+        nombre: 'Juan',
+        apellidoPaterno: 'Pérez',
+        apellidoMaterno: 'López',
+        dni: '12345678',
+        direccion: 'maz q lt 3',
+        telefono: '987527333',
+        email: 'cslis@gmail.com',
+        fechaNacimiento: '2006/06/23',
+      },
+    ]
     : [
-        {
-          personaId: 2,
-          razonSocial: 'Tech S.A.C.',
-          ruc: '20123456789',
-          representante: 'Carlos Ramos',
-        },
-      ]
+      {
+        personaId: 2,
+        razonSocial: 'Tech S.A.C.',
+        ruc: '20123456789',
+        representante: 'Carlos Ramos',
+      },
+    ]
 })
 /* --------------------------------------------*/
 
@@ -93,49 +93,43 @@ const {
 })
 
 const { mdAndUp, smAndDown } = useDisplay()
-const customerEdit = ref(false)
-const customerId = ref(null)
-const modalTitle = computed(() => (customerEdit.value ? 'Editar Cliente' : 'Crear Cliente'))
-const actionLabel = computed(() => (customerEdit.value ? 'Actualizar' : 'Crear'))
+const modalTitle = computed(() => (selectedItem.value ? 'Editar Cliente' : 'Crear Cliente'))
+const actionLabel = computed(() => (selectedItem.value ? 'Actualizar' : 'Crear'))
+const selectedItem = ref(null)
 
 // Modales
 const clienteFormModal = ref(false)
 const filterDialog = ref(false)
 
-//dropdown
-const handleAction = (type, item) => {
-  if (type === 'edit') {
-    customerEdit.value = true
-    customerId.value = item.personaId || null
-    clienteFormModal.value = true
+/* --------------- MENU ACCIONES ---------------*/
+const handleEdit = (item) => {
+  selectedItem.value = item
+  clienteFormModal.value = true
 
-    Object.assign(formData.value, item)
-    console.log('Editar', item)
-  } else if (type === 'delete') {
-    console.log('Eliminar', item.nombre || item.razonSocial)
-  }
+  Object.assign(formData.value, item)
 }
 
-//FAP
-const handleActionFabMenu = (type) => {
-  if (type === 'add') {
-    customerEdit.value = false
-    customerId.value = null
-    clienteFormModal.value = true
-  }
-  if (type === 'filter') filterDialog.value = true
+const handleDelete = (item) => {
+  console.log('Eliminar', item.nombre || item.razonSocial)
+}
+
+const handleAdd = () => {
+  clienteFormModal.value = true
 }
 
 //Cuando el modal se cierra
 watch(clienteFormModal, (isOpen) => {
-  if (!isOpen) resetForm()
+  if (!isOpen) {
+    resetForm()
+    selectedItem.value = null
+  }
 })
 
-//Acciones Modal
 const closeModal = () => (clienteFormModal.value = false)
 
 const save = async () => {
-  console.log('Formulario válido:', formData.value)
+  if (!selectedItem.value) console.log("Estas creando")
+  else console.log("Estas editando")
   clienteFormModal.value = false
 }
 
@@ -143,12 +137,8 @@ const save = async () => {
 const filtros = reactive({
   tipoCliente: 'Natural',
 })
-const search = ref('') //busqueda
 
-const selectFilter = [
-  { label: 'Editar', value: 'edit', icon: 'mdi-pencil' },
-  { label: 'Eliminar', value: 'delete', icon: 'mdi-delete', color: 'red' },
-]
+const search = ref('') //busqueda
 </script>
 
 <template>
@@ -157,27 +147,18 @@ const selectFilter = [
   <!-- Filtros -->
   <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
     <v-row>
-      <base-filter
-        v-model:search="search"
-        :filters="[
-          {
-            key: 'tipoCliente',
-            label: 'Tipo de cliente',
-            type: 'select',
-            items: ['Natural', 'Jurídico'],
-            model: filtros.tipoCliente,
-          },
-        ]"
-        @update:filter="({ key, value }) => (filtros[key] = value)"
-      />
+      <base-filter v-model:search="search" :filters="[
+        {
+          key: 'tipoCliente',
+          label: 'Tipo de cliente',
+          type: 'select',
+          items: ['Natural', 'Jurídico'],
+          model: filtros.tipoCliente,
+        },
+      ]" @update:filter="({ key, value }) => (filtros[key] = value)" />
 
       <v-col cols="12" md="2" class="d-flex justify-end align-center">
-        <v-btn
-          prepend-icon="mdi-plus"
-          color="primary"
-          elevation="1"
-          @view="handleActionFabMenu('add')"
-        >
+        <v-btn prepend-icon="mdi-plus" color="primary" elevation="1" @click="handleAdd">
           Crear Cliente
         </v-btn>
       </v-col>
@@ -187,7 +168,7 @@ const selectFilter = [
   <!-- Tabla -->
   <v-data-table :headers="headers" :items="items">
     <template #item.actions="{ item }">
-      <action-menu :actions="selectFilter" @action="(type) => handleAction(type, item)" />
+      <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)"></action-menu>
     </template>
   </v-data-table>
 
@@ -195,19 +176,15 @@ const selectFilter = [
   <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
     <v-card title="Filtrar Clientes">
       <v-card-text>
-        <base-filter
-          v-model:search="search"
-          :filters="[
-            {
-              key: 'tipoCliente',
-              label: 'Tipo de cliente',
-              type: 'select',
-              items: ['Natural', 'Jurídico'],
-              model: tipoCliente,
-            },
-          ]"
-          @update:filter="({ key, value }) => (filtros[key] = value)"
-        />
+        <base-filter v-model:search="search" :filters="[
+          {
+            key: 'tipoCliente',
+            label: 'Tipo de cliente',
+            type: 'select',
+            items: ['Natural', 'Jurídico'],
+            model: tipoCliente,
+          },
+        ]" @update:filter="({ key, value }) => (filtros[key] = value)" />
       </v-card-text>
 
       <v-card-actions>
@@ -231,36 +208,21 @@ const selectFilter = [
             <v-row dense>
               <template v-if="filtros.tipoCliente === 'Natural'">
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="nombre"
-                    label="Nombre"
-                    :rules="[rules.required, rules.text]"
-                  />
+                  <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="apellidoPaterno"
-                    label="Apellido Paterno"
-                    :rules="[rules.required, rules.text]"
-                  />
+                  <v-text-field v-model="apellidoPaterno" label="Apellido Paterno"
+                    :rules="[rules.required, rules.text]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="apellidoMaterno"
-                    label="Apellido Materno"
-                    :rules="[rules.required, rules.text]"
-                  />
+                  <v-text-field v-model="apellidoMaterno" label="Apellido Materno"
+                    :rules="[rules.required, rules.text]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="dni"
-                    label="DNI"
-                    :counter="8"
-                    :rules="[rules.required, rules.dni]"
-                  />
+                  <v-text-field v-model="dni" label="DNI" :counter="8" :rules="[rules.required, rules.dni]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -268,71 +230,39 @@ const selectFilter = [
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="telefono"
-                    label="Teléfono"
-                    :counter="9"
-                    :rules="[rules.required, rules.phone]"
-                  />
+                  <v-text-field v-model="telefono" label="Teléfono" :counter="9"
+                    :rules="[rules.required, rules.phone]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="email"
-                    label="Email"
-                    :rules="[rules.required, rules.email]"
-                  />
+                  <v-text-field v-model="email" label="Email" :rules="[rules.required, rules.email]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-date-input
-                    v-model="fechaNacimiento"
-                    label="Fecha de nacimiento"
-                    :rules="[rules.required]"
-                  ></v-date-input>
+                  <v-date-input v-model="fechaNacimiento" label="Fecha de nacimiento"
+                    :rules="[rules.required]"></v-date-input>
                 </v-col>
               </template>
 
               <template v-else>
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="razonSocial"
-                    label="Razón Social"
-                    :rules="[rules.required]"
-                  />
+                  <v-text-field v-model="razonSocial" label="Razón Social" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="ruc"
-                    label="RUC"
-                    counter="11"
-                    :rules="[rules.required, rules.ruc]"
-                  />
+                  <v-text-field v-model="ruc" label="RUC" counter="11" :rules="[rules.required, rules.ruc]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="nombreComercial"
-                    label="Nombre Comercial"
-                    :rules="[rules.required]"
-                  />
+                  <v-text-field v-model="nombreComercial" label="Nombre Comercial" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="tipoContribuyente"
-                    label="Tipo Contribuyente"
-                    :rules="[rules.required]"
-                  />
+                  <v-text-field v-model="tipoContribuyente" label="Tipo Contribuyente" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="actividadEconomica"
-                    label="Actividad Economica"
-                    :rules="[rules.required]"
-                  />
+                  <v-text-field v-model="actividadEconomica" label="Actividad Economica" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -344,11 +274,7 @@ const selectFilter = [
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="email"
-                    label="Email"
-                    :rules="[rules.required, rules.email]"
-                  />
+                  <v-text-field v-model="email" label="Email" :rules="[rules.required, rules.email]" />
                 </v-col>
               </template>
             </v-row>
@@ -364,7 +290,8 @@ const selectFilter = [
     </v-dialog>
   </template>
 
-  <fab-menu v-if="smAndDown" @action="handleActionFabMenu" />
+  <fab-menu v-model:FormModal="clienteFormModal" v-model:filterDialog="filterDialog" />
+
 </template>
 
 <style scoped></style>
