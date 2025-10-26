@@ -6,11 +6,17 @@ export const useForm = (initialValue) => {
   const formRef = ref(null)
 
   const resetForm = () => {
-    if (existsFormRef()) formRef.value.reset()
+    if (!existsFormRef()) return
+
+    Object.keys(formData.value).forEach((key) => (formData.value[key] = null))
   }
 
   const isValid = async () => {
     return await formRef.value.validate()
+  }
+
+  const asignForm = (data) => {
+    Object.assign(formData.value, data)
   }
 
   const handleSubmit = async (callback) => {
@@ -37,5 +43,6 @@ export const useForm = (initialValue) => {
     resetForm,
     handleSubmit,
     rules,
+    asignForm,
   }
 }
