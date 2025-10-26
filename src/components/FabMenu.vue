@@ -18,6 +18,8 @@ const { smAndDown } = useDisplay()
 const filterDialog = defineModel('filterDialog')
 const FormModal = defineModel('FormModal')
 
+console.log(filterDialog.value)
+
 const openFilterModal = () => {
   filterDialog.value = true
 }
@@ -39,7 +41,7 @@ const open = ref(false)
       </template>
 
       <!-- Acción Filtrar -->
-      <v-tooltip location="left">
+      <v-tooltip location="left" v-if="!(filterDialog == undefined)">
         <template #activator="{ props: tooltipProps }">
           <v-btn v-bind="tooltipProps" color="secondary" icon elevation="2" @click="openFilterModal">
             <v-icon>mdi-filter</v-icon>
@@ -49,7 +51,7 @@ const open = ref(false)
       </v-tooltip>
 
       <!-- Acción Agregar -->
-      <v-tooltip location="left">
+      <v-tooltip location="left" v-if="!(FormModal == undefined)">
         <template #activator="{ props: tooltipProps }">
           <v-btn v-bind="tooltipProps" color="primary" icon elevation="2" @click="openFormModal">
             <v-icon>mdi-plus</v-icon>
