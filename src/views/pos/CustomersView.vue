@@ -5,12 +5,31 @@ import BaseFilter from '@/components/BaseFilter.vue'
 import { VDateInput } from 'vuetify/labs/VDateInput'
 import { computed, reactive, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
+
 import { useForm } from '@/composables/useForm'
+import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer'
+import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer'
+
+const {
+  naturalCustomers,
+  isPending: isPendingNatural,
+  isError: isErrorNatural,
+  error: errorNatural,
+} = useNaturalCustomer()
+
+const {
+  juridicalCustomers,
+  isPending: isPendingJuridical,
+  isError: isErrorJuridical,
+  error: errorJuridical,
+} = useJuridicalCustomer()
+
 
 /* --------------- Relleno Tabla ---------------*/
 const headers = computed(() => {
   if (filtros.tipoCliente === 'Natural') {
     return [
+      { title: 'DNI', key: 'dni' },
       { title: 'Nombre', key: 'nombre' },
       { title: 'Apellido Paterno', key: 'apellidoPaterno' },
       { title: 'Apellido Materno', key: 'apellidoMaterno' },
@@ -24,7 +43,11 @@ const headers = computed(() => {
     return [
       { title: 'Razón Social', key: 'razonSocial' },
       { title: 'RUC', key: 'ruc' },
-      { title: 'Representante', key: 'representante' },
+      { title: 'Nombre Comercial', key: 'nombreComercial' },
+      { title: 'Tipo Contribuyente', key: 'tipoContribuyente' },
+      { title: 'Dirección', key: 'direccion' },
+      { title: 'Telefono', key: 'telefono' },
+      { title: 'Email', key: 'email' },
       { title: 'Acciones', key: 'actions', sortable: false },
     ]
   }
@@ -32,28 +55,22 @@ const headers = computed(() => {
 
 const items = computed(() => {
   return filtros.tipoCliente === 'Natural'
-    ? [
-      {
-        personaId: 1,
-        nombre: 'Juan',
-        apellidoPaterno: 'Pérez',
-        apellidoMaterno: 'López',
-        dni: '12345678',
-        direccion: 'maz q lt 3',
-        telefono: '987527333',
-        email: 'cslis@gmail.com',
-        fechaNacimiento: '2006/06/23',
-      },
-    ]
-    : [
-      {
-        personaId: 2,
-        razonSocial: 'Tech S.A.C.',
-        ruc: '20123456789',
-        representante: 'Carlos Ramos',
-      },
-    ]
+    ? naturalCustomers.value || []
+    : juridicalCustomers.value || []
 })
+
+const isPending = computed(() =>
+  filtros.tipoCliente === 'Natural' ? isPendingNatural.value : isPendingJuridical.value
+)
+
+const isError = computed(() =>
+  filtros.tipoCliente === 'Natural' ? isErrorNatural.value : isErrorJuridical.value
+)
+
+const error = computed(() =>
+  filtros.tipoCliente === 'Natural' ? errorNatural.value : errorJuridical.value
+)
+
 /* --------------------------------------------*/
 
 const {
@@ -166,11 +183,16 @@ const search = ref('') //busqueda
   </v-card>
 
   <!-- Tabla -->
-  <v-data-table :headers="headers" :items="items">
+  <v-data-table :headers="headers" :items="items" :loading="isPending" loading-text="Cargando clientes..."
+    no-data-text="No se encontraron clientes">
     <template #item.actions="{ item }">
-      <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)"></action-menu>
+      <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
     </template>
   </v-data-table>
+
+  <v-alert v-if="isError" type="error" class="mt-2">
+    Error al cargar clientes: {{ error?.message }}
+  </v-alert>
 
   <!-- Filtro móvil -->
   <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
