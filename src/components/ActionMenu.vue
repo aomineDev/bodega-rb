@@ -13,29 +13,12 @@ defineProps({
     </template>
 
     <v-list elevation="2">
-      <v-list-item
-        v-if="onView"
-        @click="onView"
-        class="cursor-pointer"
-        prepend-icon="mdi-eye"
-        title="Ver detalles"
-      >
+      <v-list-item v-if="onView" @click="onView" class="cursor-pointer" prepend-icon="mdi-eye" title="Ver detalles">
       </v-list-item>
-      <v-list-item
-        v-if="onEdit"
-        @click="onEdit"
-        class="cursor-pointer"
-        prepend-icon="mdi-pencil"
-        title="Editar"
-      >
+      <v-list-item v-if="onEdit" @click="onEdit" class="cursor-pointer" prepend-icon="mdi-pencil" title="Editar">
       </v-list-item>
-      <v-list-item
-        v-if="onDelete"
-        @click="onDelete"
-        class="cursor-pointer text-red"
-        prepend-icon="mdi-delete"
-        title="Eliminar"
-      >
+      <v-list-item v-if="onDelete" @click="onDelete" class="cursor-pointer text-red" prepend-icon="mdi-delete"
+        title="Eliminar">
       </v-list-item>
     </v-list>
   </v-menu>

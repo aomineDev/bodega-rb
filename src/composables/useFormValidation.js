@@ -14,6 +14,7 @@ export function useValidation() {
     fecha: (v) => !!v || 'Seleccione una fecha',
     lote: (v) => !!v && v.trim().length > 0 || 'Lote obligatorio',
     categoria: (v) => !!v || 'Seleccione una categoría',
+    unidadMedida: (v) => !!v || 'Seleccione una unidad de medida',
   }
 
   /**

@@ -71,15 +71,9 @@ const comprobanteDetailModal = ref(false)
 const filterDialog = ref(false)
 
 /* --------------- Acciones ---------------*/
-const handleAction = (type, item) => {
-  if (type === 'view') {
-    selectedComprobante.value = item
-    comprobanteDetailModal.value = true
-  }
-}
-
-const handleActionFabMenu = (type) => {
-  if (type === 'filter') filterDialog.value = true
+const handleView = (item) => {
+  selectedComprobante.value = item
+  comprobanteDetailModal.value = true
 }
 
 /* --------------- Filtros ---------------*/
@@ -122,9 +116,7 @@ const search = ref('')
   <!-- Tabla -->
   <v-data-table :headers="headers" :items="items">
     <template #item.actions="{ item }">
-      <action-menu :actions="[
-        { label: 'Ver detalles', value: 'view', icon: 'mdi-eye' },
-      ]" @action="(type) => handleAction(type, item)" />
+      <action-menu @view="handleView(item)"></action-menu>
     </template>
   </v-data-table>
 
@@ -256,9 +248,7 @@ const search = ref('')
     </v-card>
   </v-dialog>
 
-  <fab-menu v-if="smAndDown" :actions="[
-    { type: 'filter', icon: 'mdi-filter', label: 'Filtrar', color: 'secondary' },
-  ]" @action="handleActionFabMenu" />
+  <fab-menu v-model:filterDialog="filterDialog" />
 
 </template>
 

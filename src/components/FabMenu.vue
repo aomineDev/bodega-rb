@@ -1,14 +1,9 @@
 <script setup>
 import { ref } from 'vue'
+import { useDisplay } from 'vuetify/lib/composables/display'
 
 defineProps({
-  actions: {
-    type: Array,
-    default: () => [
-      { type: 'filter', icon: 'mdi-filter', label: 'Filtrar', color: 'secondary' },
-      { type: 'add', icon: 'mdi-plus', label: 'Agregar', color: 'primary' },
-    ],
-  },
+  onAdd: Function,
   color: {
     type: String,
     default: 'primary',
@@ -19,12 +14,25 @@ defineProps({
   },
 })
 
-defineEmits(['action'])
+const { smAndDown } = useDisplay()
+const filterDialog = defineModel('filterDialog')
+const FormModal = defineModel('FormModal')
+
+console.log(filterDialog.value)
+
+const openFilterModal = () => {
+  filterDialog.value = true
+}
+
+const openFormModal = () => {
+  FormModal.value = true
+}
+
 const open = ref(false)
 </script>
 
 <template>
-  <div class="position-fixed bottom-0 right-0 pa-4">
+  <div v-if="smAndDown" class="position-fixed bottom-0 right-0 pa-4">
     <v-speed-dial v-model="open" :location="`bottom center`" :direction="direction">
       <template #activator="{ props: activatorProps }">
         <v-fab v-bind="activatorProps" :color="color" icon elevation="2">
@@ -32,23 +40,25 @@ const open = ref(false)
         </v-fab>
       </template>
 
-      <!-- Botones secundarios -->
-      <template v-for="action in actions" :key="action.type">
-        <v-tooltip location="left">
-          <template #activator="{ props: tooltipProps }">
-            <v-btn
-              v-bind="tooltipProps"
-              :color="action.color"
-              icon
-              elevation="2"
-              @click="$emit('action', action.type)"
-            >
-              <v-icon>{{ action.icon }}</v-icon>
-            </v-btn>
-          </template>
-          <span>{{ action.label }}</span>
-        </v-tooltip>
-      </template>
+      <!-- Acción Filtrar -->
+      <v-tooltip location="left" v-if="!(filterDialog == undefined)">
+        <template #activator="{ props: tooltipProps }">
+          <v-btn v-bind="tooltipProps" color="secondary" icon elevation="2" @click="openFilterModal">
+            <v-icon>mdi-filter</v-icon>
+          </v-btn>
+        </template>
+        <span>Filtrar</span>
+      </v-tooltip>
+
+      <!-- Acción Agregar -->
+      <v-tooltip location="left" v-if="!(FormModal == undefined)">
+        <template #activator="{ props: tooltipProps }">
+          <v-btn v-bind="tooltipProps" color="primary" icon elevation="2" @click="openFormModal">
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+        </template>
+        <span>Agregar</span>
+      </v-tooltip>
     </v-speed-dial>
   </div>
 </template>
