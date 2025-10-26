@@ -37,6 +37,7 @@ defineEmits(['update:search', 'update:filter'])
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :label="filter.label"
           multiple="range" variant="underlined" hide-details />
       </v-col>
+
     </template>
   </v-row>
 </template>

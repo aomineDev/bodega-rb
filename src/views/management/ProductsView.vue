@@ -1,8 +1,11 @@
 <script setup>
 import ActionMenu from '@/components/ActionMenu.vue';
+import BaseFilter from '@/components/BaseFilter.vue';
+import FabMenu from '@/components/FabMenu.vue';
 import { VDateInput } from 'vuetify/labs/VDateInput'
 import { useSnackbar } from '@/stores/snackbar';
-import { ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
+import { useDisplay } from 'vuetify'
 import { useForm } from '@/composables/useForm';
 
 const { showSuccessSnackbar } = useSnackbar()
@@ -10,6 +13,8 @@ const categorias = ref(['Enlatados', 'Conservas', 'Carnes'])
 const productFormModal = ref(false)
 const productDetailModal = ref(false)
 const productDeleteModal = ref(false)
+const filterDialog = ref(false)
+const { mdAndUp, smAndDown } = useDisplay()
 
 
 const { formRef, resetForm, rules, handleSubmit, imagen, codigoBarra, nombre, descripcion, proveedor, precioUnitario, precioPromocion,
@@ -21,10 +26,78 @@ const { formRef, resetForm, rules, handleSubmit, imagen, codigoBarra, nombre, de
     inicioPromocion: '', finPromocion: '', unidadMedida: ''
 })
 
+//data prueba
+
+
+//btn crear producto
 const handleCreateProduct = () => {
     showSuccessSnackbar('Creado exitosamente')
     productFormModal.value = false
 }
+
+
+const handleActionFabMenu = (type) => {
+    if (type === 'add') {
+        productFormModal.value = true
+        //customerId.value = null
+        //resetForm()
+        //clienteFormModal.value = true
+    }
+    if (type === 'filter') filterDialog.value = true
+}
+
+//Cuando el modal se cierra
+//watch(clienteFormModal, (isOpen) => {
+//if (!isOpen) resetForm()
+// })
+
+//acciones del drop down
+const product = ref(false)
+function handleAction(type, item) {
+    console.log("click aqui")
+    if (type == "view") {
+        product.value = item
+        productDetailModal.value = true
+    }
+    if (type == "edit") {
+        console.log("editar " + item.id)
+    }
+    if (type == "delete") {
+        console.log("eliminar " + item.id)
+        productDeleteModal.value = true
+    }
+}
+
+//accion eliminar
+const deleteModal = () => {
+    console.log("Eliminado")
+    productDeleteModal.value = false
+    showSuccessSnackbar("Eliminado correctamente")
+}
+//cerrar modal
+const closeFormModal = () => {
+    productFormModal.value = false
+    resetForm()
+}
+
+const filtros = reactive({
+    categorias: [],
+    proveedores: []
+})
+
+const selectFilter = computed(() => [
+    {
+        key: 'categorias',
+        label: 'Categoria',
+        type: 'select',
+        model: filtros.categorias
+    }, {
+        key: 'proveedores',
+        label: "Proveedor",
+        type: "select",
+        model: filtros.proveedores
+    }
+])
 const producto = ref([
     {
         id: 1,
@@ -43,63 +116,52 @@ const producto = ref([
     },
     {
         id: 2,
-        codigoBarra: '1234567890123',
+        codigoBarra: '9876543210987',
         nombre: 'Atun',
-        descripcion: 'Leche de toro',
-        precioUnitario: 8.50,
-        precioPromocion: 6.50,
+        descripcion: 'Atun en aceite',
+        precioUnitario: 7.50,
+        precioPromocion: 3.50,
         inicioPromocion: '2025-10-20',
         finPromocion: '2025-10-31',
-        stockActual: 85,
+        stockActual: 20,
         unidadMedida: 'unidad',
-        imagen: '/public/milk.png',
+        imagen: '/public/atun.jpg',
+        categoria: 'Conservas',
+        proveedor: 'Alicorp'
+    }, {
+        id: 3,
+        codigoBarra: '9876543210987',
+        nombre: 'Galletas integrales',
+        descripcion: 'Galletas integrales de trigo',
+        precioUnitario: 5.50,
+        precioPromocion: 3.50,
+        inicioPromocion: '2025-10-20',
+        finPromocion: '2025-10-31',
+        stockActual: 5,
+        unidadMedida: 'unidad',
+        imagen: '/public/galleta.png',
         categoria: 'Conservas',
         proveedor: 'Alicorp'
     }
-]
-
-)
-function handleAction(type, item) {
-    console.log("click aqui")
-    if (type == "view") {
-        console.log("detail producto" + item.nombre)
-        productDetailModal.value = item
-    }
-    if (type == "edit") {
-        console.log("editar " + item.id)
-    }
-    if (type == "delete") {
-        console.log("eliminar " + item.id)
-        productDeleteModal.value = true
-    }
-
-}
-const deleteModal = () => {
-    console.log("Elominado")
-    productDeleteModal.value = false
-    showSuccessSnackbar("Eliminado correctamente")
-}
-const closeFormModal = () => {
-    productFormModal.value = false
-    resetForm()
-}
+])
 </script>
 <template>
 
-    <h1>Productos</h1>
+    <h1 class="mb-10">Productos</h1>
+    <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
 
-    <v-row class="mb-15">
-        <v-col cols="12" md="6">
-            <v-text-field label="Buscar producto...." prepend-icon="mdi-magnify" variant="underlined"
-                hide-details></v-text-field>
-        </v-col>
-        <v-col cols="12" md="6" lg="4">
-            <v-select label="Categoria" variant="underlined" :items="categorias" hide-details></v-select> </v-col>
-        <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-            <v-btn prepend-icon="mdi-plus" color="primary" @click="productFormModal = true">Crear Producto</v-btn>
-        </v-col>
+        <v-row>
+            <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
+                filtros[key] = value" />
 
-    </v-row>
+            <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleActionFabMenu('add')">Crear
+                    Producto</v-btn>
+            </v-col>
+
+        </v-row>
+    </v-card>
+
 
     <!-- cartas -->
     <v-row>
@@ -112,15 +174,18 @@ const closeFormModal = () => {
                     <span>{{ item.nombre }}</span>
                     <ActionMenu @action="(type) => handleAction(type, item)"></ActionMenu>
                 </v-card-title>
-                <div class="font-weight-bold mx-4">
-                    Embasados
-                </div>
+
+                <v-chip class="position-absolute chip-categoria" color="primary" size="default"
+                    style="top: 12px; right: 12px; z-index: 1">
+                    {{ item.categoria }}
+                </v-chip>
                 <v-card-text class="text-end">
-                    <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
-                        {{ item.stock > 0 ? item.stock + ' Unidades' : 'Agotado' }}
+                    <span :class="item.stockActual > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
+                        {{ item.stockActual > 0 ? item.stockActual + ' Unidades' : 'Agotado' }}
                     </span>
                 </v-card-text>
             </v-card>
+
         </v-col>
 
 
@@ -214,12 +279,12 @@ const closeFormModal = () => {
             </v-card-title>
 
             <v-card-text class="pa-6">
-                <v-row class="flex-column flex-md-row" v-for="(item, index) in producto" :key="index">
+                <v-row class="flex-column flex-md-row">
                     <!-- columna imagen -->
                     <v-col cols="12" md="5" class="d-flex">
 
                         <v-card class="pa-1 d-flex align-center flex-grow-1" elevation="0">
-                            <v-img :src="item.imagen" contain max-width="100%" height="400"
+                            <v-img :src="product.imagen" contain max-width="100%" height="400"
                                 class="product-detail-img"></v-img>
                         </v-card>
                     </v-col>
@@ -230,7 +295,7 @@ const closeFormModal = () => {
                         <v-card class=" d-flex flex-column justify-center columna-centra" elevation="0"
                             style="height: 100%">
                             <h2 class="text-h5 font-weight-bold mb-4 text-primary ">
-                                {{ item.nombre }}
+                                {{ product.nombre }}
                             </h2>
 
                             <div class="text-subtitle-3 font-weight-bold mb-4 ">
@@ -238,7 +303,7 @@ const closeFormModal = () => {
                             </div>
 
                             <p class="text-body-2 mb-6 font-weight-bold ">
-                                {{ producto.descripcion }}
+                                {{ product.descripcion }}
                             </p>
 
                             <div class="mb-2 text-subtitle-3 font-weight-bold ">
@@ -247,7 +312,7 @@ const closeFormModal = () => {
 
                             <div class="mb-3 ">
                                 <span class="text-h4 font-weight-bold text-primary mr-3">
-                                    S/ {{ producto.precioUnitario }}
+                                    S/ {{ product.precioUnitario }}
                                 </span>
                             </div>
 
@@ -257,7 +322,7 @@ const closeFormModal = () => {
 
                             <div class="">
                                 <span class="text-h4 font-weight-bold text-success mr-3">
-                                    S/ {{ producto.precioPromocion }}
+                                    S/ {{ product.precioPromocion }}
                                 </span>
                                 <!-- <v-chip color="success" size="small" class="font-weight-bold">
                                     OFERTA
@@ -280,7 +345,7 @@ const closeFormModal = () => {
                                         <span class="text-body-2 font-weight-bold">Categoría</span>
                                     </div>
                                     <v-chip color="primary" variant="tonal" size="default">
-                                        {{ producto.categoria }}
+                                        {{ product.categoria }}
                                     </v-chip>
                                 </v-col>
 
@@ -290,7 +355,7 @@ const closeFormModal = () => {
                                         <span class="text-body-2 font-weight-bold">Unidad de medida</span>
                                     </div>
                                     <v-chip color="teal" variant="tonal" size="default">
-                                        {{ producto.unidadMedida }}
+                                        {{ product.unidadMedida }}
                                     </v-chip>
                                 </v-col>
 
@@ -300,10 +365,10 @@ const closeFormModal = () => {
                                         <span class="text-body-2 font-weight-bold">Stock</span>
                                     </div>
                                     <div>
-                                        <v-progress-linear :model-value="(producto.stockActual / 100) * 100"
-                                            color="teal" height="30" rounded class="mb-2"></v-progress-linear>
+                                        <v-progress-linear :model-value="(product.stockActual / 100) * 100" color="teal"
+                                            height="30" rounded class="mb-2"></v-progress-linear>
                                         <div class="text-center text-body-2 text-grey-darken-1">
-                                            Stock Actual {{ producto.stockActual }} unidades
+                                            Stock Actual {{ product.stockActual }} unidades
                                         </div>
                                     </div>
                                 </v-col>
@@ -314,7 +379,7 @@ const closeFormModal = () => {
                                         <span class="text-body-2 font-weight-bold">Código de barra</span>
                                     </div>
                                     <v-chip color="teal" variant="tonal" size="default">
-                                        {{ producto.codigoBarra }}
+                                        {{ product.codigoBarra }}
                                     </v-chip>
                                 </v-col>
                             </v-row>
@@ -332,7 +397,7 @@ const closeFormModal = () => {
                                         <span class="text-body-2 font-weight-bold">Inicio Promoción</span>
                                     </div>
                                     <div class="text-body-3 font-weight-bold mb-3">
-                                        {{ producto.inicioPromocion }}
+                                        {{ product.inicioPromocion }}
                                     </div>
                                 </v-col>
 
@@ -342,7 +407,7 @@ const closeFormModal = () => {
                                         <span class="text-body-2 font-weight-bold">Fin Promoción</span>
                                     </div>
                                     <div class="text-body-3 font-weight-bold mb-3">
-                                        {{ producto.finPromocion }}
+                                        {{ product.finPromocion }}
                                     </div>
                                 </v-col>
 
@@ -352,7 +417,7 @@ const closeFormModal = () => {
                                         <span class="text-body-2 font-weight-bold">Proveedor</span>
                                     </div>
                                     <v-chip color="teal" variant="tonal" size="default">
-                                        {{ producto.proveedor }}
+                                        {{ product.proveedor }}
                                     </v-chip>
                                 </v-col>
                             </v-row>
@@ -396,7 +461,23 @@ const closeFormModal = () => {
             </v-card-actions>
         </v-card>
     </v-dialog>
+    <!-- Filtro móvil -->
+    <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
+        <v-card title="Filtrar Productos">
+            <v-card-text>
+                <base-filter v-model:search="search" :filters="selectFilter"
+                    @update:filter="({ key, value }) => tipoCliente = value" />
+            </v-card-text>
 
+            <v-card-actions>
+                <v-spacer />
+                <v-btn text="Cerrar" variant="plain" @click="filterDialog = false" />
+                <v-btn color="primary" text="Aplicar" variant="tonal" @click="filterDialog = false" />
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <fab-menu v-if="smAndDown" @action="handleActionFabMenu" />
 
 </template>
 <style scoped>
