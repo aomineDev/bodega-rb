@@ -493,7 +493,7 @@ const handleCreateProduct = () => {
         </v-card>
     </v-dialog>
 
-    <fab-menu v-if="smAndDown" @action="handleActionFabMenu" />
+    <fab-menu v-model:FormModal="productFormModal" v-model:filterDialog="filterDialog" />
 
 </template>
 <style scoped>
