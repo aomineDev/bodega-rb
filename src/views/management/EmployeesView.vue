@@ -147,20 +147,25 @@ const close = () => {
     <!-- cartas -->
     <v-row>
         <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in empleado" :key="index">
-            <v-card elevation="1" rounded="xl">
-                <v-img height="220px" :src="item.imagen" contain></v-img>
-                <v-divider :thickness="3"></v-divider>
+            <v-hover v-slot="{ isHovering, props }">
+                <v-card v-bind="props" :elevation="isHovering ? 5 : 1" rounded="xl" class="card-hover">
 
-                <v-card-title class="d-flex justify-space-between align-center">
-                    <span>{{ item.nombre + " " + item.apellidoPaterno }}</span>
-                    <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)">
-                    </ActionMenu>
-                </v-card-title>
+                    <v-img height="220px" :src="item.imagen" contain>
+                    </v-img>
 
-                <v-chip class="chip-categoria mb-3 mx-3" color="indigo" size="large">
-                    {{ item.rol }}
-                </v-chip>
-            </v-card>
+                    <v-divider :thickness="3"></v-divider>
+
+                    <v-card-title class="d-flex justify-space-between align-center">
+                        <span>{{ item.nombre + " " + item.apellidoPaterno }}</span>
+                        <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)">
+                        </ActionMenu>
+                    </v-card-title>
+
+                    <v-chip class="chip-categoria mb-3 mx-3" color="indigo" size="large">
+                        {{ item.rol }}
+                    </v-chip>
+                </v-card>
+            </v-hover>
         </v-col>
     </v-row>
 
@@ -398,6 +403,16 @@ const close = () => {
 </template>
 
 <style scoped>
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+}
+
+
+
 @media (max-width:600px) {
 
     .informacion {
