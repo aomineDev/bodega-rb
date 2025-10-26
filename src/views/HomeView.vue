@@ -1,46 +1,105 @@
 <script setup>
 import { useSnackbar } from '@/stores/snackbar'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import ActionMenu from '@/components/ActionMenu.vue'
+
+import { useForm } from '@/composables/useForm'
+import { usePruebas } from '@/composables/query/usePrueba'
 
 const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 
-import { useForm } from '@/composables/useForm'
+const {
+  pruebas,
+  isPending,
+  isError,
+  error,
+  createPruebaAsync,
+  updatePruebaAsync,
+  deletePruebaAsync,
+} = usePruebas()
 
-const { formData, formRef, rules, handleSubmit, username, state, file, name, asignForm } = useForm({
-  username: '',
-  name: '',
-  state: null,
-  file: null,
+const { formData, formRef, rules, handleSubmit, name, asignForm, resetForm } = useForm({
+  name: null,
 })
+const dialog = ref(false)
+const editingPrueba = ref(null)
 
-const handleLogin = () => {
-  console.log(JSON.stringify({ ...formData.value, file: file.value.name }))
+const handleLogin = async () => {
+  try {
+    if (editingPrueba.value) {
+      await updatePruebaAsync({ ...formData.value, id: editingPrueba.value.id })
+      showSuccessSnackbar('Prueba actualizada')
+    } else {
+      await createPruebaAsync(formData.value)
+      showSuccessSnackbar('Prueba creada')
+    }
+
+    dialog.value = false
+  } catch (error) {
+    showErrorSnackbar('Error al crear la prueba')
+    console.log(error)
+  }
 }
 
-const something = () => {}
+watch(dialog, (value) => {
+  if (!value) {
+    resetForm()
+    editingPrueba.value = null
+  }
+})
 
-const handleView = () => {
-  asignForm({ username: 'omar', name: 'Omar', state: 'California', file: null })
-
+const handleEdit = () => {
+  editingPrueba.value = pruebas.value[0]
+  asignForm(editingPrueba.value)
   dialog.value = true
 }
 
-const dialog = ref(false)
+const handleDelete = async () => {
+  try {
+    editingPrueba.value = pruebas.value[0]
+
+    await deletePruebaAsync(editingPrueba.value.id)
+    showSuccessSnackbar('Prueba eliminada')
+  } catch (error) {
+    showErrorSnackbar('Error al eliminar la prueba')
+    console.log(error)
+  }
+}
+
+const ff = () => {
+  return 1
+}
+
+const test = async () => {
+  const response = await ff()
+  const data = await response.json()
+  console.log(data)
+}
 </script>
 
 <template>
+  <div v-if="isPending">
+    <h1>Loading...</h1>
+  </div>
+  <div v-else-if="isError">
+    <h1>Error: {{ error.message }}</h1>
+  </div>
+  <div v-else>
+    <h1>Pruebas</h1>
+    <ul>
+      <li v-for="prueba in pruebas" :key="prueba.id">
+        {{ prueba.name }}
+      </li>
+    </ul>
+  </div>
+
   <h1>Home</h1>
+  <v-btn color="yellow" @click="test" text="test"></v-btn>
   <v-btn @click="showSuccessSnackbar('Snackbar')">Success Snackbar</v-btn>
   <v-btn @click="showErrorSnackbar('Snackbar')">Error Snackbar</v-btn>
-  <h1>{{ username }}</h1>
-  <action-menu
-    @view="handleView"
-    @edit="() => console.log('edit')"
-    @delete="console.log('delete')"
-  ></action-menu>
+  <action-menu @edit="handleEdit" @delete="handleDelete"></action-menu>
 
-  <v-btn @click="something"> Open Dialog </v-btn>
+  <v-btn @click="dialog = true">Open Dialog</v-btn>
 
   <v-dialog v-model="dialog" width="auto">
     <v-card
@@ -50,27 +109,11 @@ const dialog = ref(false)
       title="Update in progress"
     >
       <v-form ref="formRef">
-        <v-text-field label="Label" v-model="username" :rules="[rules.required]"></v-text-field>
         <v-text-field label="Nombre" v-model="name" :rules="[rules.required]"></v-text-field>
-        <v-select
-          label="Estado"
-          :items="['California', 'Colorado', 'Florida', 'Georgia', 'Texas', 'Wyoming']"
-          v-model="state"
-          :rules="[rules.required]"
-        ></v-select>
-        <v-file-input
-          label="File input"
-          v-model="file"
-          clearable
-          :rules="[rules.required]"
-        ></v-file-input>
-        <v-btn color="success" @click="handleSubmit(handleLogin)">login</v-btn>
       </v-form>
       <template v-slot:actions>
-        <v-btn class="ms-auto" text="Ok" @click="dialog = false"></v-btn>
+        <v-btn class="ms-auto" text="Ok" @click="handleSubmit(handleLogin)"></v-btn>
       </template>
     </v-card>
   </v-dialog>
 </template>
-
-<style scoped></style>

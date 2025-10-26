@@ -149,8 +149,8 @@ my-app/
     - axios.js
     - vee-validate.js
   - middleware/
-  - auth.js
-  - permissions.js
+    - auth.js
+    - permissions.js
   - directives/
     - click-outside.js
     - tooltip.js
