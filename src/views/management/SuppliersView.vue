@@ -23,71 +23,8 @@ const selectFilter = computed(() => [
     }
 ])
 const {
-    createSupplierAsync
+    createSupplierAsync, supplier, deleteSupplierAsync
 } = useSupplier()
-//data example
-const suppliers = [
-    {
-        id: 1,
-        nombreComercial: 'Comercial Andina S.A.C.',
-        tipoContribuyente: 'Persona Jurídica',
-        actividadEconomica: 'Venta de productos alimenticios',
-        razonSocial: 'Comercial Andina Sociedad Anónima Cerrada',
-        fechaRegistro: '2023-05-14',
-        ruc: '20123456789',
-        direccion: 'Av. Los Olivos 456, Lima',
-        telefono: '987654321',
-        email: 'contacto@andina.com'
-    },
-    {
-        id: 2,
-        nombreComercial: 'Servicios Globales EIRL',
-        tipoContribuyente: 'Persona Natural con negocio',
-        actividadEconomica: 'Servicios de mantenimiento industrial',
-        razonSocial: 'Servicios Globales EIRL',
-        fechaRegistro: '2022-08-22',
-        ruc: '10456789012',
-        direccion: 'Jr. Las Magnolias 120, Trujillo',
-        telefono: '956321478',
-        email: 'info@globales.com'
-    },
-    {
-        id: 3,
-        nombreComercial: 'Panadería El Trigo de Oro',
-        tipoContribuyente: 'Persona Natural con negocio',
-        actividadEconomica: 'Elaboración y venta de pan',
-        razonSocial: 'Panadería El Trigo de Oro',
-        fechaRegistro: '2024-01-09',
-        ruc: '10234567891',
-        direccion: 'Av. Grau 890, Arequipa',
-        telefono: '954128963',
-        email: 'panaderia@trigodeoro.pe'
-    },
-    {
-        id: 4,
-        nombreComercial: 'Importaciones Rivera',
-        tipoContribuyente: 'Persona Jurídica',
-        actividadEconomica: 'Importación y distribución de textiles',
-        razonSocial: 'Importaciones Rivera S.A.C.',
-        fechaRegistro: '2023-03-17',
-        ruc: '20567891234',
-        direccion: 'Calle Lima 321, Chiclayo',
-        telefono: '912345678',
-        email: 'ventas@rivera.com'
-    },
-    {
-        id: 5,
-        nombreComercial: 'TecnoPerú',
-        tipoContribuyente: 'Persona Jurídica',
-        actividadEconomica: 'Venta de equipos electrónicos',
-        razonSocial: 'TecnoPerú S.A.C.',
-        fechaRegistro: '2024-06-05',
-        ruc: '20654321987',
-        direccion: 'Av. Universitaria 900, Lima',
-        telefono: '999888777',
-        email: 'soporte@tecnoperu.pe'
-    }
-];
 //data header
 const headers = [
     { title: 'Nombre comercial', key: 'nombreComercial' },
@@ -143,7 +80,20 @@ const handleActionFabMenu = (type) => {
 const handleDelete = (item) => {
 
     supplierDeleteModal.value = true
+
     console.log("proveedor eliminado con id" + item.nombre)
+}
+const editingSupplier = ref(null)
+const confirmDelete = async () => {
+    try {
+        editingSupplier.value = supplier.value[0]
+        console.log("id" + editingSupplier.value.id)
+        await deleteSupplierAsync(editingSupplier.value.id)
+        showSuccessSnackbar('Eliminado correctamente')
+        supplierDeleteModal.value = false
+    } catch (error) {
+        console.log(error)
+    }
 }
 //creare proveedor
 const handleCreateSupplier = async () => {
@@ -189,7 +139,7 @@ watch(supplierFormModal, (isOpen) => {
 
 
     <!-- Tabla -->
-    <v-data-table :headers="headers" :items="suppliers">
+    <v-data-table :headers="headers" :items="supplier">
         <template #[`item.actions`]="{ item }">
             <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
         </template>
@@ -298,7 +248,7 @@ watch(supplierFormModal, (isOpen) => {
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
                 <v-btn text="Cerrar" @click="close"></v-btn>
-                <v-btn text="Eliminar" color="error" @click="deleteModal"></v-btn>
+                <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
