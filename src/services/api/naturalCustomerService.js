@@ -13,4 +13,6 @@ export const naturalCustomerService = {
     apiFetch(`${service}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   delete: async (id) => apiFetch(`${service}/${id}`, { method: 'DELETE' }),
+
+  getCustomerByDni: async (dni) => apiFetch(`${service}/reniec/${dni}`),
 }

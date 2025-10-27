@@ -1,61 +1,203 @@
 <script setup>
 
 // import ActionMenu from '@/components/ActionMenu.vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useProduct } from '@/composables/query/useProduct';
+import { useSnackbar } from '@/stores/snackbar'
+import { useRouter } from 'vue-router'
+import { naturalCustomerService } from '@/services/api/naturalCustomerService';
+import { juridicalCustomerService } from '@/services/api/juridicalCustomerService';
+import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer';
+import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer';
 
-// const showClientDialog = ref(true)
-// const customerType = ref('natural')
-// const dni = ref('')
-// const ruc = ref('')
+const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 
-// const buscarCliente = () => {
-//   const value = customerType.value === 'natural' ? dni.value : ruc.value
-//   if (!value || (customerType.value === 'natural' && value.length < 8)) {
-//     alert('Ingrese un DNI válido')
-//     return
-//   }
-//   if (customerType.value === 'juridical' && value.length < 11) {
-//     alert('Ingrese un RUC válido')
-//     return
-//   }
+const {
+  product,
+  isPending,
+} = useProduct()
 
-//   console.log('Buscando cliente:', { tipo: customerType.value, value })
-//   showClientDialog.value = false
-// }
+const {
+  naturalCustomers,
+  createNaturalCustomerAsync,
+} = useNaturalCustomer()
 
-// const cancelarVenta = () => {
-//   // Redirigir o limpiar si es necesario
-//   showClientDialog.value = false
-// }
 
-const producto = ref([
-  {
-    id: 1,
-    codigoBarra: '1234567890123',
-    nombre: 'Leche gloria',
-    descripcion: 'Leche de toro',
-    precioUnitario: 8.50,
-    precioPromocion: 6.50,
-    inicioPromocion: '2025-10-20',
-    finPromocion: '2025-10-31',
-    stockActual: 85,
-    unidadMedida: 'unidad',
-    imagen: '/img/default.png',
-    categoria: 'Conservas',
-    proveedor: 'Alicorp'
+const {
+  juridicalCustomers,
+  createJuridicalCustomerAsync,
+} = useJuridicalCustomer()
+
+const items = computed(() => product.value || [])
+
+const router = useRouter()
+const showClientDialog = ref(true)
+const showProductDialog = ref(false)
+const customerType = ref('natural')
+const customer = ref(null)
+const selectedProduct = ref(null)
+const dni = ref('')
+const ruc = ref('')
+
+const searchCustomer = async () => {
+  const isNatural = customerType.value === 'natural';
+  const value = isNatural ? dni.value : ruc.value;
+
+  const validations = {
+    natural: { length: 8, message: 'Ingrese un DNI válido' },
+    juridical: { length: 11, message: 'Ingrese un RUC válido' },
+  };
+
+  const rule = validations[customerType.value];
+  if (!value || value.length < rule.length) {
+    showWarningSnackbar(rule.message);
+    return;
+  }
+
+  try {
+    let foundCustomer = (isNatural ? naturalCustomers.value : juridicalCustomers.value)
+      .find(c => (isNatural ? c.dni : c.ruc) === value);
+
+    if (!foundCustomer) {
+      foundCustomer = isNatural
+        ? await crearClienteNatural(value)
+        : await crearClienteJuridico(value);
+    }
+
+    if (foundCustomer) {
+      customer.value = foundCustomer;
+      showSuccessSnackbar('Cliente encontrado exitosamente');
+      showClientDialog.value = false;
+      console.log('Cliente encontrado:', customer.value);
+    }
+
+  } catch (error) {
+    console.error(error);
+    showErrorSnackbar('Ocurrió un error al buscar el cliente');
+  }
+};
+
+const crearClienteNatural = async (dni) => {
+  const data = await naturalCustomerService.getCustomerByDni(dni);
+  if (!data) {
+    showErrorSnackbar('No existe ese número de documento');
+    return null;
+  }
+
+  const newCustomer = {
+    nombre: data.first_name,
+    apellidoPaterno: data.first_last_name,
+    apellidoMaterno: data.second_last_name,
+    dni: data.document_number,
+    fechaRegistro: new Date().toISOString().split('T')[0],
+  };
+
+  await createNaturalCustomerAsync(newCustomer);
+  showSuccessSnackbar('Cliente natural creado exitosamente');
+  return newCustomer;
+};
+
+const crearClienteJuridico = async (ruc) => {
+  const data = await juridicalCustomerService.getCustomerByRuc(ruc);
+  if (!data) {
+    showErrorSnackbar('No existe ese RUC');
+    return null;
+  }
+
+  const newCustomer = {
+    razonSocial: data.razon_social,
+    ruc: data.numero_documento,
+    tipoContribuyente: data.tipo,
+    actividadEconomica: data.actividad_economica,
+    direccion: data.direccion,
+    fechaRegistro: new Date().toISOString().split('T')[0],
+  };
+
+  await createJuridicalCustomerAsync(newCustomer);
+  showSuccessSnackbar('Cliente jurídico creado exitosamente');
+  return newCustomer;
+};
+
+const cambiarCliente = () => {
+  customer.value = null
+  dni.value = ''
+  ruc.value = ''
+
+  showClientDialog.value = true
+}
+
+const customerName = computed(() => {
+  if (!customer.value) return 'No hay cliente asignado'
+  return customerType.value === 'natural'
+    ? `${customer.value.nombre} ${customer.value.apellidoPaterno}`
+    : customer.value.razonSocial
+})
+
+const customerIdValue = computed(() => {
+  if (!customer.value) return '—'
+  return customerType.value === 'natural'
+    ? customer.value.dni
+    : customer.value.ruc
+})
+
+/* --------------------   Modal Producto   ------------------- */
+const cancelSale = () => {
+  showClientDialog.value = false
+  router.push('/home')
+}
+
+const addProduct = (item) => {
+  selectedProduct.value = item
+  showProductDialog.value = true
+  console.log(item)
+}
+
+const cantidad = ref(1)
+const litro = ref(1)
+const peso = ref(1)
+
+const unidades = { Litro: litro, Kilo: peso, Unidad: cantidad }
+
+const inputValue = computed({
+  get() {
+    const product = selectedProduct.value
+    if (!product) return 1
+    return unidades[selectedProduct.value.unidadMedida]?.value ?? cantidad.value
   },
-])
+  set(val) {
+    const product = selectedProduct.value
+    if (!product) return
+    const target = unidades[selectedProduct.value.unidadMedida] ?? cantidad
+    target.value = parseFloat(val) || 0
+  },
+})
+
+const previewTotalPrice = computed(() => {
+  const product = selectedProduct.value
+  if (!product) return '0.00'
+  return ((parseFloat(inputValue.value) || 0) * (parseFloat(product.precioUnitario) || 0)).toFixed(2)
+})
+
+const closeProduct = () => {
+  showProductDialog.value = false
+  cantidad.value = 1
+  litro.value = 1
+  peso.value = 1
+}
+
 </script>
 
 <template>
 
   <h1>Ventas</h1>
+  <div>{{ customerPrueba }}</div>
 
-  <!-- <v-dialog v-model="showClientDialog" persistent max-width="480">
+  <!-- Modal Asignacion -->
+  <v-dialog v-model="showClientDialog" persistent max-width="480">
     <v-card elevation="0" rounded="lg">
       <v-card-title class="text-h6 d-flex align-center justify-space-between">
         <span>Asignar Cliente</span>
-        <v-btn icon variant="text" @click="cancelarVenta">
+        <v-btn icon variant="text" @click="cancelSale">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
@@ -96,21 +238,26 @@ const producto = ref([
       <v-divider></v-divider>
 
       <v-card-actions class="justify-end pa-4">
-        <v-btn variant="text" color="grey" @click="cancelarVenta">Cancelar</v-btn>
-        <v-btn color="primary" variant="flat" @click="buscarCliente">Continuar</v-btn>
+        <v-btn variant="text" color="grey" @click="cancelSale">Cancelar</v-btn>
+        <v-btn color="primary" variant="flat" @click="searchCustomer">Continuar</v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog> -->
+  </v-dialog>
 
   <v-container fluid class="pa-4">
     <v-row>
       <!-- COLUMNA IZQUIERDA: Productos -->
       <v-col cols="12" md="8">
-        <v-row>
-          <v-col v-for="(item, index) in producto" :key="index" cols="12" sm="6" md="6" lg="4">
+        <v-row v-if="isPending">
+          <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4">
+            <v-skeleton-loader type="card" />
+          </v-col>
+        </v-row>
+
+        <v-row v-else>
+          <v-col v-for="item in items" :key="item.id" cols="12" sm="6" md="6" lg="4">
             <v-hover v-slot="{ isHovering, props }">
               <v-card v-bind="props" :elevation="isHovering ? 4 : 1" class="transition-fast" rounded="xl">
-                <!-- Imagen -->
                 <v-img :src="item.imagen" height="220" cover>
                   <v-expand-transition>
                     <div v-if="isHovering" class="position-absolute" style="inset:0; background-color:rgba(0,0,0,0.2);">
@@ -120,15 +267,13 @@ const producto = ref([
 
                 <v-divider :thickness="2" />
 
-                <!-- Título -->
                 <v-card-title class="text-h6 font-weight-medium text-center transition-fast"
                   :class="{ 'text-primary': isHovering }">
                   {{ item.nombre }}
                 </v-card-title>
 
-                <!-- Botón -->
                 <v-card-actions class="justify-center pb-4">
-                  <v-btn color="primary" variant="flat" prepend-icon="mdi-cart-plus" @click="agregar(item)"
+                  <v-btn color="primary" variant="flat" prepend-icon="mdi-cart-plus" @click="addProduct(item)"
                     :elevation="isHovering ? 4 : 1" class="transition-fast">
                     Agregar
                   </v-btn>
@@ -144,18 +289,18 @@ const producto = ref([
         <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px; z-index: 2;">
           <!-- Cliente -->
           <div class="d-flex justify-space-between align-center mb-3">
-            <v-btn color="primary" prepend-icon="mdi-account-plus-outline">
-              Asignar cliente
+            <v-btn elevation="0" color="primary" prepend-icon="mdi-account-plus-outline" @click="cambiarCliente">
+              Cambiar cliente
             </v-btn>
           </div>
 
-          <v-text-field label="N° Identificación" density="comfortable" variant="underlined" disabled readonly
-            hide-details value="12345678" />
+          <v-text-field label="N° Identificación" density="comfortable" variant="underlined" readonly hide-details
+            :model-value="customerIdValue" class="mt-2 my-4" />
 
-          <v-text-field label="Cliente" density="comfortable" variant="underlined" disabled readonly hide-details
-            value="Juan Pérez" class="mt-2" />
+          <v-text-field label="Cliente" density="comfortable" variant="underlined" readonly hide-details
+            :model-value="customerName" class="mt-2 my-4" />
 
-          <v-divider class="my-4" />
+          <v-divider class="my-4 mt-7" />
 
           <!-- Resumen de Venta -->
           <div>
@@ -214,6 +359,48 @@ const producto = ref([
       </v-col>
     </v-row>
   </v-container>
+
+  <!-- Modal Detalle -->
+  <v-dialog v-model="showProductDialog" max-width="800">
+    <v-card>
+      <v-row no-gutters>
+        <v-col cols="12" md="6" class="d-flex align-center justify-center pa-0">
+          <v-img :src="selectedProduct.imagen" alt="Producto" cover class="w-100 h-100 rounded-l-lg" />
+        </v-col>
+
+        <v-col cols="12" md="6" class="pa-6">
+          <div class="d-flex justify-space-between align-center mb-2">
+            <span class="text-body-2 font-weight-medium mb-4">
+              Código: {{ selectedProduct.codigoBarra }}
+            </span>
+            <span class="text-body-2 font-weight-bold mb-4">
+              S/ {{ selectedProduct.precioUnitario.toFixed(2) }}
+            </span>
+          </div>
+
+          <h3 class="text-h6 font-weight-bold mb-1">
+            {{ selectedProduct.nombre }}
+          </h3>
+          <p class="text-body-2 text-grey-darken-1 mt-4 mb-4">
+            {{ selectedProduct.descripcion }}
+          </p>
+
+          <v-text-field v-model="inputValue" :label="selectedProduct.unidadMedida" variant="underlined" type="number"
+            min="0.1" class="mb-2" />
+
+          <div class="d-flex justify-end text-body-2 font-weight-medium mb-4">
+            Total: S/ {{ previewTotalPrice }}
+          </div>
+
+          <div class="d-flex justify-end">
+            <v-btn variant="text" @click="closeProduct">Cerrar</v-btn>
+            <v-btn color="primary" variant="text" @click="agregar">Agregar</v-btn>
+          </div>
+        </v-col>
+      </v-row>
+    </v-card>
+  </v-dialog>
+
 </template>
 
 <style scoped></style>
