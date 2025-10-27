@@ -9,7 +9,7 @@ import { usePruebas } from '@/composables/query/usePrueba'
 const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 
 const {
-  pruebass,
+  pruebas,
   isPending,
   isError,
   error,
