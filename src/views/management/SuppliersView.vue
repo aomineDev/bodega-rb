@@ -7,10 +7,12 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useSnackbar } from '@/stores/snackbar';
 import { useForm } from '@/composables/useForm';
 import { useDisplay } from 'vuetify';
+import { useSupplier } from '@/composables/query/useSupplier';
 
 const { showSuccessSnackbar } = useSnackbar()
+const { mdAndUp, smAndDown } = useDisplay()
 
-
+//filtros
 const filtros = reactive({
     rangoFechas: [],
 })
@@ -23,72 +25,13 @@ const selectFilter = computed(() => [
     }
 ])
 
-//data example
-const suppliers = [
-    {
-        id: 1,
-        nombreComercial: 'Comercial Andina S.A.C.',
-        tipoContribuyente: 'Persona Jurídica',
-        actividadEconomica: 'Venta de productos alimenticios',
-        razonSocial: 'Comercial Andina Sociedad Anónima Cerrada',
-        fechaRegistro: '2023-05-14',
-        ruc: '20123456789',
-        direccion: 'Av. Los Olivos 456, Lima',
-        telefono: '987654321',
-        email: 'contacto@andina.com'
-    },
-    {
-        id: 2,
-        nombreComercial: 'Servicios Globales EIRL',
-        tipoContribuyente: 'Persona Natural con negocio',
-        actividadEconomica: 'Servicios de mantenimiento industrial',
-        razonSocial: 'Servicios Globales EIRL',
-        fechaRegistro: '2022-08-22',
-        ruc: '10456789012',
-        direccion: 'Jr. Las Magnolias 120, Trujillo',
-        telefono: '956321478',
-        email: 'info@globales.com'
-    },
-    {
-        id: 3,
-        nombreComercial: 'Panadería El Trigo de Oro',
-        tipoContribuyente: 'Persona Natural con negocio',
-        actividadEconomica: 'Elaboración y venta de pan',
-        razonSocial: 'Panadería El Trigo de Oro',
-        fechaRegistro: '2024-01-09',
-        ruc: '10234567891',
-        direccion: 'Av. Grau 890, Arequipa',
-        telefono: '954128963',
-        email: 'panaderia@trigodeoro.pe'
-    },
-    {
-        id: 4,
-        nombreComercial: 'Importaciones Rivera',
-        tipoContribuyente: 'Persona Jurídica',
-        actividadEconomica: 'Importación y distribución de textiles',
-        razonSocial: 'Importaciones Rivera S.A.C.',
-        fechaRegistro: '2023-03-17',
-        ruc: '20567891234',
-        direccion: 'Calle Lima 321, Chiclayo',
-        telefono: '912345678',
-        email: 'ventas@rivera.com'
-    },
-    {
-        id: 5,
-        nombreComercial: 'TecnoPerú',
-        tipoContribuyente: 'Persona Jurídica',
-        actividadEconomica: 'Venta de equipos electrónicos',
-        razonSocial: 'TecnoPerú S.A.C.',
-        fechaRegistro: '2024-06-05',
-        ruc: '20654321987',
-        direccion: 'Av. Universitaria 900, Lima',
-        telefono: '999888777',
-        email: 'soporte@tecnoperu.pe'
-    }
-];
+//servicio
+const {
+    createSupplierAsync, supplier, deleteSupplierAsync, updateSupplierAsync
+} = useSupplier()
+
 //data header
 const headers = [
-    { title: 'Nombre comercial', key: 'nombreComercial' },
     { title: 'Tipo de contribuyente', key: 'tipoContribuyente' },
     { title: 'Actividad económica', key: 'actividadEconomica' },
     { title: 'Razón social', key: 'razonSocial' },
@@ -99,11 +42,12 @@ const headers = [
     { title: 'Email', key: 'email' },
     { title: 'Acción', key: 'actions', sortable: false }
 ]
-//actualizar nombre y boton del modal al actualizar
-const customerEdit = ref(false)
-const modalTitle = computed(() => (customerEdit.value ? 'Editar Proveedor' : 'Crear Proveedor'))
-const actionLabel = computed(() => (customerEdit.value ? 'Actualizar' : 'Crear'))
 
+//actualizar nombre y boton del modal al actualizar
+const modalTitle = computed(() => (supplierItem.value ? 'Editar Proveedor' : 'Crear Proveedor'))
+const actionLabel = computed(() => (supplierItem.value ? 'Actualizar' : 'Crear'))
+const supplierItem = ref(null)
+const editingSupplier = ref(null)
 
 //modales
 const supplierFormModal = ref(false)
@@ -111,11 +55,10 @@ const filterDialog = ref(false)
 const supplierDeleteModal = ref(false)
 
 const {
-    formRef, formData, resetForm, rules, handleSubmit, nombreComercial
+    formRef, formData, asignForm, resetForm, rules, handleSubmit
     , tipoContribuyente, actividadEconomica, razonSocial,
     fechaRegistro, ruc, direccion, telefono, email
 } = useForm({
-    nombreComercial: '',
     tipoContribuyente: '',
     actividadEconomica: '',
     razonSocial: '',
@@ -125,28 +68,54 @@ const {
     telefono: '',
     email: ''
 })
-const { mdAndUp, smAndDown } = useDisplay()
 
+//acciones del fab
 const handleActionFabMenu = (type) => {
 
     if (type === 'add') {
-        customerEdit.value = false
+        supplierItem.value = false
         supplierFormModal.value = true
     }
     if (type === 'filter') {
         filterDialog.value = true
     }
 }
-//eliminar modal
+//abrir modal eliminar
+
 const handleDelete = (item) => {
 
     supplierDeleteModal.value = true
+
     console.log("proveedor eliminado con id" + item.nombre)
 }
+const confirmDelete = async () => {
+    try {
+        editingSupplier.value = supplier.value[0]
+        console.log("id " + editingSupplier.value.id)
+        await deleteSupplierAsync(editingSupplier.value.id)
+        showSuccessSnackbar('Eliminado correctamente')
+        supplierDeleteModal.value = false
+    } catch (error) {
+        console.log(error)
+    }
+}
 //creare proveedor
-const handleCreateSupplier = () => {
-    showSuccessSnackbar('Creado exitosamente')
+const handleCreateSupplier = async () => {
+    try {
+        if (supplierItem.value) {
+            await updateSupplierAsync({ ...formData.value, id: supplierItem.value.id })
+            showSuccessSnackbar('Proveedor actualizado')
+
+        } else {
+            await createSupplierAsync(formData.value)
+            showSuccessSnackbar('Creado exitosamente')
+        }
+    } catch (error) {
+        console.log(error)
+    }
     supplierFormModal.value = false
+
+
 }
 //cerrar modal de crear
 const closeFormModal = () => {
@@ -159,12 +128,14 @@ const close = () => {
 }
 //abrir edicion
 const handleEdit = (item) => {
-    customerEdit.value = true
+    supplierItem.value = item
+    asignForm(supplierItem.value)
     supplierFormModal.value = true
-    Object.assign(formData.value, item)
+
 }
 watch(supplierFormModal, (isOpen) => {
     if (!isOpen) resetForm()
+    supplier.value = null
 })
 </script>
 
@@ -186,7 +157,7 @@ watch(supplierFormModal, (isOpen) => {
 
 
     <!-- Tabla -->
-    <v-data-table :headers="headers" :items="suppliers">
+    <v-data-table :headers="headers" :items="supplier">
         <template #[`item.actions`]="{ item }">
             <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
         </template>
@@ -224,10 +195,6 @@ watch(supplierFormModal, (isOpen) => {
                                 :rules="[rules.email]"></v-text-field>
                         </v-col>
 
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Nombre comercial" variant="underlined" v-model="nombreComercial"
-                                :rules="[rules.required]"></v-text-field>
-                        </v-col>
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Tipo contribuyente" variant="underlined" v-model="tipoContribuyente"
@@ -295,7 +262,7 @@ watch(supplierFormModal, (isOpen) => {
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
                 <v-btn text="Cerrar" @click="close"></v-btn>
-                <v-btn text="Eliminar" color="error" @click="deleteModal"></v-btn>
+                <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>

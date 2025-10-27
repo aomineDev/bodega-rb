@@ -1,4 +1,4 @@
-import { productoService } from "@/services/api/productService"
+import { productService } from "@/services/api/productService"
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 export const useProduct = () => {
     const queryClient = useQueryClient()
@@ -8,23 +8,23 @@ export const useProduct = () => {
         data: product,
         error, } = useQuery({
             queryKey: ['product'],
-            queryFn: productoService.getAll
+            queryFn: productService.getAll
         })
 
     const getQuery = (id) =>
         useQuery({
             queryKey: ['product', id],
-            queryFn: () => productoService.getById(id.value),
+            queryFn: () => productService.getById(id.value),
             enabled: !!id.value
         })
     const createMutation = useMutation({
-        mutationFn: productoService.create,
+        mutationFn: productService.create,
         onSuccess: () => queryClient.invalidateQueries(['product']),
         onError: (error) => console.log('Error' + error)
     })
 
     const updateMutation = useMutation({
-        mutationFn: productoService.update,
+        mutationFn: productService.update,
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries(['product'])
             queryClient.invalidateQueries(['product', variables.id])
@@ -32,7 +32,7 @@ export const useProduct = () => {
         onError: (error) => console.log('Erorr' + error)
     })
     const deleteMutation = useMutation({
-        mutationFn: productoService.delete,
+        mutationFn: productService.delete,
         onSuccess: () => queryClient.invalidateQueries(['product']),
         onError: (error) => console.log('Eerror' + error)
     })
