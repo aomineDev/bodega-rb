@@ -1,3 +1,3 @@
 <template>
-  <h1>Categorias</h1>
+  <h1>asdasdasdasd</h1>
 </template>
