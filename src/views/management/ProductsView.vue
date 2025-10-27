@@ -29,11 +29,12 @@ const productDeleteModal = ref(false)
 const filterDialog = ref(false)
 const { mdAndUp, smAndDown } = useDisplay()
 // const product = ref(false)
-const customerEdit = ref(false)
-const modalTitle = computed(() => (customerEdit.value ? 'Editar Producto' : 'Crear Producto'))
-const actionLabel = computed(() => (customerEdit.value ? 'Actualizar' : 'Crear'))
+// const customerEdit = ref(false)
+const modalTitle = computed(() => (productItem.value ? 'Editar Producto' : 'Crear Producto'))
 
-const { formRef, formData, resetForm, rules, handleSubmit, imagen, codigoBarra, categoria, nombre, descripcion, proveedor, precioUnitario, precioPromocion, unidadMedida,
+const actionLabel = computed(() => (productItem.value ? 'Actualizar' : 'Crear'))
+const productItem = ref(false)
+const { formRef, formData, resetForm, asignForm, rules, handleSubmit, imagen, codigoBarra, categoria, nombre, descripcion, proveedor, precioUnitario, precioPromocion, unidadMedida,
     stock, inicioPromocion, finPromocion
 } = useForm({
     imagen: '', codigoBarra: '', nombre: '',
@@ -44,7 +45,7 @@ const { formRef, formData, resetForm, rules, handleSubmit, imagen, codigoBarra, 
 
 const handleActionFabMenu = (type) => {
     if (type === 'add') {
-        customerEdit.value = false
+        productItem.value = false
         productFormModal.value = true
 
     }
@@ -68,56 +69,9 @@ const selectFilter = computed(() => [
         model: filtros.proveedores
     }
 ])
-// const producto = ref([
-//     {
-//         id: 1,
-//         codigoBarra: '1234567890123',
-//         nombre: 'Leche gloria',
-//         descripcion: 'Leche de toro',
-//         precioUnitario: 8.50,
-//         precioPromocion: 6.50,
-//         inicioPromocion: '2025-10-20',
-//         finPromocion: '2025-10-31',
-//         stockActual: 85,
-//         unidadMedida: 'unidad',
-//         imagen: '/public/milk.png',
-//         categoria: 'Conservas',
-//         proveedor: 'Alicorp'
-//     },
-//     {
-//         id: 2,
-//         codigoBarra: '9876543210987',
-//         nombre: 'Atun',
-//         descripcion: 'Atun en aceite',
-//         precioUnitario: 7.50,
-//         precioPromocion: 3.50,
-//         inicioPromocion: '2025-10-20',
-//         finPromocion: '2025-10-31',
-//         stockActual: 20,
-//         unidadMedida: 'unidad',
-//         imagen: '/public/atun.jpg',
-//         categoria: 'Conservas',
-//         proveedor: 'Alicorp'
-//     }, {
-//         id: 3,
-//         codigoBarra: '9876543210987',
-//         nombre: 'Galletas integrales',
-//         descripcion: 'Galletas integrales de trigo',
-//         precioUnitario: 5.50,
-//         precioPromocion: 3.50,
-//         inicioPromocion: '2025-10-20',
-//         finPromocion: '2025-10-31',
-//         stockActual: 5,
-//         unidadMedida: 'unidad',
-//         imagen: '/public/galleta.png',
-//         categoria: 'Conservas',
-//         proveedor: 'Alicorp'
-//     }
-// ])
-//servicios
 const {
 
-    createProductAsync, product, deleteProductAsync
+    createProductAsync, product, deleteProductAsync, updateProductAsync
 } = useProduct()
 
 const {
@@ -140,37 +94,63 @@ const handleView = (item) => {
     productDetail.value = item
     productDetailModal.value = true
 }
-//accion editar
-const handleEdit = (item) => {
-    customerEdit.value = true
-    productFormModal.value = true
-    console.log("edit product" + item.id)
-    Object.assign(formData.value, item)
 
-}
+const handleEdit = (item) => {
+    productItem.value = item;
+    asignForm(productItem.value);
+
+    productFormModal.value = true;
+};
 watch(productFormModal, (isOpen) => {
     if (!isOpen) resetForm()
 })
 
-//accion crear
-const handleCreateProduct = async () => {
 
+const previewUrl = ref(null)
+const onImageChange = (file) => {
+    const selectedFile = Array.isArray(file) ? file[0] : file;
 
-    const imagenUrl = await storageService.upload('products', imagen.value)
-    const data = {
-        ...formData.value, imagen: imagenUrl, proveedor: proveedor.value,
-        categoria: categoria.value
-
+    if (selectedFile instanceof File) {
+        previewUrl.value = URL.createObjectURL(selectedFile);
+    } else {
+        previewUrl.value = productItem.value?.imagen || null;
     }
-    await createProductAsync(data)
-    showSuccessSnackbar("Creado exieto")
 
-    //console.log(JSON.stringify(data))
-    //showSuccessSnackbar('Creado exitosamente')
-
-    productFormModal.value = false
 }
 
+const getImageUrl = async () => {
+    if (imagen.value instanceof File) {
+        return await storageService.upload('products', imagen.value);
+    }
+    return productItem.value?.imagen || "/img/default.png";
+}
+
+// crear y editar
+const handleCreateProduct = async () => {
+    try {
+        const imagenUrl = await getImageUrl();
+        const productData = {
+            ...formData.value,
+            imagen: imagenUrl,
+            proveedor: proveedor.value,
+            categoria: categoria.value
+        };
+
+        if (productItem.value) {
+            await updateProductAsync({ ...productData, id: productItem.value.id });
+            showSuccessSnackbar("Producto editado exitosamente");
+        } else {
+            await createProductAsync(productData);
+            showSuccessSnackbar("Creado exitosamente");
+        }
+
+        previewUrl.value = null;
+        productFormModal.value = false;
+
+    } catch (error) {
+        console.error("Error:", error);
+    }
+};
 //accion eliminar
 const editingProduct = ref(false)
 const confirmDelete = async () => {
@@ -207,7 +187,7 @@ const confirmDelete = async () => {
     <v-row>
         <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in product" :key="index">
             <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 8 : 1" rounded="xl" class="card-hover">
+                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
                     <v-img height="220px" :src="item.imagen" contain></v-img>
                     <v-divider :thickness="3"></v-divider>
 
@@ -242,10 +222,7 @@ const confirmDelete = async () => {
                 <v-container fluid>
                     <v-row>
                         <!-- imagen -->
-                        <v-col cols="12" md="6">
-                            <v-file-input label="Imagen" variant="underlined" v-model="imagen"
-                                :rules="[rules.required]"></v-file-input>
-                        </v-col>
+
                         <!-- codigo de barra -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Codigo de barra" variant="underlined" v-model="codigoBarra"
@@ -262,16 +239,17 @@ const confirmDelete = async () => {
                             <v-select label="Categoria" variant="underlined" :items="category" v-model="categoria"
                                 item-title="nombre" return-object item-value="id" :rules="[rules.categoria]"></v-select>
                         </v-col>
+                        <v-col cols="12" md="6">
+                            <v-select label="Proveedor" variant="underlined" :items="supplier" v-model="proveedor"
+                                item-title="razonSocial" return-object :rules=[rules.proveedor]></v-select>
+                        </v-col>
                         <!-- descripcion -->
                         <v-col cols="12" md="12">
                             <v-textarea label="Descripcion" variant="underlined" rows="2" auto-grow
                                 v-model="descripcion" :rules="[rules.required]"></v-textarea>
                         </v-col>
                         <!-- proveedor -->
-                        <v-col cols="12" md="6">
-                            <v-select label="Proveedor" variant="underlined" :items="supplier" v-model="proveedor"
-                                item-title="razonSocial" return-object :rules=[rules.proveedor]></v-select>
-                        </v-col>
+
                         <!-- precio unitario -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Precio unitario" type="number" variant="underlined"
@@ -301,7 +279,16 @@ const confirmDelete = async () => {
                         <!-- unidad de medida -->
                         <v-col cols="12" md="6">
                             <v-select label="Unidad de medidad" variant="underlined" :items="ud" v-model="unidadMedida"
-                                :rules="[rules.unidadMedida]"></v-select> </v-col>
+                                :rules="[rules.unidadMedida]"></v-select></v-col>
+                        <v-col cols="12" md="6">
+                            <v-file-input label="Imagen" @update:model-value="onImageChange" variant="underlined"
+                                v-model="imagen"></v-file-input>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <img :src="previewUrl || productItem?.imagen || '/img/image-preview.png'"
+                                alt="Vista previa o imagen predeterminada"
+                                style="max-width: 100%; border-radius: 8px;" />
+                        </v-col>
                     </v-row>
                 </v-container>
             </v-form>

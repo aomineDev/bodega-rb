@@ -3,13 +3,17 @@ import BaseFilter from '@/components/BaseFilter.vue';
 import ActionMenu from '@/components/ActionMenu.vue';
 import { computed, ref, watch } from 'vue';
 import { reactive } from 'vue';
+import { VDateInput } from 'vuetify/labs/VDateInput'
+
 import { useForm } from '@/composables/useForm';
 import FabMenu from '@/components/FabMenu.vue';
 import { useDisplay } from 'vuetify/lib/composables/display';
-
-
+import { useRole } from '@/composables/query/useRole';
+import { useEmployee } from '@/composables/query/useEmployee';
+import { storageService } from '@/services/storage/imageService';
+import { useSnackbar } from '@/stores/snackbar';
 const { mdAndUp, smAndDown } = useDisplay()
-
+const { showSuccessSnackbar } = useSnackbar()
 const filtros = reactive({
     rol: [],
 })
@@ -22,8 +26,14 @@ const selectFilter = computed(() => [
     }
 ])
 
+const {
+    role
+} = useRole()
 
-const customerEdit = ref(false)
+const {
+    employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync
+} = useEmployee()
+
 //modla eliminar
 const employeeDeleteModal = ref(false)
 //modal abrir modal del formumulario
@@ -33,36 +43,14 @@ const filterDialog = ref(false)
 //modal ver detalles
 const employeeDetailModal = ref(false)
 //campos reactvios para el modal creal y editar al mismo tiempo
-const modalTitle = computed(() => (customerEdit.value ? 'Editar Empleado' : 'Crear Empleado'))
-const actionLabel = computed(() => (customerEdit.value ? 'Actualizar' : 'Crear'))
-
-
-const roles = ref([
-    { id: 1, nombre: 'Encargado de almacen' },
-    { id: 2, nombre: 'Cajero' },
-    { id: 3, nombre: 'Admininistrador' }
-])
-const empleado = ref([
-    {
-        imagen: '/public/emp4.jpg',
-        nombre: 'Leonardo',
-        apellidoMaterno: 'Alejandro',
-        apellidoPaterno: 'Murillo',
-        email: 'leoo@gmail.com',
-        telefono: '987678654',
-        direccion: 'Ate',
-        clave: '124',
-        fechaNacimiento: '2006-06-19',
-        rol: 'Administrador',
-
-    }
-])
-
+const modalTitle = computed(() => (employeeEdit.value ? 'Editar Empleado' : 'Crear Empleado'))
+const actionLabel = computed(() => (employeeEdit.value ? 'Actualizar' : 'Crear'))
+const employeeEdit = ref(false)
 
 const handleActionFabMenu = (type) => {
 
     if (type === 'add') {
-        customerEdit.value = false
+        employeeEdit.value = false
         employeeFormModal.value = true
     }
     if (type === 'filter') {
@@ -71,29 +59,67 @@ const handleActionFabMenu = (type) => {
 }
 
 const {
-    formData, handleSubmit, formRef,
-    resetForm, nombre, apellidoMaterno, apellidoPaterno, email,
-    telefono, direccion, clave, imagen, fechaNacimiento, rol, rules
+    formData, handleSubmit, formRef, asignForm,
+    resetForm, nombre, apellidoMaterno, apellidoPaterno, email, dni,
+    telefono, direccion, clave, imagen, fechaNacimiento, rolId, rules
 } = useForm({
     nombre: '',
     apellidoMaterno: '',
     apellidoPaterno: '',
     email: '',
+    dni: '',
     telefono: '',
     direccion: '',
     clave: '',
     imagen: '',
     fechaNacimiento: '',
-    rol: '',
+    rolId: '',
 
 })
+const previewUrl = ref(null)
 
-//vistas boton crear
-const handleCreateEmployee = () => {
-    employeeFormModal.value = false
-    console.log(formData)
-    resetForm();
+const onImageChange = (file) => {
+    const selectedFile = Array.isArray(file) ? file[0] : file;
+
+    if (selectedFile instanceof File) {
+        previewUrl.value = URL.createObjectURL(selectedFile);
+    } else {
+        previewUrl.value = employeeEdit.value?.imagen || null;
+    }
+
 }
+
+const getImageUrl = async () => {
+    if (imagen.value instanceof File) {
+        return await storageService.upload('employees', imagen.value);
+    }
+    return employeeEdit.value?.imagen || "/img/default.png";
+}
+//vistas boton crear y editar
+
+const handleCreateEmployee = async () => {
+
+    try {
+        const imagenUrl = await getImageUrl();
+        const employeeData = {
+            ...formData.value,
+            imagen: imagenUrl,
+            rolId: rolId.value
+        }
+        if (employeeEdit.value) {
+            await updateEmployeeAsync({ ...employeeData, id: employeeEdit.value.id })
+            showSuccessSnackbar("Actualizado")
+        } else {
+            await createEmployeeAsync(employeeData)
+            showSuccessSnackbar("Creado correctamente")
+        }
+        previewUrl.value = null
+        employeeFormModal.value = false
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 //vistas darle al ver detalles
 const emp = ref(false)
 const handleView = (item) => {
@@ -103,13 +129,14 @@ const handleView = (item) => {
 watch(employeeFormModal, (isOpen) => {
     if (!isOpen) resetForm()
 })
+
 //vista darle al editar
 const handleEdit = (item) => {
-    customerEdit.value = true
+    employeeEdit.value = item
+    asignForm(employeeEdit.value)
     employeeFormModal.value = true
-    Object.assign(formData.value, item)
-    console.log("empleado" + item.nombre)
 }
+
 //vista darle al eliminar
 const deleteModal = (item) => {
     employeeDeleteModal.value = true
@@ -125,14 +152,27 @@ const closeFormModal = () => {
 const close = () => {
     employeeDeleteModal.value = false
 }
+
+const deleteEmploye = ref(false)
+const confirmDelete = async () => {
+    try {
+        deleteEmploye.value = employee.value[0]
+
+        await deleteEmployeeAsync(deleteEmploye.value.id)
+        showSuccessSnackbar("Eliminado correctamente")
+        employeeDeleteModal.value = false
+    } catch (error) {
+        console.log("error" + error)
+    }
+}
+
 </script>
 
 
 
 <template>
     <h1>Empleados</h1>
-
-
+    <!-- filtros -->
     <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
         <v-row>
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
@@ -143,12 +183,11 @@ const close = () => {
             </v-col>
         </v-row>
     </v-card>
-
     <!-- cartas -->
     <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in empleado" :key="index">
+        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in employee" :key="index">
             <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 8 : 1" rounded="xl" class="card-hover">
+                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
 
                     <v-img height="220px" :src="item.imagen" contain>
                     </v-img>
@@ -162,14 +201,12 @@ const close = () => {
                     </v-card-title>
 
                     <v-chip class="chip-categoria mb-3 mx-3" color="indigo" size="large">
-                        {{ item.rol }}
+                        {{ item.rolId?.nombre }}
                     </v-chip>
                 </v-card>
             </v-hover>
         </v-col>
     </v-row>
-
-
     <!-- modal crear -->
     <v-dialog v-model="employeeFormModal" max-width="600">
         <v-card :title="modalTitle">
@@ -178,10 +215,7 @@ const close = () => {
                 <v-container fluid>
                     <v-row>
                         <!-- imagen -->
-                        <v-col cols="12" md="6">
-                            <v-file-input label="Imagen" variant="underlined" v-model="imagen"
-                                :rules="[rules.required]"></v-file-input>
-                        </v-col>
+
                         <!-- nombre -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre" variant="underlined" v-model="nombre"
@@ -222,15 +256,26 @@ const close = () => {
                         </v-col>
                         <!-- roles -->
                         <v-col cols="12" md="6">
-                            <v-select label="Rol" variant="underlined" :items="roles" v-model="rol" item-title="nombre"
-                                item-value="id" :rules=[rules.proveedor]></v-select> </v-col>
+                            <v-select label="Rol" variant="underlined" :items="role" v-model="rolId" item-title="nombre"
+                                return-object :rules=[rules.proveedor]></v-select> </v-col>
                         <v-col cols="12" md="6">
-                            <v-text-field label="Clave" variant="underlined" v-model="clave"
+                            <v-text-field label="Clave" variant="underlined" v-model="clave" type="password"
                                 :rules="[rules.required]"></v-text-field>
 
                         </v-col>
-
-
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Dni" variant="underlined" v-model="dni" :rules="[rules.dni]"
+                                :counter="8"></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <v-file-input label="Imagen" variant="underlined" @update:model-value="onImageChange"
+                                v-model="imagen"></v-file-input>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <img :src="previewUrl || employeeEdit?.imagen || '/img/image-preview.png'"
+                                alt="Vista previa o imagen predeterminada"
+                                style="max-width: 100%; border-radius: 8px;" />
+                        </v-col>
                     </v-row>
                 </v-container>
             </v-form>
@@ -267,7 +312,7 @@ const close = () => {
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
                 <v-btn text="Cerrar" @click="close"></v-btn>
-                <v-btn text="Eliminar" color="error" @click="deleteModal"></v-btn>
+                <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -286,8 +331,6 @@ const close = () => {
             </v-card-actions>
         </v-card>
     </v-dialog>
-
-
     <!-- modal ver detalle -->
     <v-dialog v-model="employeeDetailModal" max-width="1000" scrollable>
         <v-card>
@@ -355,7 +398,7 @@ const close = () => {
                                         <span class="text-body-2 font-weight-bold">Rol / Cargo</span>
                                     </div>
                                     <v-chip color="indigo" variant="tonal" size="default" class="ml-8">
-                                        {{ emp.rol }}
+                                        {{ emp.rolId.nombre }}
                                     </v-chip>
                                 </v-col>
 
@@ -371,13 +414,23 @@ const close = () => {
                                 </v-col>
 
                                 <!-- Dirección -->
-                                <v-col cols="12">
+                                <v-col cols="12" sm="6">
                                     <div class="d-flex align-center mb-2">
                                         <v-icon color="primary" size="22" class="mr-2">mdi-map-marker</v-icon>
                                         <span class="text-body-2 font-weight-bold">Dirección</span>
                                     </div>
                                     <div class="text-body-1 font-weight-medium ml-8">
                                         {{ emp.direccion }}
+                                    </div>
+                                </v-col>
+                                <!-- dni -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-card-account-details</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Dni</span>
+                                    </div>
+                                    <div class="text-body-1 font-weight-medium ml-8">
+                                        {{ emp.dni }}
                                     </div>
                                 </v-col>
                             </v-row>
