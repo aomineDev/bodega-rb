@@ -1,6 +1,7 @@
 <script setup>
 
-// import ActionMenu from '@/components/ActionMenu.vue';
+import FabMenu from '@/components/FabMenu.vue';
+import BaseFilter from '@/components/BaseFilter.vue';
 import { computed, ref } from 'vue';
 import { useSnackbar } from '@/stores/snackbar'
 import { useRouter } from 'vue-router'
@@ -11,6 +12,7 @@ import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer';
 import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer';
 import { useBill } from '@/composables/query/useBill';
 import { useTicket } from '@/composables/query/useTicket';
+import { useDisplay } from 'vuetify'
 
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 
@@ -36,6 +38,11 @@ const {
 const {
   createTicketAsync,
 } = useTicket()
+
+/* --------------------   Filtros   ------------------- */
+const filterDialog = ref(false)
+const search = ref('') //busqueda
+const { mdAndUp, smAndDown } = useDisplay()
 
 const items = computed(() => product.value || [])
 
@@ -383,6 +390,14 @@ const createSale = async () => {
     <v-row>
       <!-- COLUMNA IZQUIERDA: Productos -->
       <v-col cols="12" md="8">
+
+        <!-- Filtros -->
+        <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
+          <v-row>
+            <base-filter v-model:search="search" />
+          </v-row>
+        </v-card>
+
         <v-row v-if="isPending">
           <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4">
             <v-skeleton-loader type="card" />
@@ -421,7 +436,7 @@ const createSale = async () => {
 
       <!-- COLUMNA DERECHA: Resumen de Venta -->
       <v-col cols="12" md="4">
-        <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px; z-index: 2;">
+        <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px;">
           <!-- Cliente -->
           <div class="d-flex justify-space-between align-center mb-3">
             <v-btn elevation="0" color="primary" prepend-icon="mdi-account-plus-outline" @click="cambiarCliente">
@@ -552,6 +567,23 @@ const createSale = async () => {
       </v-row>
     </v-card>
   </v-dialog>
+
+  <!-- Filtro móvil -->
+  <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
+    <v-card title="Filtrar Productos">
+      <v-card-text>
+        <base-filter v-model:search="search" />
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+        <v-btn text="Cerrar" variant="plain" @click="filterDialog = false" />
+        <v-btn color="primary" text="Aplicar" variant="tonal" @click="filterDialog = false" />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <fab-menu v-model:filterDialog="filterDialog" />
 
 </template>
 
