@@ -65,16 +65,6 @@ const handleDelete = async () => {
     console.log(error)
   }
 }
-
-const ff = () => {
-  return 1
-}
-
-const test = async () => {
-  const response = await ff()
-  const data = await response.json()
-  console.log(data)
-}
 </script>
 
 <template>
