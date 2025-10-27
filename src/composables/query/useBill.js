@@ -1,7 +1,7 @@
 import { billService } from '@/services/api/billService'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 
-export const useBills = () => {
+export const useBill = () => {
   const queryClient = useQueryClient()
 
   const {
