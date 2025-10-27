@@ -1,12 +1,12 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import ActionMenu from '@/components/ActionMenu.vue'
-import { useValidation } from '@/composables/useFormValidation'
 import { useSnackbar } from '@/stores/snackbar'
 import FabMenu from '@/components/FabMenu.vue'
 import { useDisplay } from 'vuetify'
 import BaseFilter from '@/components/BaseFilter.vue'
 import { VDateInput } from 'vuetify/labs/VDateInput'
+import { useForm } from '@/composables/useForm'
 
 const { smAndDown, mdAndUp } = useDisplay()
 
@@ -15,26 +15,12 @@ const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 
 // Modales y formularioss
 const productFormModal = ref(false)
-const productForm = ref(null)
 const productDeleteModal = ref(false)
 const filterDialog = ref(false)
+const selectedItem = ref(null)
 
 const search = ref('')
 
-
-// const filtros = reactive({
-//   fecha: null, // una sola fecha
-// })
-
-
-// const selectFilter = computed(() => [
-//   {
-//     key: 'fecha',
-//     label: 'Fecha',
-//     type: 'range',
-//     model: filtros.fecha,
-//   },
-// ])
 const filtros = reactive({
   rangoFechas: [],
 })
@@ -49,13 +35,6 @@ const selectFilter = computed(() => [
 
 ])
 
-// Acción de aplicar filtros
-// const aplicarFiltros = () => {
-//   console.log('Buscar:', search.value)
-//   console.log('Fecha:', filtros.value.fecha)
-//   filterDialog.value = false
-// }
-
 
 const categorias = ['Carnes', 'Lácteos', 'Bebidas', 'Embutidos', 'Conservas']
 
@@ -63,8 +42,8 @@ const categorias = ['Carnes', 'Lácteos', 'Bebidas', 'Embutidos', 'Conservas']
 const headers = [
   { title: '# Ingreso', key: 'id' },
   { title: 'Proveedor', key: 'proveedor' },
-  { title: 'Documento', key: 'documento' },
-  { title: 'N° Documento', key: 'nDocumento' },
+  { title: 'Asistente', key: 'asistente' },
+  { title: 'Observacion', key: 'observacion' },
   { title: 'Fecha', key: 'fecha' },
   { title: 'Hora', key: 'hora' },
   { title: 'Total', key: 'total' },
@@ -74,12 +53,12 @@ const headers = [
 
 const headersProductos = [
   { title: 'Producto', key: 'producto' },
-  { title: 'Lote', key: 'lote' },
-  { title: 'Fecha Prod.', key: 'fechaProduccion' },
-  { title: 'Vencimiento', key: 'vencimiento' },
   { title: 'Cantidad', key: 'cantidad' },
   { title: 'Precio Compra', key: 'precioCompra' },
   { title: 'Subtotal', key: 'subtotal' },
+  { title: 'Lote', key: 'lote' },
+  { title: 'F. prod.', key: 'fechaProduccion' },
+  { title: 'F. venc.', key: 'vencimiento' },
   { title: 'Acciones', key: 'actions', sortable: false },
 ]
 
@@ -88,8 +67,8 @@ const items = [
   {
     id: 1,
     proveedor: 'Distribuidora Norte',
-    documento: 'Factura',
-    nDocumento: 'F001-12345',
+    asistente: 'Alex Garcia',
+    observacion: 'Productos en buen estado',
     fecha: '2025-10-23',
     hora: '10:30',
     total: 'S/ 450.00',
@@ -98,8 +77,8 @@ const items = [
   {
     id: 2,
     proveedor: 'Alimentos del Sur',
-    documento: 'Boleta',
-    nDocumento: 'B002-9876',
+    asistente: 'Maria Melano',
+    observacion: '2 productos vencidos',
     fecha: '2025-10-22',
     hora: '09:45',
     total: 'S/ 780.00',
@@ -146,10 +125,26 @@ const itemsProductos = [
   },
 ]
 
-// Reglas de validación y formulario
-const { rules, resetForm } = useValidation()
+//alidacion y formulario
+const {
+  formData,
+  formRef: productForm,
+  handleSubmit,
+  resetForm,
+  rules,
+  asignForm,
 
-const form = ref({
+  proveedor,
+  observaciones,
+  producto,
+  categoria,
+  cantidad,
+  precioCompra,
+  fechaProduccion,
+  fechaVencimiento,
+  lote,
+  unidadmedida,
+} = useForm({
   proveedor: '',
   observaciones: '',
   producto: '',
@@ -163,7 +158,6 @@ const form = ref({
 })
 
 //crud
-
 const handleView = (item) => {
   console.log('Ver detalles de', item)
   showSuccessSnackbar(`Viendo detalles del ingreso #${item.id || item.producto}`)
@@ -180,19 +174,25 @@ const handleDelete = (item) => {
   productDeleteModal.value = true
 }
 
+//reset form
+watch(productFormModal, (isOpen) => {
+  if (!isOpen) {
+    resetForm()
+    selectedItem.value = null
+  }
+})
+
 // Guardar producto dentro del modal
 const save = async () => {
-  const { valid } = await productForm.value.validate()
-  if (!valid) return
-
-  showSuccessSnackbar('Se agregó un nuevo producto')
-  console.log('Formulario', form.value)
-  resetForm(productForm, form)
+  await handleSubmit(async () => {
+    showSuccessSnackbar('Se agregó un nuevo producto')
+    console.log('Datos del formulario', formData.value)
+  })
 }
 
 // Cerrar formulario sin guardar
 const close = () => {
-  resetForm(productForm, form)
+  resetForm()
   productFormModal.value = false
 }
 
@@ -219,7 +219,7 @@ const handleViewProduct = (item) => {
 const handleEditProduct = (item) => {
   console.log('Editar producto', item.producto)
   productFormModal.value = true
-  form.value = { ...item }
+  asignForm(item)
   showSuccessSnackbar(`Editando producto: ${item.producto}`)
 }
 
@@ -239,6 +239,15 @@ const handleDeleteProduct = (item) => {
       <v-col cols="12" md="9">
         <base-filter v-model:search="search" :filters="selectFilter"
             @update:filter="({ key, value }) => filtros[key] = value" />
+        <v-select
+            v-model="filtros.estado"
+            :items="['Pendiente', 'Aprobado', 'Rechazado']"
+            label="Estado"
+            variant="underlined"
+            hide-details
+            class="mt-3"
+            clearable
+          />
       </v-col>
 
       <v-col cols="12" md="3" class="d-flex justify-end">
@@ -251,6 +260,8 @@ const handleDeleteProduct = (item) => {
           NUEVO INGRESO
         </v-btn>
       </v-col>
+
+
     </v-row>
   </v-card>
 
@@ -280,7 +291,7 @@ const handleDeleteProduct = (item) => {
                 <v-row dense>
                   <v-col cols="12">
                     <v-text-field
-                      v-model="form.proveedor"
+                      v-model="proveedor"
                       label="Proveedor"
                       variant="underlined"
                     />
@@ -288,7 +299,7 @@ const handleDeleteProduct = (item) => {
 
                   <v-col cols="12">
                     <v-textarea
-                      v-model="form.observaciones"
+                      v-model="observaciones"
                       label="Observaciones"
                       variant="underlined"
                       rows="2"
@@ -297,7 +308,7 @@ const handleDeleteProduct = (item) => {
                   <v-divider horizontal class="my-1"></v-divider>
                   <v-col cols="12" md="6">
                     <v-text-field
-                      v-model="form.producto"
+                      v-model="producto"
                       label="Producto"
                       variant="underlined"
                       :rules="[rules.required]"
@@ -305,7 +316,7 @@ const handleDeleteProduct = (item) => {
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-select
-                      v-model="form.categoria"
+                      v-model="categoria"
                       :items="categorias"
                       label="Categoría"
                       variant="underlined"
@@ -315,7 +326,7 @@ const handleDeleteProduct = (item) => {
 
                   <v-col cols="12" md="6">
                     <v-text-field
-                      v-model="form.cantidad"
+                      v-model="cantidad"
                       label="Cantidad"
                       type="number"
                       variant="underlined"
@@ -324,7 +335,7 @@ const handleDeleteProduct = (item) => {
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-text-field
-                      v-model="form.precioCompra"
+                      v-model="precioCompra"
                       label="Precio Compra"
                       type="number"
                       prefix="S/"
@@ -335,7 +346,7 @@ const handleDeleteProduct = (item) => {
 
                   <v-col cols="12" md="6">
                     <v-text-field
-                      v-model="form.fechaProduccion"
+                      v-model="fechaProduccion"
                       label="Fecha Producción"
                       type="date"
                       variant="underlined"
@@ -344,7 +355,7 @@ const handleDeleteProduct = (item) => {
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-text-field
-                      v-model="form.fechaVencimiento"
+                      v-model="fechaVencimiento"
                       label="Fecha Vencimiento"
                       type="date"
                       variant="underlined"
@@ -354,7 +365,7 @@ const handleDeleteProduct = (item) => {
 
                   <v-col cols="12" md="6">
                     <v-text-field
-                      v-model="form.lote"
+                      v-model="lote"
                       label="Lote"
                       variant="underlined"
                       :rules="[rules.lote, rules.required]"
@@ -362,7 +373,7 @@ const handleDeleteProduct = (item) => {
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-select
-                      v-model="form.unidadmedida"
+                      v-model="unidadmedida"
                       :items="['kg', 'litro', 'unidad']"
                       label="Unidad Medida"
                       variant="underlined"
@@ -478,6 +489,15 @@ const handleDeleteProduct = (item) => {
             multiple="range"
           />
 
+          <v-select
+            v-model="filtros.estado"
+            :items="['Pendiente', 'Aprobado', 'Rechazado']"
+            label="Estado"
+            variant="underlined"
+            hide-details
+            class="mb-3"
+            clearable
+          />
         </v-card-text>
 
         <v-card-actions class="justify-end">
