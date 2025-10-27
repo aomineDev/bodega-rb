@@ -7,7 +7,7 @@ export const storageService = {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch(`${API_URL}/api/storage/${folder}`, {
+    const response = await fetch(`${API_URL}/storage/${folder}`, {
       method: 'POST',
       body: formData,
     })

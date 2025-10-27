@@ -8,9 +8,11 @@ import { useSnackbar } from '@/stores/snackbar';
 import { useForm } from '@/composables/useForm';
 import { useDisplay } from 'vuetify';
 import { useSupplier } from '@/composables/query/useSupplier';
+
 const { showSuccessSnackbar } = useSnackbar()
+const { mdAndUp, smAndDown } = useDisplay()
 
-
+//filtros
 const filtros = reactive({
     rangoFechas: [],
 })
@@ -22,12 +24,14 @@ const selectFilter = computed(() => [
         model: filtros.rangoFechas
     }
 ])
+
+//servicio
 const {
-    createSupplierAsync, supplier, deleteSupplierAsync
+    createSupplierAsync, supplier, deleteSupplierAsync, updateSupplierAsync
 } = useSupplier()
+
 //data header
 const headers = [
-    { title: 'Nombre comercial', key: 'nombreComercial' },
     { title: 'Tipo de contribuyente', key: 'tipoContribuyente' },
     { title: 'Actividad económica', key: 'actividadEconomica' },
     { title: 'Razón social', key: 'razonSocial' },
@@ -38,11 +42,12 @@ const headers = [
     { title: 'Email', key: 'email' },
     { title: 'Acción', key: 'actions', sortable: false }
 ]
-//actualizar nombre y boton del modal al actualizar
-const customerEdit = ref(false)
-const modalTitle = computed(() => (customerEdit.value ? 'Editar Proveedor' : 'Crear Proveedor'))
-const actionLabel = computed(() => (customerEdit.value ? 'Actualizar' : 'Crear'))
 
+//actualizar nombre y boton del modal al actualizar
+const modalTitle = computed(() => (supplierItem.value ? 'Editar Proveedor' : 'Crear Proveedor'))
+const actionLabel = computed(() => (supplierItem.value ? 'Actualizar' : 'Crear'))
+const supplierItem = ref(null)
+const editingSupplier = ref(null)
 
 //modales
 const supplierFormModal = ref(false)
@@ -50,11 +55,10 @@ const filterDialog = ref(false)
 const supplierDeleteModal = ref(false)
 
 const {
-    formRef, formData, resetForm, rules, handleSubmit, nombreComercial
+    formRef, formData, asignForm, resetForm, rules, handleSubmit
     , tipoContribuyente, actividadEconomica, razonSocial,
     fechaRegistro, ruc, direccion, telefono, email
 } = useForm({
-    nombreComercial: '',
     tipoContribuyente: '',
     actividadEconomica: '',
     razonSocial: '',
@@ -64,30 +68,30 @@ const {
     telefono: '',
     email: ''
 })
-const { mdAndUp, smAndDown } = useDisplay()
 
+//acciones del fab
 const handleActionFabMenu = (type) => {
 
     if (type === 'add') {
-        customerEdit.value = false
+        supplierItem.value = false
         supplierFormModal.value = true
     }
     if (type === 'filter') {
         filterDialog.value = true
     }
 }
-//eliminar modal
+//abrir modal eliminar
+
 const handleDelete = (item) => {
 
     supplierDeleteModal.value = true
 
     console.log("proveedor eliminado con id" + item.nombre)
 }
-const editingSupplier = ref(null)
 const confirmDelete = async () => {
     try {
         editingSupplier.value = supplier.value[0]
-        console.log("id" + editingSupplier.value.id)
+        console.log("id " + editingSupplier.value.id)
         await deleteSupplierAsync(editingSupplier.value.id)
         showSuccessSnackbar('Eliminado correctamente')
         supplierDeleteModal.value = false
@@ -97,9 +101,21 @@ const confirmDelete = async () => {
 }
 //creare proveedor
 const handleCreateSupplier = async () => {
-    await createSupplierAsync(formData.value)
-    showSuccessSnackbar('Creado exitosamente')
+    try {
+        if (supplierItem.value) {
+            await updateSupplierAsync({ ...formData.value, id: supplierItem.value.id })
+            showSuccessSnackbar('Proveedor actualizado')
+
+        } else {
+            await createSupplierAsync(formData.value)
+            showSuccessSnackbar('Creado exitosamente')
+        }
+    } catch (error) {
+        console.log(error)
+    }
     supplierFormModal.value = false
+
+
 }
 //cerrar modal de crear
 const closeFormModal = () => {
@@ -112,12 +128,14 @@ const close = () => {
 }
 //abrir edicion
 const handleEdit = (item) => {
-    customerEdit.value = true
+    supplierItem.value = item
+    asignForm(supplierItem.value)
     supplierFormModal.value = true
-    Object.assign(formData.value, item)
+
 }
 watch(supplierFormModal, (isOpen) => {
     if (!isOpen) resetForm()
+    supplier.value = null
 })
 </script>
 
@@ -177,10 +195,6 @@ watch(supplierFormModal, (isOpen) => {
                                 :rules="[rules.email]"></v-text-field>
                         </v-col>
 
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Nombre comercial" variant="underlined" v-model="nombreComercial"
-                                :rules="[rules.required]"></v-text-field>
-                        </v-col>
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Tipo contribuyente" variant="underlined" v-model="tipoContribuyente"
