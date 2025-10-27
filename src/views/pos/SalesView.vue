@@ -1,14 +1,18 @@
 <script setup>
 
-// import ActionMenu from '@/components/ActionMenu.vue';
+import FabMenu from '@/components/FabMenu.vue';
+import BaseFilter from '@/components/BaseFilter.vue';
 import { computed, ref } from 'vue';
-import { useProduct } from '@/composables/query/useProduct';
 import { useSnackbar } from '@/stores/snackbar'
 import { useRouter } from 'vue-router'
 import { naturalCustomerService } from '@/services/api/naturalCustomerService';
 import { juridicalCustomerService } from '@/services/api/juridicalCustomerService';
+import { useProduct } from '@/composables/query/useProduct';
 import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer';
 import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer';
+import { useBill } from '@/composables/query/useBill';
+import { useTicket } from '@/composables/query/useTicket';
+import { useDisplay } from 'vuetify'
 
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 
@@ -22,11 +26,23 @@ const {
   createNaturalCustomerAsync,
 } = useNaturalCustomer()
 
-
 const {
   juridicalCustomers,
   createJuridicalCustomerAsync,
 } = useJuridicalCustomer()
+
+const {
+  createBillAsync,
+} = useBill()
+
+const {
+  createTicketAsync,
+} = useTicket()
+
+/* --------------------   Filtros   ------------------- */
+const filterDialog = ref(false)
+const search = ref('') //busqueda
+const { mdAndUp, smAndDown } = useDisplay()
 
 const items = computed(() => product.value || [])
 
@@ -140,13 +156,13 @@ const customerIdValue = computed(() => {
     : customer.value.ruc
 })
 
-/* --------------------   Modal Producto   ------------------- */
 const cancelSale = () => {
   showClientDialog.value = false
   router.push('/home')
 }
 
-const addProduct = (item) => {
+/* --------------------   Modal Producto   ------------------- */
+const viewProduct = (item) => {
   selectedProduct.value = item
   showProductDialog.value = true
   console.log(item)
@@ -183,6 +199,132 @@ const closeProduct = () => {
   cantidad.value = 1
   litro.value = 1
   peso.value = 1
+}
+
+/* --------------------   Detalle venta  ------------------- */
+const cartItems = ref([])
+
+const addProduct = () => {
+  const product = selectedProduct.value
+  if (!product) return
+
+  const cantidadSeleccionada = parseFloat(inputValue.value) || 1
+  const precioUnitario = parseFloat(product.precioUnitario) || 0
+  const subTotal = cantidadSeleccionada * precioUnitario
+
+  const existing = cartItems.value.find(i => i.producto.id === product.id)
+
+  if (existing) {
+    existing.cantidad += cantidadSeleccionada
+    existing.subTotal = existing.cantidad * existing.precioUnitario
+  } else {
+    cartItems.value.push({
+      producto: product,
+      nombre: product.nombre,
+      unidadMedida: product.unidadMedida,
+      cantidad: cantidadSeleccionada,
+      precioUnitario,
+      subTotal,
+    })
+  }
+
+  closeProduct()
+}
+
+// Calcular totales
+const totals = computed(() => {
+  const total = cartItems.value.reduce((sum, item) => sum + item.subTotal, 0)
+  const gravado = total / (1 + 0.18)
+  const igv = total - gravado
+  return {
+    gravado: gravado.toFixed(2),
+    igv: igv.toFixed(2),
+    total: total.toFixed(2)
+  }
+})
+
+// Eliminar del carrito
+const removeProduct = (id) => {
+  cartItems.value = cartItems.value.filter(p => p.producto.id !== id)
+}
+
+/* --------------------   Tipo de Pago  ------------------- */
+const tipoPago = ref('Efectivo')
+const montoEfectivo = ref(0)
+
+const vuelto = computed(() => {
+  if (tipoPago.value !== 'Efectivo') return 0
+
+  const efectivo = parseFloat(montoEfectivo.value) || 0
+  const total = parseFloat(totals.value.total) || 0
+
+  return efectivo > total ? efectivo - total : 0
+})
+
+/* --------------------   Finalizar venta  ------------------- */
+const createSale = async () => {
+  if (!cartItems.value.length) {
+    showWarningSnackbar('Agrega productos antes de finalizar la venta')
+    return
+  }
+
+  if (!customer.value) {
+    showWarningSnackbar('Debe seleccionar un cliente')
+    return
+  }
+
+  try {
+    const detalleVentas = cartItems.value.map(item => ({
+      cantidad: item.cantidad,
+      precioUnitario: item.precioUnitario,
+      subTotal: item.subTotal,
+      producto: { id: item.producto.id }
+    }))
+
+    const now = new Date()
+
+    const comprobante = {
+      fecha: now.toISOString().split('T')[0],
+      hora: now.toTimeString().split(' ')[0],
+      grabado: parseFloat(totals.value.gravado),
+      igv: parseFloat(totals.value.igv),
+      precioTotal: parseFloat(totals.value.total),
+      estado: true,
+      vuelto: parseFloat(vuelto.value),
+      detalleVentas,
+    }
+
+    let dataToSend = null
+
+    if (customerType.value === 'natural') {
+      dataToSend = {
+        ...comprobante,
+        clienteNatural: { id: customer.value.id },
+      }
+
+      await createTicketAsync(dataToSend)
+
+    } else {
+      dataToSend = {
+        ...comprobante,
+        clienteJuridico: { id: customer.value.id },
+      }
+
+      await createBillAsync(dataToSend)
+    }
+
+    showSuccessSnackbar('Venta registrada correctamente')
+
+    router.push('/caja/comprobantes')
+    cartItems.value = []
+    montoEfectivo.value = 0
+    customer.value = null
+    showClientDialog.value = true
+
+  } catch (error) {
+    console.error('Error al registrar la venta:', error)
+    showErrorSnackbar('Ocurrió un error al registrar la venta')
+  }
 }
 
 </script>
@@ -248,6 +390,14 @@ const closeProduct = () => {
     <v-row>
       <!-- COLUMNA IZQUIERDA: Productos -->
       <v-col cols="12" md="8">
+
+        <!-- Filtros -->
+        <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
+          <v-row>
+            <base-filter v-model:search="search" />
+          </v-row>
+        </v-card>
+
         <v-row v-if="isPending">
           <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4">
             <v-skeleton-loader type="card" />
@@ -273,7 +423,7 @@ const closeProduct = () => {
                 </v-card-title>
 
                 <v-card-actions class="justify-center pb-4">
-                  <v-btn color="primary" variant="flat" prepend-icon="mdi-cart-plus" @click="addProduct(item)"
+                  <v-btn color="primary" variant="flat" prepend-icon="mdi-cart-plus" @click="viewProduct(item)"
                     :elevation="isHovering ? 4 : 1" class="transition-fast">
                     Agregar
                   </v-btn>
@@ -286,7 +436,7 @@ const closeProduct = () => {
 
       <!-- COLUMNA DERECHA: Resumen de Venta -->
       <v-col cols="12" md="4">
-        <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px; z-index: 2;">
+        <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px;">
           <!-- Cliente -->
           <div class="d-flex justify-space-between align-center mb-3">
             <v-btn elevation="0" color="primary" prepend-icon="mdi-account-plus-outline" @click="cambiarCliente">
@@ -306,53 +456,70 @@ const closeProduct = () => {
           <div>
             <div class="text-subtitle-1 font-weight-medium mb-2">Resumen de venta</div>
 
-            <v-list density="compact" class="rounded-lg bg-grey-lighten-4">
-              <v-list-item title="Leche Gloria" subtitle="Cant. 1">
+            <v-list v-if="cartItems.length" density="compact" class="rounded-lg bg-grey-lighten-4">
+              <v-list-item v-for="item in cartItems" :key="item.id" :title="item.nombre"
+                :subtitle="`Cant. ${item.cantidad}`">
                 <template #append>
-                  <span>S/ 8.50</span>
-                </template>
-              </v-list-item>
-
-              <v-list-item title="Atún" subtitle="Cant. 2">
-                <template #append>
-                  <span>S/ 15.00</span>
+                  <div class="d-flex align-center">
+                    <span class="mr-2">S/ {{ item.subTotal.toFixed(2) }}</span>
+                    <v-btn icon="mdi-delete-outline" size="small" variant="text" color="red"
+                      @click="removeProduct(item.producto.id)" />
+                  </div>
                 </template>
               </v-list-item>
             </v-list>
+
+            <div v-else class="text-center text-grey mt-3">
+              <v-icon size="30" color="grey">mdi-cart-outline</v-icon>
+              <p class="text-body-2 mt-1">No hay productos seleccionados</p>
+            </div>
 
             <v-divider class="my-4" />
 
             <!-- Totales -->
             <v-row>
               <v-col cols="6" class="text-left">GRAVADO</v-col>
-              <v-col cols="6" class="text-right">S/ 19.92</v-col>
+              <v-col cols="6" class="text-right">S/ {{ totals.gravado }}</v-col>
 
               <v-col cols="6" class="text-left">IGV</v-col>
-              <v-col cols="6" class="text-right">S/ 3.58</v-col>
+              <v-col cols="6" class="text-right">S/ {{ totals.igv }}</v-col>
 
               <v-col cols="6" class="text-subtitle-1 font-weight-bold">TOTAL</v-col>
               <v-col cols="6" class="text-right text-subtitle-1 font-weight-bold">
-                S/ 23.50
+                S/ {{ totals.total }}
               </v-col>
             </v-row>
 
             <v-divider class="my-4" />
 
             <!-- Tipo de pago -->
-            <v-select label="Tipo de pago" :items="['Efectivo', 'Tarjeta', 'Yape', 'Plin']" variant="underlined"
-              density="comfortable" class="mb-3" />
+            <v-select v-model="tipoPago" label="Tipo de pago" :items="['Efectivo', 'Tarjeta', 'Yape', 'Plin']"
+              variant="underlined" density="comfortable" class="mb-3" />
 
-            <v-text-field label="Efectivo" prefix="S/" variant="underlined" density="comfortable" type="number"
-              value="25.00" />
+            <template v-if="tipoPago === 'Efectivo'">
+              <v-text-field v-model.number="montoEfectivo" label="Efectivo" prefix="S/" variant="underlined"
+                density="comfortable" type="number" min="0" />
 
-            <div class="d-flex justify-space-between mt-2 text-subtitle-2">
-              <span>Vuelto</span>
-              <span class="font-weight-medium">S/ 1.50</span>
-            </div>
+              <div class="d-flex justify-space-between mt-2 text-subtitle-2">
+                <span>Vuelto</span>
+                <span class="font-weight-medium">
+                  S/ {{ vuelto.toFixed(2) }}
+                </span>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="d-flex justify-space-between mt-2 text-subtitle-2">
+                <span>Vuelto</span>
+                <span class="font-weight-medium">S/ 0.00</span>
+              </div>
+            </template>
+
           </div>
 
           <!-- Botón Finalizar -->
-          <v-btn block color="primary" size="large" class="mt-5" prepend-icon="mdi-check-circle-outline">
+          <v-btn block color="primary" size="large" class="mt-5" prepend-icon="mdi-check-circle-outline"
+            :disabled="!cartItems.length || !customer" @click="createSale">
             Finalizar Venta
           </v-btn>
         </v-card>
@@ -394,12 +561,29 @@ const closeProduct = () => {
 
           <div class="d-flex justify-end">
             <v-btn variant="text" @click="closeProduct">Cerrar</v-btn>
-            <v-btn color="primary" variant="text" @click="agregar">Agregar</v-btn>
+            <v-btn color="primary" variant="text" @click="addProduct()">Agregar</v-btn>
           </div>
         </v-col>
       </v-row>
     </v-card>
   </v-dialog>
+
+  <!-- Filtro móvil -->
+  <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
+    <v-card title="Filtrar Productos">
+      <v-card-text>
+        <base-filter v-model:search="search" />
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+        <v-btn text="Cerrar" variant="plain" @click="filterDialog = false" />
+        <v-btn color="primary" text="Aplicar" variant="tonal" @click="filterDialog = false" />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <fab-menu v-model:filterDialog="filterDialog" />
 
 </template>
 

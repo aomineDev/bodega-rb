@@ -43,17 +43,14 @@ const router = createRouter({
         {
           path: 'proveedores',
           component: SuppliersView,
-          meta: { title: 'Proveedores' },
         },
         {
           path: 'empleados',
           component: EmployeesView,
-          meta: { title: 'Empleados' },
         },
         {
           path: 'productos',
           component: ProductsView,
-          meta: { title: 'Productos' },
         },
       ],
     },
@@ -83,8 +80,7 @@ const router = createRouter({
         {
           path: 'ingreso-productos',
           component: ProductEntryView,
-          meta: { title: 'Ingreso de Productos' },
-        }
+        },
       ],
     },
     {
