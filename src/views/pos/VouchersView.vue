@@ -6,8 +6,8 @@ import BaseFilter from '@/components/BaseFilter.vue';
 import { computed, reactive, ref } from 'vue';
 import { useDisplay } from 'vuetify'
 
-import { useTickets } from '@/composables/query/useTicket';
-import { useBills } from '@/composables/query/useBill';
+import { useTicket } from '@/composables/query/useTicket';
+import { useBill } from '@/composables/query/useBill';
 
 
 const {
@@ -15,14 +15,14 @@ const {
   isPending: isPendingTicket,
   isError: isErrorTicket,
   error: errorTicket,
-} = useTickets()
+} = useTicket()
 
 const {
   bills,
   isPending: isPendingBill,
   isError: isErrorBill,
   error: errorBill,
-} = useBills()
+} = useBill()
 
 /* --------------- Relleno Tabla ---------------*/
 const headers = computed(() => {
@@ -31,7 +31,7 @@ const headers = computed(() => {
       { title: 'N° boleta', key: 'id' },
       { title: 'Fecha', key: 'fecha' },
       { title: 'Hora', key: 'hora' },
-      { title: 'Cliente', key: 'clienteNatural' },
+      { title: 'Cliente', key: 'cliente' },
       { title: 'Cajero', key: 'cajero' },
       { title: 'Total (S/)', key: 'precioTotal' },
       { title: 'Acciones', key: 'actions', sortable: false },
@@ -41,7 +41,7 @@ const headers = computed(() => {
       { title: 'N° factura', key: 'id' },
       { title: 'Fecha', key: 'fecha' },
       { title: 'Hora', key: 'hora' },
-      { title: 'Cliente', key: 'clienteJuridico' },
+      { title: 'Cliente', key: 'cliente' },
       { title: 'Cajero', key: 'cajero' },
       { title: 'Total (S/)', key: 'precioTotal' },
       { title: 'Acciones', key: 'actions', sortable: false },
@@ -50,10 +50,18 @@ const headers = computed(() => {
 })
 
 const items = computed(() => {
-  return filtros.tipoComprobante === 'Boletas'
+  const data = filtros.tipoComprobante === 'Boletas'
     ? tickets.value || []
     : bills.value || []
+
+  return data.map(item => ({
+    ...item,
+    cliente: filtros.tipoComprobante === 'Boletas'
+      ? `${item.clienteNatural?.nombre || ''} ${item.clienteNatural?.apellidoPaterno || ''}`.trim()
+      : item.clienteJuridico?.razonSocial || '',
+  }))
 })
+
 
 const isPending = computed(() =>
   filtros.tipoComprobante === 'Boleta' ? isPendingTicket.value : isPendingBill.value
@@ -202,7 +210,7 @@ const search = ref('')
             <template v-else>
               <v-col cols="6"><strong>Nombres:</strong> {{ selectedComprobante.clienteNatural?.nombre }}</v-col>
               <v-col cols="6"><strong>DNI:</strong> {{ selectedComprobante.clienteNatural?.dni }}</v-col>
-              <v-col cols="6"><strong>Dirección:</strong> {{ selectedComprobante.clienteNatural?.telefono }}</v-col>
+              <v-col cols="6"><strong>Dirección:</strong> {{ selectedComprobante.clienteNatural?.direccion }}</v-col>
               <v-col cols="6"><strong>Teléfono:</strong> {{ selectedComprobante.clienteNatural?.telefono }}</v-col>
             </template>
           </v-row>

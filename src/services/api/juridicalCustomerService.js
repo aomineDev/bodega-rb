@@ -13,4 +13,6 @@ export const juridicalCustomerService = {
     apiFetch(`${service}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   delete: async (id) => apiFetch(`${service}/${id}`, { method: 'DELETE' }),
+
+  getCustomerByRuc: async (ruc) => apiFetch(`${service}/sunat/${ruc}`),
 }

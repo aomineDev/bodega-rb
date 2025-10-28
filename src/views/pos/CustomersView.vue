@@ -49,7 +49,6 @@ const headers = computed(() => {
     return [
       { title: 'Razón Social', key: 'razonSocial' },
       { title: 'RUC', key: 'ruc' },
-      { title: 'Nombre Comercial', key: 'nombreComercial' },
       { title: 'Tipo Contribuyente', key: 'tipoContribuyente' },
       { title: 'Dirección', key: 'direccion' },
       { title: 'Telefono', key: 'telefono' },
@@ -94,7 +93,6 @@ const {
   fechaNacimiento,
   razonSocial,
   ruc,
-  nombreComercial,
   tipoContribuyente,
   actividadEconomica,
   direccion,
@@ -108,7 +106,6 @@ const {
   fechaNacimiento: '',
   razonSocial: '',
   ruc: '',
-  nombreComercial: '',
   tipoContribuyente: '',
   actividadEconomica: '',
   direccion: '',
@@ -303,10 +300,6 @@ const search = ref('') //busqueda
 
                 <v-col cols="12" md="6">
                   <v-text-field v-model="ruc" label="RUC" counter="11" :rules="[rules.required, rules.ruc]" />
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="nombreComercial" label="Nombre Comercial" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="6">

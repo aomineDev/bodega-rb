@@ -8,48 +8,44 @@ import { computed, reactive, ref, watch } from 'vue';
 import { useDisplay } from 'vuetify'
 import { useForm } from '@/composables/useForm';
 import { useProduct } from '@/composables/query/useProduct';
+import { useSupplier } from '@/composables/query/useSupplier';
+import { useCategory } from '@/composables/query/useCategory';
+import { storageService } from '@/services/storage/imageService';
 const { showSuccessSnackbar } = useSnackbar()
-// Por esto:
-const categorias = ref([
-    { id: 1, nombre: 'Enlatados' },
-    { id: 2, nombre: 'Conservas' },
-    { id: 3, nombre: 'Carnes' }
+
+const ud = ref([
+    'Unidad',
+    'Kilogramo',
+    'Litro',
+    'Caja'
 ])
 
-const proveedores = ref([
-    { id: 1, nombre: 'Alicorp' },
-    { id: 2, nombre: 'Gloria' },
-    { id: 3, nombre: 'Nestlé' }
-])
 
-const unidadesMedida = ref([
-    { id: 1, nombre: 'Unidad' },
-    { id: 2, nombre: 'Kilogramo' },
-    { id: 3, nombre: 'Litro' },
-    { id: 4, nombre: 'Caja' }
-])
+const { category } = useCategory()
+
 const productFormModal = ref(false)
 const productDetailModal = ref(false)
 const productDeleteModal = ref(false)
 const filterDialog = ref(false)
 const { mdAndUp, smAndDown } = useDisplay()
-const product = ref(false)
-const customerEdit = ref(false)
-const modalTitle = computed(() => (customerEdit.value ? 'Editar Producto' : 'Crear Producto'))
-const actionLabel = computed(() => (customerEdit.value ? 'Actualizar' : 'Crear'))
+// const product = ref(false)
+// const customerEdit = ref(false)
+const modalTitle = computed(() => (productItem.value ? 'Editar Producto' : 'Crear Producto'))
 
-const { formRef, formData, resetForm, rules, handleSubmit, imagen, codigoBarra, nombre, descripcion, proveedor, precioUnitario, precioPromocion,
-    stockActual, categoria, inicioPromocion, finPromocion, unidadMedida
+const actionLabel = computed(() => (productItem.value ? 'Actualizar' : 'Crear'))
+const productItem = ref(false)
+const { formRef, formData, resetForm, asignForm, rules, handleSubmit, imagen, codigoBarra, categoria, nombre, descripcion, proveedor, precioUnitario, precioPromocion, unidadMedida,
+    stock, inicioPromocion, finPromocion
 } = useForm({
     imagen: '', codigoBarra: '', nombre: '',
     descripcion: '', categoria: '', proveedor: '',
-    precioUnitario: '', precioPromocion: '', stockActual: '',
+    precioUnitario: '', precioPromocion: '', stock: '',
     inicioPromocion: '', finPromocion: '', unidadMedida: ''
 })
 
 const handleActionFabMenu = (type) => {
     if (type === 'add') {
-        customerEdit.value = false
+        productItem.value = false
         productFormModal.value = true
 
     }
@@ -73,57 +69,14 @@ const selectFilter = computed(() => [
         model: filtros.proveedores
     }
 ])
-const producto = ref([
-    {
-        id: 1,
-        codigoBarra: '1234567890123',
-        nombre: 'Leche gloria',
-        descripcion: 'Leche de toro',
-        precioUnitario: 8.50,
-        precioPromocion: 6.50,
-        inicioPromocion: '2025-10-20',
-        finPromocion: '2025-10-31',
-        stockActual: 85,
-        unidadMedida: 'unidad',
-        imagen: '/public/milk.png',
-        categoria: 'Conservas',
-        proveedor: 'Alicorp'
-    },
-    {
-        id: 2,
-        codigoBarra: '9876543210987',
-        nombre: 'Atun',
-        descripcion: 'Atun en aceite',
-        precioUnitario: 7.50,
-        precioPromocion: 3.50,
-        inicioPromocion: '2025-10-20',
-        finPromocion: '2025-10-31',
-        stockActual: 20,
-        unidadMedida: 'unidad',
-        imagen: '/public/atun.jpg',
-        categoria: 'Conservas',
-        proveedor: 'Alicorp'
-    }, {
-        id: 3,
-        codigoBarra: '9876543210987',
-        nombre: 'Galletas integrales',
-        descripcion: 'Galletas integrales de trigo',
-        precioUnitario: 5.50,
-        precioPromocion: 3.50,
-        inicioPromocion: '2025-10-20',
-        finPromocion: '2025-10-31',
-        stockActual: 5,
-        unidadMedida: 'unidad',
-        imagen: '/public/galleta.png',
-        categoria: 'Conservas',
-        proveedor: 'Alicorp'
-    }
-])
 const {
 
-    createProductAsync
-
+    createProductAsync, product, deleteProductAsync, updateProductAsync
 } = useProduct()
+
+const {
+    supplier
+} = useSupplier()
 //cerrar modal
 const closeFormModal = () => {
     productFormModal.value = false
@@ -135,35 +88,80 @@ const deleteModal = (item) => {
     console.log("card eliminada" + item.id)
 
 }
+const productDetail = ref(false)
 //accion detalle
 const handleView = (item) => {
-    product.value = item
+    productDetail.value = item
     productDetailModal.value = true
 }
-//accion editar
-const handleEdit = (item) => {
-    customerEdit.value = true
-    productFormModal.value = true
-    console.log("edit product" + item.id)
-    Object.assign(formData.value, item)
 
-}
+const handleEdit = (item) => {
+    productItem.value = item;
+    asignForm(productItem.value);
+
+    productFormModal.value = true;
+};
 watch(productFormModal, (isOpen) => {
     if (!isOpen) resetForm()
 })
 
-//accion crear
-const handleCreateProduct = async () => {
-    const data = {
-        ...formData.value, imagen: imagen.value.name, categoria: categoria.value, proveedor: proveedor.value, unidadMedida: unidadMedida.value
+
+const previewUrl = ref(null)
+const onImageChange = (file) => {
+    const selectedFile = Array.isArray(file) ? file[0] : file;
+
+    if (selectedFile instanceof File) {
+        previewUrl.value = URL.createObjectURL(selectedFile);
+    } else {
+        previewUrl.value = productItem.value?.imagen || null;
     }
-    await createProductAsync(data)
-    showSuccessSnackbar("Creado exieto")
 
-    //console.log(JSON.stringify(data))
-    //showSuccessSnackbar('Creado exitosamente')
+}
 
-    productFormModal.value = false
+const getImageUrl = async () => {
+    if (imagen.value instanceof File) {
+        return await storageService.upload('products', imagen.value);
+    }
+    return productItem.value?.imagen || "/img/default.png";
+}
+
+// crear y editar
+const handleCreateProduct = async () => {
+    try {
+        const imagenUrl = await getImageUrl();
+        const productData = {
+            ...formData.value,
+            imagen: imagenUrl,
+            proveedor: proveedor.value,
+            categoria: categoria.value
+        };
+
+        if (productItem.value) {
+            await updateProductAsync({ ...productData, id: productItem.value.id });
+            showSuccessSnackbar("Producto editado exitosamente");
+        } else {
+            await createProductAsync(productData);
+            showSuccessSnackbar("Creado exitosamente");
+        }
+
+        previewUrl.value = null;
+        productFormModal.value = false;
+
+    } catch (error) {
+        console.error("Error:", error);
+    }
+};
+//accion eliminar
+const editingProduct = ref(false)
+const confirmDelete = async () => {
+    try {
+        editingProduct.value = product.value[0]
+        await deleteProductAsync(editingProduct.value.id)
+        showSuccessSnackbar("Eliminado correctamente")
+        productDeleteModal.value = false
+    } catch (error) {
+        console.log(error)
+    }
 }
 </script>
 
@@ -187,9 +185,9 @@ const handleCreateProduct = async () => {
 
     <!-- cartas -->
     <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in producto" :key="index">
+        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in product" :key="index">
             <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 8 : 1" rounded="xl" class="card-hover">
+                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
                     <v-img height="220px" :src="item.imagen" contain></v-img>
                     <v-divider :thickness="3"></v-divider>
 
@@ -201,11 +199,11 @@ const handleCreateProduct = async () => {
 
                     <v-chip class="position-absolute chip-categoria" color="primary" size="default"
                         style="top: 12px; right: 12px; z-index: 1">
-                        {{ item.categoria }}
+                        {{ item.categoria?.nombre }}
                     </v-chip>
                     <v-card-text class="text-end">
-                        <span :class="item.stockActual > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
-                            {{ item.stockActual > 0 ? item.stockActual + ' Unidades' : 'Agotado' }}
+                        <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
+                            {{ item.stock > 0 ? item.stock + ' Unidades' : 'Agotado' }}
                         </span>
                     </v-card-text>
                 </v-card>
@@ -224,10 +222,7 @@ const handleCreateProduct = async () => {
                 <v-container fluid>
                     <v-row>
                         <!-- imagen -->
-                        <v-col cols="12" md="6">
-                            <v-file-input label="Imagen" variant="underlined" v-model="imagen"
-                                :rules="[rules.required]"></v-file-input>
-                        </v-col>
+
                         <!-- codigo de barra -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Codigo de barra" variant="underlined" v-model="codigoBarra"
@@ -241,17 +236,20 @@ const handleCreateProduct = async () => {
                         </v-col>
                         <!-- categoria -->
                         <v-col cols="12" md="6">
-                            <v-select label="Categoria" variant="underlined" :items="categorias" v-model="categoria"
-                                item-title="nombre" item-value="id" :rules="[rules.categoria]"></v-select> </v-col>
+                            <v-select label="Categoria" variant="underlined" :items="category" v-model="categoria"
+                                item-title="nombre" return-object item-value="id" :rules="[rules.categoria]"></v-select>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <v-select label="Proveedor" variant="underlined" :items="supplier" v-model="proveedor"
+                                item-title="razonSocial" return-object :rules=[rules.proveedor]></v-select>
+                        </v-col>
                         <!-- descripcion -->
                         <v-col cols="12" md="12">
                             <v-textarea label="Descripcion" variant="underlined" rows="2" auto-grow
                                 v-model="descripcion" :rules="[rules.required]"></v-textarea>
                         </v-col>
                         <!-- proveedor -->
-                        <v-col cols="12" md="6">
-                            <v-select label="Proveedor" variant="underlined" :items="proveedores" v-model="proveedor"
-                                item-title="nombre" item-value="id" :rules=[rules.proveedor]></v-select> </v-col>
+
                         <!-- precio unitario -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Precio unitario" type="number" variant="underlined"
@@ -264,7 +262,7 @@ const handleCreateProduct = async () => {
                         </v-col>
                         <!-- stock -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Stock" variant="underlined" v-model="stockActual"
+                            <v-text-field label="Stock" variant="underlined" v-model="stock"
                                 :rules="[rules.cantidad]"></v-text-field>
                         </v-col>
                         <!-- inicion promocio -->
@@ -280,9 +278,17 @@ const handleCreateProduct = async () => {
 
                         <!-- unidad de medida -->
                         <v-col cols="12" md="6">
-                            <v-select label="Unidad de medidad" variant="underlined" :items="unidadesMedida"
-                                item-title="nombre" item-value="id" v-model="unidadMedida"
-                                :rules=[rules.unidadMedida]></v-select> </v-col>
+                            <v-select label="Unidad de medidad" variant="underlined" :items="ud" v-model="unidadMedida"
+                                :rules="[rules.unidadMedida]"></v-select></v-col>
+                        <v-col cols="12" md="6">
+                            <v-file-input label="Imagen" @update:model-value="onImageChange" variant="underlined"
+                                v-model="imagen"></v-file-input>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <img :src="previewUrl || productItem?.imagen || '/img/image-preview.png'"
+                                alt="Vista previa o imagen predeterminada"
+                                style="max-width: 100%; border-radius: 8px;" />
+                        </v-col>
                     </v-row>
                 </v-container>
             </v-form>
@@ -297,6 +303,7 @@ const handleCreateProduct = async () => {
 
         </v-card>
     </v-dialog>
+
     <!-- modal ver detalle -->
     <v-dialog v-model="productDetailModal" max-width="1100" scrollable>
         <v-card>
@@ -311,7 +318,7 @@ const handleCreateProduct = async () => {
                     <v-col cols="12" md="5" class="d-flex">
 
                         <v-card class="pa-1 d-flex align-center flex-grow-1" elevation="0">
-                            <v-img :src="product.imagen" contain max-width="100%" height="400"
+                            <v-img :src="productDetail.imagen" contain max-width="100%" height="400"
                                 class="product-detail-img"></v-img>
                         </v-card>
                     </v-col>
@@ -322,7 +329,7 @@ const handleCreateProduct = async () => {
                         <v-card class=" d-flex flex-column justify-center columna-centra" elevation="0"
                             style="height: 100%">
                             <h2 class="text-h5 font-weight-bold mb-4 text-primary ">
-                                {{ product.nombre }}
+                                {{ productDetail.nombre }}
                             </h2>
 
                             <div class="text-subtitle-3 font-weight-bold mb-4 ">
@@ -330,7 +337,7 @@ const handleCreateProduct = async () => {
                             </div>
 
                             <p class="text-body-2 mb-6 font-weight-bold ">
-                                {{ product.descripcion }}
+                                {{ productDetail.descripcion }}
                             </p>
 
                             <div class="mb-2 text-subtitle-3 font-weight-bold ">
@@ -339,7 +346,7 @@ const handleCreateProduct = async () => {
 
                             <div class="mb-3 ">
                                 <span class="text-h4 font-weight-bold text-primary mr-3">
-                                    S/ {{ product.precioUnitario }}
+                                    S/ {{ productDetail.precioUnitario }}
                                 </span>
                             </div>
 
@@ -349,7 +356,7 @@ const handleCreateProduct = async () => {
 
                             <div class="">
                                 <span class="text-h4 font-weight-bold text-success mr-3">
-                                    S/ {{ product.precioPromocion }}
+                                    S/ {{ productDetail.precioPromocion }}
                                 </span>
                                 <!-- <v-chip color="success" size="small" class="font-weight-bold">
                                     OFERTA
@@ -372,7 +379,7 @@ const handleCreateProduct = async () => {
                                         <span class="text-body-2 font-weight-bold">Categoría</span>
                                     </div>
                                     <v-chip color="primary" variant="tonal" size="default">
-                                        {{ product.categoria }}
+                                        {{ productDetail.categoria.nombre }}
                                     </v-chip>
                                 </v-col>
 
@@ -382,7 +389,7 @@ const handleCreateProduct = async () => {
                                         <span class="text-body-2 font-weight-bold">Unidad de medida</span>
                                     </div>
                                     <v-chip color="teal" variant="tonal" size="default">
-                                        {{ product.unidadMedida }}
+                                        {{ productDetail.unidadMedida }}
                                     </v-chip>
                                 </v-col>
 
@@ -392,10 +399,10 @@ const handleCreateProduct = async () => {
                                         <span class="text-body-2 font-weight-bold">Stock</span>
                                     </div>
                                     <div>
-                                        <v-progress-linear :model-value="(product.stockActual / 100) * 100" color="teal"
+                                        <v-progress-linear :model-value="(productDetail.stock / 100) * 100" color="teal"
                                             height="30" rounded class="mb-2"></v-progress-linear>
                                         <div class="text-center text-body-2 text-grey-darken-1">
-                                            Stock Actual {{ product.stockActual }} unidades
+                                            Stock Actual {{ productDetail.stock }} unidades
                                         </div>
                                     </div>
                                 </v-col>
@@ -406,7 +413,7 @@ const handleCreateProduct = async () => {
                                         <span class="text-body-2 font-weight-bold">Código de barra</span>
                                     </div>
                                     <v-chip color="teal" variant="tonal" size="default">
-                                        {{ product.codigoBarra }}
+                                        {{ productDetail.codigoBarra }}
                                     </v-chip>
                                 </v-col>
                             </v-row>
@@ -424,7 +431,7 @@ const handleCreateProduct = async () => {
                                         <span class="text-body-2 font-weight-bold">Inicio Promoción</span>
                                     </div>
                                     <div class="text-body-3 font-weight-bold mb-3">
-                                        {{ product.inicioPromocion }}
+                                        {{ productDetail.inicioPromocion }}
                                     </div>
                                 </v-col>
 
@@ -434,7 +441,7 @@ const handleCreateProduct = async () => {
                                         <span class="text-body-2 font-weight-bold">Fin Promoción</span>
                                     </div>
                                     <div class="text-body-3 font-weight-bold mb-3">
-                                        {{ product.finPromocion }}
+                                        {{ productDetail.finPromocion }}
                                     </div>
                                 </v-col>
 
@@ -444,7 +451,7 @@ const handleCreateProduct = async () => {
                                         <span class="text-body-2 font-weight-bold">Proveedor</span>
                                     </div>
                                     <v-chip color="teal" variant="tonal" size="default">
-                                        {{ product.proveedor }}
+                                        {{ productDetail.proveedor.razonSocial }}
                                     </v-chip>
                                 </v-col>
                             </v-row>
@@ -462,6 +469,7 @@ const handleCreateProduct = async () => {
             </v-card-actions>
         </v-card>
     </v-dialog>
+
     <!-- modal eliminar -->
     <v-dialog v-model="productDeleteModal" max-width="500">
         <v-card>
@@ -484,7 +492,7 @@ const handleCreateProduct = async () => {
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
                 <v-btn text="Cerrar" @click="close()"></v-btn>
-                <v-btn text="Eliminar" color="error" @click="deleteModal"></v-btn>
+                <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>

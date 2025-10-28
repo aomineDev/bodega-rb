@@ -1,7 +1,7 @@
 import { ticketService } from '@/services/api/ticketService'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 
-export const useTickets = () => {
+export const useTicket = () => {
   const queryClient = useQueryClient()
 
   const {
