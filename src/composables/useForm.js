@@ -1,7 +1,7 @@
 import { ref, toRefs } from 'vue'
 import { rules } from '@/utils/rules'
 
-export const useForm = (initialValue) => {
+export const useForm = (initialValue, onSubmit) => {
   const formData = ref({ ...initialValue })
   const formRef = ref(null)
 
@@ -17,7 +17,9 @@ export const useForm = (initialValue) => {
   }
 
   const isValid = async () => {
-    return await formRef.value.validate()
+    const { valid } = await formRef.value.validate()
+
+    return valid
   }
 
   const asignForm = (data) => {
@@ -28,11 +30,12 @@ export const useForm = (initialValue) => {
   const handleSubmit = async (callback) => {
     if (!existsFormRef()) return
 
-    const { valid } = await formRef.value.validate()
+    const valid = await isValid()
 
     if (!valid) return
 
-    await callback()
+    if (onSubmit) await onSubmit()
+    else await callback()
 
     resetForm()
   }
