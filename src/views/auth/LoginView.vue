@@ -37,7 +37,7 @@ async function handleLogin() {
           prepend-inner-icon="mdi-account"
           clearable
           :rules="[rules.required, rules.dni]"
-          mask="#(##)##-##-#"
+          mask="########"
           variant="underlined"
         ></v-mask-input>
         <v-text-field
