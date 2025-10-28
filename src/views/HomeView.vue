@@ -1,74 +1,75 @@
 <script setup>
-import { useSnackbar } from '@/stores/snackbar'
-import { ref, watch } from 'vue'
-import ActionMenu from '@/components/ActionMenu.vue'
+// {import { useSnackbar } from '@/stores/snackbar'
+// import { ref, watch } from 'vue'
+// import ActionMenu from '@/components/ActionMenu.vue'
 
-import { useForm } from '@/composables/useForm'
-import { usePruebas } from '@/composables/query/usePrueba'
+// import { useForm } from '@/composables/useForm'
+// import { usePruebas } from '@/composables/query/usePrueba'
 
-const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
+// const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 
-const {
-  pruebas,
-  isPending,
-  isError,
-  error,
-  createPruebaAsync,
-  updatePruebaAsync,
-  deletePruebaAsync,
-} = usePruebas()
+// const {
+//   pruebas,
+//   isPending,
+//   isError,
+//   error,
+//   createPruebaAsync,
+//   updatePruebaAsync,
+//   deletePruebaAsync,
+// } = usePruebas()
 
-const { formData, formRef, rules, handleSubmit, name, asignForm, resetForm } = useForm({
-  name: null,
-})
-const dialog = ref(false)
-const editingPrueba = ref(null)
+// const { formData, formRef, rules, handleSubmit, name, asignForm, resetForm } = useForm({
+//   name: null,
+// })
+// const dialog = ref(false)
+// const editingPrueba = ref(null)
 
-const handleLogin = async () => {
-  try {
-    if (editingPrueba.value) {
-      await updatePruebaAsync({ ...formData.value, id: editingPrueba.value.id })
-      showSuccessSnackbar('Prueba actualizada')
-    } else {
-      await createPruebaAsync(formData.value)
-      showSuccessSnackbar('Prueba creada')
-    }
+// const handleLogin = async () => {
+//   try {
+//     if (editingPrueba.value) {
+//       await updatePruebaAsync({ ...formData.value, id: editingPrueba.value.id })
+//       showSuccessSnackbar('Prueba actualizada')
+//     } else {
+//       await createPruebaAsync(formData.value)
+//       showSuccessSnackbar('Prueba creada')
+//     }
 
-    dialog.value = false
-  } catch (error) {
-    showErrorSnackbar('Error al crear la prueba')
-    console.log(error)
-  }
-}
+//     dialog.value = false
+//   } catch (error) {
+//     showErrorSnackbar('Error al crear la prueba')
+//     console.log(error)
+//   }
+// }
 
-watch(dialog, (value) => {
-  if (!value) {
-    resetForm()
-    editingPrueba.value = null
-  }
-})
+// watch(dialog, (value) => {
+//   if (!value) {
+//     resetForm()
+//     editingPrueba.value = null
+//   }
+// })
 
-const handleEdit = () => {
-  editingPrueba.value = pruebas.value[0]
-  asignForm(editingPrueba.value)
-  dialog.value = true
-}
+// const handleEdit = () => {
+//   editingPrueba.value = pruebas.value[0]
+//   asignForm(editingPrueba.value)
+//   dialog.value = true
+// }
 
-const handleDelete = async () => {
-  try {
-    editingPrueba.value = pruebas.value[0]
+// const handleDelete = async () => {
+//   try {
+//     editingPrueba.value = pruebas.value[0]
 
-    await deletePruebaAsync(editingPrueba.value.id)
-    showSuccessSnackbar('Prueba eliminada')
-  } catch (error) {
-    showErrorSnackbar('Error al eliminar la prueba')
-    console.log(error)
-  }
-}
+//     await deletePruebaAsync(editingPrueba.value.id)
+//     showSuccessSnackbar('Prueba eliminada')
+//   } catch (error) {
+//     showErrorSnackbar('Error al eliminar la prueba')
+//     console.log(error)
+//   }
+// }}
 </script>
 
 <template>
-  <div v-if="isPending">
+  <h1>Home</h1>
+  <!-- <div v-if="isPending">
     <h1>Loading...</h1>
   </div>
   <div v-else-if="isError">
@@ -81,10 +82,9 @@ const handleDelete = async () => {
         {{ prueba.name }}
       </li>
     </ul>
-  </div>
+  </div> -->
 
-  <h1>Home</h1>
-  <v-btn color="yellow" @click="test" text="test"></v-btn>
+  <!-- <v-btn color="yellow" @click="test" text="test"></v-btn>
   <v-btn @click="showSuccessSnackbar('Snackbar')">Success Snackbar</v-btn>
   <v-btn @click="showErrorSnackbar('Snackbar')">Error Snackbar</v-btn>
   <action-menu @edit="handleEdit" @delete="handleDelete"></action-menu>
@@ -104,6 +104,6 @@ const handleDelete = async () => {
       <template v-slot:actions>
         <v-btn class="ms-auto" text="Ok" @click="handleSubmit(handleLogin)"></v-btn>
       </template>
-    </v-card>
-  </v-dialog>
+</v-card>
+</v-dialog> -->
 </template>
