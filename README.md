@@ -212,7 +212,7 @@ my-app/
 └── README.md
 ```
 
-### Explicación de cada carpeta:
+### Explicación de cada carpeta
 
 #### assets/
 
