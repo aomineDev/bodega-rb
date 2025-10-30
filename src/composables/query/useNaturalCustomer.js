@@ -1,7 +1,7 @@
 import { naturalCustomerService } from '@/services/api/naturalCustomerService'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 
-export const useNaturalCustomer = () => {
+export const  useNaturalCustomer = () => {
   const queryClient = useQueryClient()
 
   const {
