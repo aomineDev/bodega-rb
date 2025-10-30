@@ -45,154 +45,174 @@ npm run lint
 
 ## File Structure
 
+```
 my-app/
+├── public/
+│ ├── favicon.ico
+│ └── robots.txt
+│
+├── src/
+│ ├── assets/
+│ │ ├── images/
+│ │ │ ├── logo.png
+│ │ │ └── icons/
+│ │ ├── styles/
+│ │ │ ├── main.scss
+│ │ │ ├── variables.scss
+│ │ │ ├── mixins.scss
+│ │ │ └── reset.scss
+│ │ └── fonts/
+│ │
+│ ├── components/
+│ │ ├── common/
+│ │ │ ├── BaseButton.vue
+│ │ │ ├── BaseInput.vue
+│ │ │ ├── BaseModal.vue
+│ │ │ ├── BaseTable.vue
+│ │ │ └── BaseCard.vue
+│ │ ├── layout/
+│ │ │ ├── TheHeader.vue
+│ │ │ ├── TheSidebar.vue
+│ │ │ ├── TheFooter.vue
+│ │ │ └── TheNavbar.vue
+│ │ └── features/
+│ │ ├── user/
+│ │ │ ├── UserProfile.vue
+│ │ │ ├── UserAvatar.vue
+│ │ │ └── UserSettings.vue
+│ │ ├── product/
+│ │ │ ├── ProductCard.vue
+│ │ │ ├── ProductList.vue
+│ │ │ └── ProductFilter.vue
+│ │ └── order/
+│ │ ├── OrderSummary.vue
+│ │ └── OrderStatus.vue
+│ │
+│ ├── views/
+│ │ ├── HomeView.vue
+│ │ ├── AboutView.vue
+│ │ ├── auth/
+│ │ │ ├── LoginView.vue
+│ │ │ ├── RegisterView.vue
+│ │ │ └── ForgotPasswordView.vue
+│ │ ├── dashboard/
+│ │ │ ├── DashboardView.vue
+│ │ │ └── AnalyticsView.vue
+│ │ ├── user/
+│ │ │ ├── UserProfileView.vue
+│ │ │ ├── UsersView.vue
+│ │ │ └── UserDetailView.vue
+│ │ ├── product/
+│ │ │ ├── ProductsView.vue
+│ │ │ ├── ProductDetailView.vue
+│ │ │ └── ProductCreateView.vue
+│ │ └── ErrorView.vue
+│ │
+│ ├── router/
+│ │ ├── index.js
+│ │ ├── guards.js
+│ │ └── routes/
+│ │ ├── auth.js
+│ │ ├── dashboard.js
+│ │ ├── user.js
+│ │ └── product.js
+│ │
+│ ├── store/
+│ │ ├── index.js
+│ │ └── modules/
+│ │ ├── auth.js
+│ │ ├── user.js
+│ │ ├── product.js
+│ │ ├── cart.js
+│ │ └── notification.js
+│ │
+│ ├── composables/
+│ │ ├── useAuth.js
+│ │ ├── useApi.js
+│ │ ├── useForm.js
+│ │ ├── usePagination.js
+│ │ ├── useDebounce.js
+│ │ └── usePermissions.js
+│ │
+│ ├── services/
+│ │ ├── api/
+│ │ │ ├── client.js
+│ │ │ ├── auth.service.js
+│ │ │ ├── user.service.js
+│ │ │ ├── product.service.js
+│ │ │ └── order.service.js
+│ │ ├── storage/
+│ │ │ └── localStorage.js
+│ │ └── analytics/
+│ │ └── analytics.service.js
+│ │
+│ ├── utils/
+│ │ ├── validators.js
+│ │ ├── formatters.js
+│ │ ├── constants.js
+│ │ ├── helpers.js
+│ │ └── date.js
+│ │
+│ ├── plugins/
+│ │ ├── i18n.js
+│ │ ├── axios.js
+│ │ └── vee-validate.js
+│ │
+│ ├── middleware/
+│ │ ├── auth.js
+│ │ └── permissions.js
+│ │
+│ ├── directives/
+│ │ ├── click-outside.js
+│ │ ├── tooltip.js
+│ │ └── permission.js
+│ │
+│ ├── filters/
+│ │ └── currency.js
+│ │
+│ ├── locales/
+│ │ ├── en.json
+│ │ ├── es.json
+│ │ └── index.js
+│ │
+│ ├── types/
+│ │ ├── user.types.js
+│ │ ├── product.types.js
+│ │ └── api.types.js
+│ │
+│ ├── config/
+│ │ ├── app.config.js
+│ │ └── api.config.js
+│ │
+│ ├── layouts/
+│ │ ├── DefaultLayout.vue
+│ │ ├── AuthLayout.vue
+│ │ └── DashboardLayout.vue
+│ │
+│ ├── App.vue
+│ └── main.js
+│
+├── tests/
+│ ├── unit/
+│ │ ├── components/
+│ │ ├── composables/
+│ │ └── utils/
+│ ├── e2e/
+│ │ └── specs/
+│ └── setup.js
+│
+├── .env
+├── .env.production
+├── .env.development
+├── .eslintrc.js
+├── .prettierrc
+├── .gitignore
+├── vite.config.js
+├── package.json
+└── README.md
+```
 
-- public/
-  - favicon.ico
-  - robots.txt
-- src/
-  - assets/
-    - images/
-      - logo.png
-    - icons/
-    - styles/
-      - main.scss
-      - variables.scss
-      - mixins.scss
-      - reset.scss
-    - fonts/
-  - components/
-    - common/
-      - BaseButton.vue
-      - BaseInput.vue
-      - BaseModal.vue
-      - BaseTable.vue
-      - BaseCard.vue
-    - layout/
-      - TheHeader.vue
-      - TheSidebar.vue
-      - TheFooter.vue
-      - TheNavbar.vue
-    - features/
-      - user/
-        - UserProfile.vue
-        - UserAvatar.vue
-        - UserSettings.vue
-      - product/
-        - ProductCard.vue
-        - ProductList.vue
-        - ProductFilter.vue
-      - order/
-        - OrderSummary.vue
-        - OrderStatus.vue
-  - views/
-    - HomeView.vue
-    - AboutView.vue
-    - auth/
-      - LoginView.vue
-      - RegisterView.vue
-      - ForgotPasswordView.vue
-    - dashboard/
-      - DashboardView.vue
-      - AnalyticsView.vue
-    - user/
-      - UserProfileView.vue
-      - UsersView.vue
-      - UserDetailView.vue
-    - product/
-      - ProductsView.vue
-      - ProductDetailView.vue
-      - ProductCreateView.vue
-    - ErrorView.vue
-  - router/
-    - index.js
-    - guards.js
-    - routes/
-      - auth.js
-      - dashboard.js
-      - user.js
-      - product.js
-  - store/
-    - index.js
-    - modules/
-      - auth.js
-      - user.js
-      - product.js
-      - cart.js
-      - notification.js
-  - composables/
-    - useAuth.js
-    - useApi.js
-    - useForm.js
-    - usePagination.js
-    - useDebounce.js
-    - usePermissions.js
-  - services/
-    - api/
-      - client.js
-      - auth.service.js
-      - user.service.js
-      - product.service.js
-      - order.service.js
-    - storage/
-      - localStorage.js
-    - analytics/
-      - analytics.service.js
-  - utils/
-    - validators.js
-    - formatters.js
-    - constants.js
-    - helpers.js
-    - date.js
-  - plugins/
-    - i18n.js
-    - axios.js
-    - vee-validate.js
-  - middleware/
-    - auth.js
-    - permissions.js
-  - directives/
-    - click-outside.js
-    - tooltip.js
-    - permission.js
-  - filters/
-    - currency.js
-  - locales/
-    - en.json
-    - es.json
-    - index.js
-  - types/
-    - user.types.js
-    - product.types.js
-    - api.types.js
-  - config/
-    - app.config.js
-    - api.config.js
-  - layouts/
-    - DefaultLayout.vue
-    - AuthLayout.vue
-    - DashboardLayout.vue
-  - App.vue
-  - main.js
-  - tests/
-    - unit/
-      - components/
-      - composables/
-      - utils/
-    - e2e/
-      - specs/
-    - setup.js
-- .env
-- .env.production
-- .env.development
-- .eslintrc.js
-- .prettierrc
-- .gitignore
-- vite.config.js
-- package.json
-- README.md
-
-### Explicación de cada carpeta:
+### Explicación de cada carpeta
 
 #### assets/
 

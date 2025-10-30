@@ -253,17 +253,20 @@ const confirmDelete = async () => {
                         <!-- precio unitario -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Precio unitario" type="number" variant="underlined"
-                                v-model="precioUnitario" step="1" :rules="[rules.precio]"></v-text-field>
+                                v-model="precioUnitario" step="1" :rules="[rules.precio]" prefix="S/ "></v-text-field>
+
                         </v-col>
                         <!-- precio promociom -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Precio promocion" type="number" variant="underlined"
-                                v-model="precioPromocion" step="0.01"></v-text-field>
+                                v-model="precioPromocion" step="0.01" prefix="S/ "> </v-text-field>
                         </v-col>
                         <!-- stock -->
                         <v-col cols="12" md="6">
+
                             <v-text-field label="Stock" variant="underlined" v-model="stock"
-                                :rules="[rules.cantidad]"></v-text-field>
+                                :rules="[rules.required, rules.cantidad]">
+                            </v-text-field>
                         </v-col>
                         <!-- inicion promocio -->
                         <v-col cols="12" md="6">
@@ -354,13 +357,11 @@ const confirmDelete = async () => {
                                 Precio Promoción
                             </div>
 
-                            <div class="">
+                            <div class="mb-3">
                                 <span class="text-h4 font-weight-bold text-success mr-3">
                                     S/ {{ productDetail.precioPromocion }}
                                 </span>
-                                <!-- <v-chip color="success" size="small" class="font-weight-bold">
-                                    OFERTA
-                                </v-chip> -->
+
                             </div>
                         </v-card>
                     </v-col>
