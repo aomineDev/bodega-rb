@@ -42,6 +42,17 @@ export const useTicket = () => {
     onError: (error) => console.log('Error: ' + error),
   })
 
+  const generatePdfTicket = async (id) => {
+    try {
+      const response = await ticketService.getGeneratePdfById(id)
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      return url
+    } catch (error) {
+      console.error('Error al generar PDF:', error)
+    }
+  }
+
   return {
     tickets,
     isPending,
@@ -63,5 +74,7 @@ export const useTicket = () => {
     deleteTicketAsync: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
     deleteError: deleteMutation.error,
+
+    generatePdfTicket,
   }
 }
