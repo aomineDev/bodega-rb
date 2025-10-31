@@ -87,7 +87,7 @@ const filterDialog = ref(false)
 const pdfUrl = ref(null)
 
 const handleView = async (item) => {
-  filtros.tipoComprobante === 'Boleta' ? pdfUrl.value = await generatePdfTicket(item.id) : pdfUrl.value = await generatePdfBill(item.id)
+  filtros.tipoComprobante === 'Boletas' ? pdfUrl.value = await generatePdfTicket(item.id) : pdfUrl.value = await generatePdfBill(item.id)
   comprobanteDetailModal.value = true
 }
 
