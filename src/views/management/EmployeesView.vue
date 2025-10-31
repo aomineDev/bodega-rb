@@ -214,8 +214,6 @@ const confirmDelete = async () => {
             <v-form ref="formRef" class="pa-3">
                 <v-container fluid>
                     <v-row>
-                        <!-- imagen -->
-
                         <!-- nombre -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre" variant="underlined" v-model="nombre"
@@ -244,12 +242,14 @@ const confirmDelete = async () => {
                                 :rules="[rules.required]"></v-text-field>
                         </v-col>
                         <!-- telefono -->
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Telefono" variant="underlined" :counter="9" v-model="telefono"
-                                :rules="[rules.phone]"></v-text-field>
-                        </v-col>
-                        <!-- email -->
 
+                        <v-col cols="12" md="6">
+                            <v-mask-input label="Telefono" variant="underlined" v-model="telefono"
+                                :rules="[rules.required, rules.phone]" mask="+51 ### ### ###">
+                            </v-mask-input>
+                        </v-col>
+
+                        <!-- email -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Email" variant="underlined" v-model="email"
                                 :rules="[rules.email]"></v-text-field>

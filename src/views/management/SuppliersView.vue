@@ -186,8 +186,9 @@ watch(supplierFormModal, (isOpen) => {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Telefono" variant="underlined" :counter="9" v-model="telefono"
-                                :rules="[rules.phone]"></v-text-field>
+                            <v-mask-input label="Telefono" variant="underlined" v-model="telefono"
+                                :rules="[rules.required, rules.phone]" mask="+51 ### ### ###">
+                            </v-mask-input>
                         </v-col>
 
                         <v-col cols="12" md="6">
