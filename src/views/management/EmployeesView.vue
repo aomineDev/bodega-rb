@@ -45,7 +45,7 @@ const employeeDetailModal = ref(false)
 //campos reactvios para el modal creal y editar al mismo tiempo
 const modalTitle = computed(() => (employeeEdit.value ? 'Editar Empleado' : 'Crear Empleado'))
 const actionLabel = computed(() => (employeeEdit.value ? 'Actualizar' : 'Crear'))
-const employeeEdit = ref(false)
+const employeeEdit = ref(null)
 
 const handleActionFabMenu = (type) => {
 
@@ -232,8 +232,8 @@ const confirmDelete = async () => {
                         </v-col>
                         <!-- fecha nacimineto -->
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="fechaNacimiento" label="Fecha de nacimiento"
-                                variant="underlined"></v-date-input>
+                            <v-date-input label="Fecha de nacimiento" variant="underlined" v-model="fechaNacimiento"
+                                :rules="[rules.required]"></v-date-input>
                         </v-col>
 
                         <!-- direccion -->
@@ -245,27 +245,30 @@ const confirmDelete = async () => {
 
                         <v-col cols="12" md="6">
                             <v-mask-input label="Telefono" variant="underlined" v-model="telefono"
-                                :rules="[rules.required, rules.phone]" mask="+51 ### ### ###">
+                                :rules="[rules.required, rules.phone, rules.distinct(employee, 'telefono', employeeEdit?.id)]"
+                                mask="+51 ### ### ###">
                             </v-mask-input>
                         </v-col>
 
                         <!-- email -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.email]"></v-text-field>
+                                :rules="[rules.required, rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
                         </v-col>
                         <!-- roles -->
                         <v-col cols="12" md="6">
                             <v-select label="Rol" variant="underlined" :items="role" v-model="rolId" item-title="nombre"
-                                return-object :rules=[rules.proveedor]></v-select> </v-col>
+                                return-object :rules=[rules.rol]></v-select> </v-col>
                         <v-col cols="12" md="6">
                             <v-text-field label="Clave" variant="underlined" v-model="clave" type="password"
                                 :rules="[rules.required]"></v-text-field>
 
                         </v-col>
                         <v-col cols="12" md="6">
-                            <v-text-field label="Dni" variant="underlined" v-model="dni" :rules="[rules.dni]"
-                                :counter="8"></v-text-field>
+                            <v-mask-input label="Dni" variant="underlined" v-model="dni"
+                                :rules="[rules.required, rules.distinct(employee, 'dni', employeeEdit?.id)]"
+                                mask="########">
+                            </v-mask-input>
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-file-input label="Imagen" variant="underlined" @update:model-value="onImageChange"

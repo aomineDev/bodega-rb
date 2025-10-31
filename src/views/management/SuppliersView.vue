@@ -181,19 +181,21 @@ watch(supplierFormModal, (isOpen) => {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Ruc" variant="underlined" v-model="ruc"
-                                :rules="[rules.ruc]"></v-text-field>
+                            <v-mask-input label="Ruc" variant="underlined" v-model="ruc"
+                                :rules="[rules.required, rules.distinct(supplier, 'ruc', supplierItem?.id)]"
+                                mask="###########"></v-mask-input>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <v-mask-input label="Telefono" variant="underlined" v-model="telefono"
-                                :rules="[rules.required, rules.phone]" mask="+51 ### ### ###">
+                                :rules="[rules.required, rules.phone, rules.distinct(supplier, 'telefono', supplierItem?.id)]"
+                                mask="+51 ### ### ###">
                             </v-mask-input>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.email]"></v-text-field>
+                                :rules="[rules.email, rules.required, rules.distinct(supplier, 'email', supplierItem?.id)]"></v-text-field>
                         </v-col>
 
 
