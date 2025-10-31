@@ -272,7 +272,7 @@ const search = ref('') //busqueda
 
                 <v-col cols="12" md="6">
                   <v-mask-input label="DNI" v-model="dni" :counter="8" mask="########" variant="underlined"
-                    :rules="[rules.required]">
+                    :rules="[rules.required, rules.distinct(naturalCustomers, 'dni', selectedItem?.id)]">
                   </v-mask-input>
                 </v-col>
 
@@ -281,13 +281,15 @@ const search = ref('') //busqueda
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########" :rules="[rules.phone]"
+                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########"
+                    :rules="[rules.phone, rules.distinct(naturalCustomers, 'telefono', selectedItem?.id)]"
                     variant="underlined">
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="email" label="Email" :rules="[rules.email]" />
+                  <v-text-field v-model="email" label="Email"
+                    :rules="[rules.email, rules.distinct(naturalCustomers, 'email', selectedItem?.id)]" />
                 </v-col>
 
                 <v-col cols="12" md="6">

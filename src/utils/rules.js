@@ -22,4 +22,11 @@ export const rules = {
   categoria: (v) => !!v || 'Seleccione una categoría',
   proveedor: (v) => !!v || 'Seleccione un proveedor',
   unidadMedida: (v) => !!v || 'Seleccione una unidad de medida',
+
+  distinct:
+    (arr, key, currentId = null) =>
+    (v) => {
+      if (!v) return true
+      return !arr.some((e) => e[key] === v && e.id !== currentId) || 'Campo ya existe'
+    },
 }
