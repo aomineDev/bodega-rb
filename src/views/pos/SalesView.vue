@@ -13,8 +13,20 @@ import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer';
 import { useBill } from '@/composables/query/useBill';
 import { useTicket } from '@/composables/query/useTicket';
 import { useDisplay } from 'vuetify'
+import { useForm } from '@/composables/useForm';
 
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
+
+const {
+  formRef: asignacionForm,
+  handleSubmit,
+
+  dni,
+  ruc,
+} = useForm({
+  dni: '',
+  ruc: ''
+})
 
 const {
   product,
@@ -23,12 +35,10 @@ const {
 
 const {
   naturalCustomers,
-  createNaturalCustomerAsync,
 } = useNaturalCustomer()
 
 const {
   juridicalCustomers,
-  createJuridicalCustomerAsync,
 } = useJuridicalCustomer()
 
 const {
@@ -52,8 +62,6 @@ const showProductDialog = ref(false)
 const customerType = ref('natural')
 const customer = ref(null)
 const selectedProduct = ref(null)
-const dni = ref('')
-const ruc = ref('')
 
 const searchCustomer = async () => {
   const isNatural = customerType.value === 'natural';
@@ -84,7 +92,6 @@ const searchCustomer = async () => {
       customer.value = foundCustomer;
       showSuccessSnackbar('Cliente encontrado exitosamente');
       showClientDialog.value = false;
-      console.log('Cliente encontrado:', customer.value);
     }
 
   } catch (error) {
@@ -94,44 +101,28 @@ const searchCustomer = async () => {
 };
 
 const crearClienteNatural = async (dni) => {
+
   const data = await naturalCustomerService.getCustomerByDni(dni);
+
   if (!data) {
     showErrorSnackbar('No existe ese número de documento');
     return null;
   }
 
-  const newCustomer = {
-    nombre: data.first_name,
-    apellidoPaterno: data.first_last_name,
-    apellidoMaterno: data.second_last_name,
-    dni: data.document_number,
-    fechaRegistro: new Date().toISOString().split('T')[0],
-  };
-
-  await createNaturalCustomerAsync(newCustomer);
   showSuccessSnackbar('Cliente natural creado exitosamente');
-  return newCustomer;
+  return data;
 };
 
 const crearClienteJuridico = async (ruc) => {
   const data = await juridicalCustomerService.getCustomerByRuc(ruc);
+
   if (!data) {
     showErrorSnackbar('No existe ese RUC');
     return null;
   }
 
-  const newCustomer = {
-    razonSocial: data.razon_social,
-    ruc: data.numero_documento,
-    tipoContribuyente: data.tipo,
-    actividadEconomica: data.actividad_economica,
-    direccion: data.direccion,
-    fechaRegistro: new Date().toISOString().split('T')[0],
-  };
-
-  await createJuridicalCustomerAsync(newCustomer);
   showSuccessSnackbar('Cliente jurídico creado exitosamente');
-  return newCustomer;
+  return data;
 };
 
 const cambiarCliente = () => {
@@ -347,7 +338,7 @@ const createSale = async () => {
       <v-divider></v-divider>
 
       <v-card-text class="mt-4">
-        <v-row>
+        <v-form ref="asignacionForm">
           <v-col cols="12" class="text-center">
             <v-icon size="48" color="primary">mdi-account-search-outline</v-icon>
             <div class="text-body-1 font-weight-medium mt-2">
@@ -374,14 +365,15 @@ const createSale = async () => {
 
             <v-otp-input v-else v-model="ruc" :length="11" type="number" variant="underlined" class="mt-3" autofocus />
           </v-col>
-        </v-row>
+        </v-form>
+
       </v-card-text>
 
       <v-divider></v-divider>
 
       <v-card-actions class="justify-end pa-4">
         <v-btn variant="text" color="grey" @click="cancelSale">Cancelar</v-btn>
-        <v-btn color="primary" variant="flat" @click="searchCustomer">Continuar</v-btn>
+        <v-btn color="primary" variant="flat" @click="handleSubmit(searchCustomer)">Continuar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
