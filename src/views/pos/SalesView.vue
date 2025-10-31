@@ -156,40 +156,35 @@ const cancelSale = () => {
 const viewProduct = (item) => {
   selectedProduct.value = item
   showProductDialog.value = true
-  console.log(item)
 }
 
-const cantidad = ref(1)
-const litro = ref(1)
-const peso = ref(1)
-
-const unidades = { Litro: litro, Kilo: peso, Unidad: cantidad }
-
-const inputValue = computed({
-  get() {
-    const product = selectedProduct.value
-    if (!product) return 1
-    return unidades[selectedProduct.value.unidadMedida]?.value ?? cantidad.value
-  },
-  set(val) {
-    const product = selectedProduct.value
-    if (!product) return
-    const target = unidades[selectedProduct.value.unidadMedida] ?? cantidad
-    target.value = parseFloat(val) || 0
-  },
-})
+const cantidad = ref('1')
+const litro = ref('0.1')
+const peso = ref('0.1')
 
 const previewTotalPrice = computed(() => {
   const product = selectedProduct.value
   if (!product) return '0.00'
-  return ((parseFloat(inputValue.value) || 0) * (parseFloat(product.precioUnitario) || 0)).toFixed(2)
+
+  const precio = parseFloat(product.precioUnitario) || 0
+
+  switch (product.unidadMedida) {
+    case 'Unidad':
+      return (cantidad.value * precio).toFixed(2)
+    case 'Kilogramo':
+      return (peso.value * precio).toFixed(2)
+    case 'Litro':
+      return (litro.value * precio).toFixed(2)
+    default:
+      return '0.00'
+  }
 })
 
 const closeProduct = () => {
   showProductDialog.value = false
-  cantidad.value = 1
-  litro.value = 1
-  peso.value = 1
+  cantidad.value = '1'
+  peso.value = '0.1'
+  litro.value = '0.1'
 }
 
 /* --------------------   Detalle venta  ------------------- */
@@ -199,7 +194,19 @@ const addProduct = () => {
   const product = selectedProduct.value
   if (!product) return
 
-  const cantidadSeleccionada = parseFloat(inputValue.value) || 1
+  let cantidadSeleccionada = 0
+  switch (product.unidadMedida) {
+    case 'Unidad':
+      cantidadSeleccionada = cantidad.value
+      break
+    case 'Kilogramo':
+      cantidadSeleccionada = peso.value
+      break
+    case 'Litro':
+      cantidadSeleccionada = litro.value
+      break
+  }
+
   const precioUnitario = parseFloat(product.precioUnitario) || 0
   const subTotal = cantidadSeleccionada * precioUnitario
 
@@ -323,7 +330,6 @@ const createSale = async () => {
 <template>
 
   <h1>Ventas</h1>
-  <div>{{ customerPrueba }}</div>
 
   <!-- Modal Asignacion -->
   <v-dialog v-model="showClientDialog" persistent max-width="480">
@@ -544,8 +550,20 @@ const createSale = async () => {
             {{ selectedProduct.descripcion }}
           </p>
 
-          <v-text-field v-model="inputValue" :label="selectedProduct.unidadMedida" variant="underlined" type="number"
-            min="0.1" class="mb-2" />
+          <template v-if="selectedProduct.unidadMedida === 'Unidad'">
+            <v-mask-input label="Cantidad (unidades)" v-model="cantidad" mask="########" variant="underlined">
+            </v-mask-input>
+          </template>
+
+          <template v-else-if="selectedProduct.unidadMedida === 'Kilogramo'">
+            <v-text-field v-model.number="peso" label="Peso (kg)" variant="underlined" type="number" min="0.1"
+              step="0.1" class="mb-2" />
+          </template>
+
+          <template v-else-if="selectedProduct.unidadMedida === 'Litro'">
+            <v-text-field v-model.number="litro" label="Volumen (litros)" variant="underlined" type="number" min="0.1"
+              step="0.1" class="mb-2" />
+          </template>
 
           <div class="d-flex justify-end text-body-2 font-weight-medium mb-4">
             Total: S/ {{ previewTotalPrice }}
