@@ -20,12 +20,18 @@ const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnack
 const {
   formRef: asignacionForm,
   handleSubmit,
-
   dni,
   ruc,
 } = useForm({
   dni: '',
   ruc: ''
+})
+
+const {
+  formRef: tipoPagoForm,
+  handleSubmit: handleSubmitTipoPago,
+  rules,
+} = useForm({
 })
 
 const {
@@ -247,8 +253,8 @@ const removeProduct = (id) => {
 }
 
 /* --------------------   Tipo de Pago  ------------------- */
+const montoEfectivo = ref(1)
 const tipoPago = ref('Efectivo')
-const montoEfectivo = ref(0)
 
 const vuelto = computed(() => {
   if (tipoPago.value !== 'Efectivo') return 0
@@ -260,69 +266,73 @@ const vuelto = computed(() => {
 })
 
 /* --------------------   Finalizar venta  ------------------- */
-const createSale = async () => {
-  if (!cartItems.value.length) {
-    showWarningSnackbar('Agrega productos antes de finalizar la venta')
-    return
-  }
+const confirmSaleModal = ref(false)
+const ventaCompletadaModal = ref(false)
+const ventaProcesando = ref(false)
 
-  if (!customer.value) {
-    showWarningSnackbar('Debe seleccionar un cliente')
-    return
-  }
+const validForm = () => {
+  confirmSaleModal.value = true
+}
 
+const finalizarCompra = async () => {
+  ventaProcesando.value = true
   try {
-    const detalleVentas = cartItems.value.map(item => ({
-      cantidad: item.cantidad,
-      precioUnitario: item.precioUnitario,
-      subTotal: item.subTotal,
-      producto: { id: item.producto.id }
-    }))
+    await createSale()
 
-    const now = new Date()
-
-    const comprobante = {
-      fecha: now.toISOString().split('T')[0],
-      hora: now.toTimeString().split(' ')[0],
-      grabado: parseFloat(totals.value.gravado),
-      igv: parseFloat(totals.value.igv),
-      precioTotal: parseFloat(totals.value.total),
-      estado: true,
-      vuelto: parseFloat(vuelto.value),
-      detalleVentas,
-    }
-
-    let dataToSend = null
-
-    if (customerType.value === 'natural') {
-      dataToSend = {
-        ...comprobante,
-        clienteNatural: { id: customer.value.id },
-      }
-
-      await createTicketAsync(dataToSend)
-
-    } else {
-      dataToSend = {
-        ...comprobante,
-        clienteJuridico: { id: customer.value.id },
-      }
-
-      await createBillAsync(dataToSend)
-    }
-
-    showSuccessSnackbar('Venta registrada correctamente')
-
-    router.push('/caja/comprobantes')
-    cartItems.value = []
-    montoEfectivo.value = 0
-    customer.value = null
-    showClientDialog.value = true
-
-  } catch (error) {
-    console.error('Error al registrar la venta:', error)
+    confirmSaleModal.value = false
+    ventaCompletadaModal.value = true
+  } catch (err) {
     showErrorSnackbar('Ocurrió un error al registrar la venta')
+    console.error(err)
+  } finally {
+    ventaProcesando.value = false
   }
+}
+
+const createSale = async () => {
+  const detalleVentas = cartItems.value.map(item => ({
+    cantidad: item.cantidad,
+    precioUnitario: item.precioUnitario,
+    subTotal: item.subTotal,
+    producto: { id: item.producto.id }
+  }))
+
+  const now = new Date()
+
+  const comprobante = {
+    fecha: now.toISOString().split('T')[0],
+    hora: now.toTimeString().split(' ')[0],
+    grabado: parseFloat(totals.value.gravado),
+    igv: parseFloat(totals.value.igv),
+    precioTotal: parseFloat(totals.value.total),
+    estado: true,
+    vuelto: parseFloat(vuelto.value),
+    detalleVentas,
+  }
+
+  let dataToSend = null
+
+  if (customerType.value === 'natural') {
+    dataToSend = {
+      ...comprobante,
+      clienteNatural: { id: customer.value.id },
+    }
+
+    await createTicketAsync(dataToSend)
+
+  } else {
+    dataToSend = {
+      ...comprobante,
+      clienteJuridico: { id: customer.value.id },
+    }
+
+    await createBillAsync(dataToSend)
+  }
+
+  cartItems.value = []
+  montoEfectivo.value = 1
+  tipoPago.value = 'Efectivo'
+  customer.value = null
 }
 
 </script>
@@ -340,8 +350,6 @@ const createSale = async () => {
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
-
-      <v-divider></v-divider>
 
       <v-card-text class="mt-4">
         <v-form ref="asignacionForm">
@@ -374,8 +382,6 @@ const createSale = async () => {
         </v-form>
 
       </v-card-text>
-
-      <v-divider></v-divider>
 
       <v-card-actions class="justify-end pa-4">
         <v-btn variant="text" color="grey" @click="cancelSale">Cancelar</v-btn>
@@ -491,33 +497,34 @@ const createSale = async () => {
             <v-divider class="my-4" />
 
             <!-- Tipo de pago -->
-            <v-select v-model="tipoPago" label="Tipo de pago" :items="['Efectivo', 'Tarjeta', 'Yape', 'Plin']"
-              variant="underlined" density="comfortable" class="mb-3" />
+            <v-form ref="tipoPagoForm">
 
-            <template v-if="tipoPago === 'Efectivo'">
-              <v-text-field v-model.number="montoEfectivo" label="Efectivo" prefix="S/" variant="underlined"
-                density="comfortable" type="number" min="0" />
+              <v-select v-model="tipoPago" label="Tipo de pago" :items="['Efectivo', 'Tarjeta', 'Yape', 'Plin']"
+                variant="underlined" density="comfortable" class="mb-3" />
 
-              <div class="d-flex justify-space-between mt-2 text-subtitle-2">
-                <span>Vuelto</span>
-                <span class="font-weight-medium">
-                  S/ {{ vuelto.toFixed(2) }}
-                </span>
-              </div>
-            </template>
+              <template v-if="tipoPago === 'Efectivo'">
+                <v-text-field v-model.number="montoEfectivo" label="Efectivo" prefix="S/" variant="underlined"
+                  type="number" min="0" :rules="[rules.precio, rules.montoSuficiente(totals.total)]" />
 
-            <template v-else>
-              <div class="d-flex justify-space-between mt-2 text-subtitle-2">
-                <span>Vuelto</span>
-                <span class="font-weight-medium">S/ 0.00</span>
-              </div>
-            </template>
-
+                <div class="d-flex justify-space-between mt-2 text-subtitle-2">
+                  <span>Vuelto</span>
+                  <span class="font-weight-medium">
+                    S/ {{ vuelto.toFixed(2) }}
+                  </span>
+                </div>
+              </template>
+              <template v-else>
+                <div class="d-flex justify-space-between mt-2 text-subtitle-2">
+                  <span>Vuelto</span>
+                  <span class="font-weight-medium">S/ 0.00</span>
+                </div>
+              </template>
+            </v-form>
           </div>
 
           <!-- Botón Finalizar -->
           <v-btn block color="primary" size="large" class="mt-5" prepend-icon="mdi-check-circle-outline"
-            :disabled="!cartItems.length || !customer" @click="createSale">
+            :disabled="!cartItems.length || !customer" @click="handleSubmitTipoPago(validForm)">
             Finalizar Venta
           </v-btn>
         </v-card>
@@ -575,6 +582,53 @@ const createSale = async () => {
           </div>
         </v-col>
       </v-row>
+    </v-card>
+  </v-dialog>
+
+  <!-- Modal Confirmar venta -->
+  <v-dialog v-model="confirmSaleModal" max-width="420">
+    <v-card>
+      <v-card-title class="text-h6 font-weight-bold">
+        Confirmar venta
+      </v-card-title>
+
+      <v-card-text>
+        <div class="d-flex justify-space-between my-1">
+          <span>Total:</span>
+          <span class="font-weight-medium">S/ {{ totals.total }}</span>
+        </div>
+        <div class="d-flex justify-space-between my-1">
+          <span>Tipo de pago:</span>
+          <span>{{ tipoPago }}</span>
+        </div>
+        <div v-if="tipoPago === 'Efectivo'" class="d-flex justify-space-between my-1">
+          <span>Vuelto:</span>
+          <span>S/ {{ vuelto.toFixed(2) }}</span>
+        </div>
+      </v-card-text>
+
+      <v-card-actions class="justify-end">
+        <v-btn text @click="confirmSaleModal = false">Cancelar</v-btn>
+        <v-btn color="primary" :loading="ventaProcesando" @click="finalizarCompra">
+          Confirmar
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Modal Venta completada -->
+  <v-dialog v-model="ventaCompletadaModal" persistent max-width="380">
+    <v-card class="pa-4 d-flex flex-column align-center text-center">
+      <v-icon color="success" size="48">mdi-check-circle</v-icon>
+      <h3 class="mt-3">¡Venta completada!</h3>
+      <p class="text-subtitle-2 mt-1">La operación se realizó correctamente.</p>
+
+      <v-card-actions class="justify-center mt-4">
+        <v-btn color="primary" @click="showClientDialog = true, ventaCompletadaModal = false">
+          Nueva venta
+        </v-btn>
+        <v-btn text>Imprimir comprobante</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 

@@ -24,11 +24,15 @@ export const rules = {
   unidadMedida: (v) => !!v || 'Seleccione una unidad de medida',
   rol: (v) => !!v || 'Seleccione un rol',
   stock: (v) => (!!v && v >= 0) || 'Stock invalido',
+  montoSuficiente: (total) => (v) => {
+    if (v < total) return `El efectivo no cubre el total (S/ ${total})`
+    return true
+  },
 
   distinct:
     (arr, key, currentId = null) =>
-      (v) => {
-        if (!v) return true
-        return !arr.some((e) => e[key] === v && e.id !== currentId) || 'Campo ya existe'
-      },
+    (v) => {
+      if (!v) return true
+      return !arr.some((e) => e[key] === v && e.id !== currentId) || 'Campo ya existe'
+    },
 }

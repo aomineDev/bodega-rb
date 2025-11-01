@@ -9,7 +9,6 @@ import { useDisplay } from 'vuetify'
 import { useTicket } from '@/composables/query/useTicket';
 import { useBill } from '@/composables/query/useBill';
 
-
 const {
   tickets,
   isPending: isPendingTicket,
