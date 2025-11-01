@@ -30,28 +30,11 @@ async function handleLogin() {
     <v-card min-width="400" class="pa-8 form">
       <v-form ref="formRef">
         <h2 class="text-center text-h5 text-capitalize">embutidos RB</h2>
-        <v-mask-input
-          label="dni"
-          v-model="dni"
-          color="primary"
-          prepend-inner-icon="mdi-account"
-          clearable
-          :rules="[rules.required, rules.dni]"
-          mask="########"
-          variant="underlined"
-        ></v-mask-input>
-        <v-text-field
-          label="password"
-          v-model="password"
-          color="primary"
-          :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-          prepend-inner-icon="mdi-lock"
-          @click:append="show = !show"
-          :type="show ? 'text' : 'password'"
-          clearable
-          :rules="[rules.required]"
-          class="mt-2"
-        ></v-text-field>
+        <v-mask-input label="dni" v-model="dni" color="primary" prepend-inner-icon="mdi-account" clearable
+          :rules="[rules.required, rules.dni]" mask="########" variant="underlined"></v-mask-input>
+        <v-text-field label="password" v-model="password" color="primary"
+          :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'" prepend-inner-icon="mdi-lock" @click:append="show = !show"
+          :type="show ? 'text' : 'password'" clearable :rules="[rules.required]" class="mt-2"></v-text-field>
         <v-btn color="primary" @click="handleLogin" block class="mt-4">ingresar</v-btn>
       </v-form>
     </v-card>
@@ -146,9 +129,11 @@ async function handleLogin() {
   0% {
     background-position-x: 0;
   }
+
   50% {
     background-position-y: 50px;
   }
+
   100% {
     background-position-x: -1711px;
   }

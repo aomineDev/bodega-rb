@@ -152,7 +152,7 @@ const save = async () => {
         await updateNaturalCustomerAsync({ ...formData.value, id: selectedItem.value.id })
         showSuccessSnackbar('Cliente natural actualizado')
       } else {
-        await createNaturalCustomerAsync({ ...formData.value, fechaRegistro: new Date().toISOString().split('T')[0] })
+        await createNaturalCustomerAsync(formData.value)
         showSuccessSnackbar('Cliente natural creado')
       }
     } catch (error) {
@@ -165,7 +165,7 @@ const save = async () => {
         await updateJuridicalCustomerAsync({ ...formData.value, id: selectedItem.value.id })
         showSuccessSnackbar('Cliente juridico actualizado')
       } else {
-        await createJuridicalCustomerAsync({ ...formData.value, fechaRegistro: new Date().toISOString().split('T')[0] })
+        await createJuridicalCustomerAsync(formData.value)
         showSuccessSnackbar('Cliente juridico creado')
       }
     } catch (error) {
@@ -210,8 +210,8 @@ const search = ref('') //busqueda
   </v-card>
 
   <!-- Tabla -->
-  <v-data-table :headers="headers" :items="items" :loading="isPending" loading-text="Cargando clientes..."
-    no-data-text="No se encontraron clientes">
+  <v-data-table :headers="headers" :items="items" :search="search" :loading="isPending"
+    loading-text="Cargando clientes..." no-data-text="No se encontraron clientes">
     <template #item.actions="{ item }">
       <action-menu @edit="handleEdit(item)" />
     </template>
@@ -271,25 +271,30 @@ const search = ref('') //busqueda
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="dni" label="DNI" :counter="8" :rules="[rules.required, rules.dni]" />
+                  <v-mask-input label="DNI" v-model="dni" :counter="8" mask="########" variant="underlined"
+                    :rules="[rules.required, rules.distinct(naturalCustomers, 'dni', selectedItem?.id)]">
+                  </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="direccion" label="Dirección" :rules="[rules.required]" />
+                  <v-text-field v-model="direccion" label="Dirección" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="telefono" label="Teléfono" :counter="9"
-                    :rules="[rules.required, rules.phone]" />
+                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########"
+                    :rules="[rules.phone, rules.distinct(naturalCustomers, 'telefono', selectedItem?.id)]"
+                    variant="underlined">
+                  </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="email" label="Email" :rules="[rules.required, rules.email]" />
+                  <v-text-field v-model="email" label="Email"
+                    :rules="[rules.email, rules.distinct(naturalCustomers, 'email', selectedItem?.id)]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
                   <v-date-input v-model="fechaNacimiento" label="Fecha de nacimiento"
-                    :rules="[rules.required]"></v-date-input>
+                    variant="underlined"></v-date-input>
                 </v-col>
               </template>
 
@@ -315,7 +320,9 @@ const search = ref('') //busqueda
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="telefono" label="Teléfono" :counter="9" />
+                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########" :rules="[rules.phone]"
+                    variant="underlined">
+                  </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">

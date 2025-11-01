@@ -1,25 +1,19 @@
 <script setup>
-import ActionMenu from '@/components/ActionMenu.vue';
-import BaseFilter from '@/components/BaseFilter.vue';
-import FabMenu from '@/components/FabMenu.vue';
+import ActionMenu from '@/components/ActionMenu.vue'
+import BaseFilter from '@/components/BaseFilter.vue'
+import FabMenu from '@/components/FabMenu.vue'
 import { VDateInput } from 'vuetify/labs/VDateInput'
-import { useSnackbar } from '@/stores/snackbar';
-import { computed, reactive, ref, watch } from 'vue';
+import { useSnackbar } from '@/stores/snackbar'
+import { computed, reactive, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
-import { useForm } from '@/composables/useForm';
-import { useProduct } from '@/composables/query/useProduct';
-import { useSupplier } from '@/composables/query/useSupplier';
-import { useCategory } from '@/composables/query/useCategory';
-import { storageService } from '@/services/storage/imageService';
+import { useForm } from '@/composables/useForm'
+import { useProduct } from '@/composables/query/useProduct'
+import { useSupplier } from '@/composables/query/useSupplier'
+import { useCategory } from '@/composables/query/useCategory'
+import { storageService } from '@/services/storage/imageService'
 const { showSuccessSnackbar } = useSnackbar()
 
-const ud = ref([
-    'Unidad',
-    'Kilogramo',
-    'Litro',
-    'Caja'
-])
-
+const ud = ref(['Unidad', 'Kilogramo', 'Litro', 'Caja'])
 
 const { category } = useCategory()
 
@@ -34,26 +28,50 @@ const modalTitle = computed(() => (productItem.value ? 'Editar Producto' : 'Crea
 
 const actionLabel = computed(() => (productItem.value ? 'Actualizar' : 'Crear'))
 const productItem = ref(false)
-const { formRef, formData, resetForm, asignForm, rules, handleSubmit, imagen, codigoBarra, categoria, nombre, descripcion, proveedor, precioUnitario, precioPromocion, unidadMedida,
-    stock, inicioPromocion, finPromocion
+const {
+    formRef,
+    formData,
+    resetForm,
+    asignForm,
+    rules,
+    handleSubmit,
+    imagen,
+    codigoBarra,
+    categoria,
+    nombre,
+    descripcion,
+    proveedor,
+    precioUnitario,
+    precioPromocion,
+    unidadMedida,
+    stock,
+    inicioPromocion,
+    finPromocion,
 } = useForm({
-    imagen: '', codigoBarra: '', nombre: '',
-    descripcion: '', categoria: '', proveedor: '',
-    precioUnitario: '', precioPromocion: '', stock: '',
-    inicioPromocion: '', finPromocion: '', unidadMedida: ''
+    imagen: '',
+    codigoBarra: '',
+    nombre: '',
+    descripcion: '',
+    categoria: '',
+    proveedor: '',
+    precioUnitario: '',
+    precioPromocion: '',
+    stock: '',
+    inicioPromocion: '',
+    finPromocion: '',
+    unidadMedida: '',
 })
 
 const handleActionFabMenu = (type) => {
     if (type === 'add') {
         productItem.value = false
         productFormModal.value = true
-
     }
     if (type === 'filter') filterDialog.value = true
 }
 const filtros = reactive({
     categorias: [],
-    proveedores: []
+    proveedores: [],
 })
 
 const selectFilter = computed(() => [
@@ -61,22 +79,18 @@ const selectFilter = computed(() => [
         key: 'categorias',
         label: 'Categoria',
         type: 'select',
-        model: filtros.categorias
-    }, {
+        model: filtros.categorias,
+    },
+    {
         key: 'proveedores',
-        label: "Proveedor",
-        type: "select",
-        model: filtros.proveedores
-    }
+        label: 'Proveedor',
+        type: 'select',
+        model: filtros.proveedores,
+    },
 ])
-const {
+const { createProductAsync, product, deleteProductAsync, updateProductAsync } = useProduct()
 
-    createProductAsync, product, deleteProductAsync, updateProductAsync
-} = useProduct()
-
-const {
-    supplier
-} = useSupplier()
+const { supplier } = useSupplier()
 //cerrar modal
 const closeFormModal = () => {
     productFormModal.value = false
@@ -85,8 +99,7 @@ const closeFormModal = () => {
 //accion eliminar
 const deleteModal = (item) => {
     productDeleteModal.value = true
-    console.log("card eliminada" + item.id)
-
+    console.log('card eliminada' + item.id)
 }
 const productDetail = ref(false)
 //accion detalle
@@ -96,68 +109,65 @@ const handleView = (item) => {
 }
 
 const handleEdit = (item) => {
-    productItem.value = item;
-    asignForm(productItem.value);
+    productItem.value = item
+    asignForm(productItem.value)
 
-    productFormModal.value = true;
-};
+    productFormModal.value = true
+}
 watch(productFormModal, (isOpen) => {
     if (!isOpen) resetForm()
 })
 
-
 const previewUrl = ref(null)
 const onImageChange = (file) => {
-    const selectedFile = Array.isArray(file) ? file[0] : file;
+    const selectedFile = Array.isArray(file) ? file[0] : file
 
     if (selectedFile instanceof File) {
-        previewUrl.value = URL.createObjectURL(selectedFile);
+        previewUrl.value = URL.createObjectURL(selectedFile)
     } else {
-        previewUrl.value = productItem.value?.imagen || null;
+        previewUrl.value = productItem.value?.imagen || null
     }
-
 }
 
 const getImageUrl = async () => {
     if (imagen.value instanceof File) {
-        return await storageService.upload('products', imagen.value);
+        return await storageService.upload('products', imagen.value)
     }
-    return productItem.value?.imagen || "/img/default.png";
+    return productItem.value?.imagen || '/img/default.png'
 }
 
 // crear y editar
 const handleCreateProduct = async () => {
     try {
-        const imagenUrl = await getImageUrl();
+        const imagenUrl = await getImageUrl()
         const productData = {
             ...formData.value,
             imagen: imagenUrl,
             proveedor: proveedor.value,
-            categoria: categoria.value
-        };
-
-        if (productItem.value) {
-            await updateProductAsync({ ...productData, id: productItem.value.id });
-            showSuccessSnackbar("Producto editado exitosamente");
-        } else {
-            await createProductAsync(productData);
-            showSuccessSnackbar("Creado exitosamente");
+            categoria: categoria.value,
         }
 
-        previewUrl.value = null;
-        productFormModal.value = false;
+        if (productItem.value) {
+            await updateProductAsync({ ...productData, id: productItem.value.id })
+            showSuccessSnackbar('Producto editado exitosamente')
+        } else {
+            await createProductAsync(productData)
+            showSuccessSnackbar('Creado exitosamente')
+        }
 
+        previewUrl.value = null
+        productFormModal.value = false
     } catch (error) {
-        console.error("Error:", error);
+        console.error('Error:', error)
     }
-};
+}
 //accion eliminar
 const editingProduct = ref(false)
 const confirmDelete = async () => {
     try {
         editingProduct.value = product.value[0]
         await deleteProductAsync(editingProduct.value.id)
-        showSuccessSnackbar("Eliminado correctamente")
+        showSuccessSnackbar('Eliminado correctamente')
         productDeleteModal.value = false
     } catch (error) {
         console.log(error)
@@ -166,22 +176,18 @@ const confirmDelete = async () => {
 </script>
 
 <template>
-
     <h1 class="mb-10">Productos</h1>
     <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
-
         <v-row>
-            <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
-                filtros[key] = value" />
+            <base-filter v-model:search="search" :filters="selectFilter"
+                @update:filter="({ key, value }) => (filtros[key] = value)" />
 
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
                 <v-btn prepend-icon="mdi-plus" color="primary" @click="handleActionFabMenu('add')">Crear
                     Producto</v-btn>
             </v-col>
-
         </v-row>
     </v-card>
-
 
     <!-- cartas -->
     <v-row>
@@ -203,32 +209,24 @@ const confirmDelete = async () => {
                     </v-chip>
                     <v-card-text class="text-end">
                         <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
-                            {{ item.stock > 0 ? item.stock + ' Unidades' : 'Agotado' }}
+                            {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}
                         </span>
                     </v-card-text>
                 </v-card>
             </v-hover>
-
-
         </v-col>
-
-
     </v-row>
     <!-- modal crear -->
     <v-dialog v-model="productFormModal" max-width="600">
         <v-card :title="modalTitle">
-
             <v-form ref="formRef" class="pa-3">
                 <v-container fluid>
                     <v-row>
-                        <!-- imagen -->
-
                         <!-- codigo de barra -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Codigo de barra" variant="underlined" v-model="codigoBarra"
                                 :rules="[rules.required]"></v-text-field>
                         </v-col>
-
                         <!-- nombre -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre" variant="underlined" v-model="nombre"
@@ -241,29 +239,30 @@ const confirmDelete = async () => {
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-select label="Proveedor" variant="underlined" :items="supplier" v-model="proveedor"
-                                item-title="razonSocial" return-object :rules=[rules.proveedor]></v-select>
+                                item-title="razonSocial" return-object :rules="[rules.proveedor]"></v-select>
                         </v-col>
                         <!-- descripcion -->
                         <v-col cols="12" md="12">
                             <v-textarea label="Descripcion" variant="underlined" rows="2" auto-grow
                                 v-model="descripcion" :rules="[rules.required]"></v-textarea>
                         </v-col>
-                        <!-- proveedor -->
-
                         <!-- precio unitario -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Precio unitario" type="number" variant="underlined"
-                                v-model="precioUnitario" step="1" :rules="[rules.precio]"></v-text-field>
+                                v-model="precioUnitario" step="1" :rules="[rules.required, rules.precio]"
+                                prefix="S/ "></v-text-field>
                         </v-col>
                         <!-- precio promociom -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Precio promocion" type="number" variant="underlined"
-                                v-model="precioPromocion" step="0.01"></v-text-field>
+                                v-model="precioPromocion" step="0.01" prefix="S/ ">
+                            </v-text-field>
                         </v-col>
                         <!-- stock -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Stock" variant="underlined" v-model="stock"
-                                :rules="[rules.cantidad]"></v-text-field>
+                                :rules="[rules.required, rules.stock]">
+                            </v-text-field>
                         </v-col>
                         <!-- inicion promocio -->
                         <v-col cols="12" md="6">
@@ -275,10 +274,9 @@ const confirmDelete = async () => {
                             <v-date-input v-model="finPromocion" label="Fin de promocion"
                                 variant="underlined"></v-date-input>
                         </v-col>
-
                         <!-- unidad de medida -->
                         <v-col cols="12" md="6">
-                            <v-select label="Unidad de medidad" variant="underlined" :items="ud" v-model="unidadMedida"
+                            <v-select label="Unidad de medida" variant="underlined" :items="ud" v-model="unidadMedida"
                                 :rules="[rules.unidadMedida]"></v-select></v-col>
                         <v-col cols="12" md="6">
                             <v-file-input label="Imagen" @update:model-value="onImageChange" variant="underlined"
@@ -287,20 +285,18 @@ const confirmDelete = async () => {
                         <v-col cols="12" md="6">
                             <img :src="previewUrl || productItem?.imagen || '/img/image-preview.png'"
                                 alt="Vista previa o imagen predeterminada"
-                                style="max-width: 100%; border-radius: 8px;" />
+                                style="max-width: 100%; border-radius: 8px" />
                         </v-col>
                     </v-row>
                 </v-container>
             </v-form>
-
+            <!-- acciones -->
             <v-card-actions>
                 <v-spacer />
                 <v-btn class="ms-auto" text="Cerrar" @click="closeFormModal()"></v-btn>
                 <v-btn class="ms-auto" :text="actionLabel" variant="tonal" color="primary"
                     @click="handleSubmit(handleCreateProduct)"></v-btn>
-
             </v-card-actions>
-
         </v-card>
     </v-dialog>
 
@@ -316,7 +312,6 @@ const confirmDelete = async () => {
                 <v-row class="flex-column flex-md-row">
                     <!-- columna imagen -->
                     <v-col cols="12" md="5" class="d-flex">
-
                         <v-card class="pa-1 d-flex align-center flex-grow-1" elevation="0">
                             <v-img :src="productDetail.imagen" contain max-width="100%" height="400"
                                 class="product-detail-img"></v-img>
@@ -325,42 +320,46 @@ const confirmDelete = async () => {
 
                     <!-- Columna centro -->
                     <v-col cols="12" md="3">
-                        <!-- contenido intacto -->
-                        <v-card class=" d-flex flex-column justify-center columna-centra" elevation="0"
-                            style="height: 100%">
-                            <h2 class="text-h5 font-weight-bold mb-4 text-primary ">
+                        <v-card class="d-flex flex-column justify-center align-center pa-5 mt-10 rounded-xl"
+                            elevation="3">
+                            <h3 class="text-h6 font-weight-bold mb-4 text-primary text-center">
+                                Información Producto
+                            </h3>
+                            <div class="text-subtitle-2 font-weight-bold mb-1 text-secondary">
+                                Nombre producto
+                            </div>
+                            <!-- Nombre -->
+                            <h2 class="text-h5 font-weight-bold mb-1 mt-3 text-primary text-center">
                                 {{ productDetail.nombre }}
                             </h2>
 
-                            <div class="text-subtitle-3 font-weight-bold mb-4 ">
-                                Descripción
-                            </div>
-
-                            <p class="text-body-2 mb-6 font-weight-bold ">
+                            <!-- Descripción -->
+                            <div class="text-subtitle-2 font-weight-bold mb-1 text-secondary">Descripción</div>
+                            <p class="text-body-2 text-center mb-3 mt-3">
                                 {{ productDetail.descripcion }}
                             </p>
 
-                            <div class="mb-2 text-subtitle-3 font-weight-bold ">
-                                Precio Regular
-                            </div>
-
-                            <div class="mb-3 ">
-                                <span class="text-h4 font-weight-bold text-primary mr-3">
+                            <!-- Precio Regular -->
+                            <div class="text-subtitle-2 font-weight-bold mb-1 text-secondary">Precio Regular</div>
+                            <div>
+                                <span class="text-h5 font-weight-bold text-primary mb-1 mt-3">
                                     S/ {{ productDetail.precioUnitario }}
                                 </span>
                             </div>
 
-                            <div class="mb-2 text-subtitle-3 font-weight-bold ">
-                                Precio Promoción
+                            <!-- Precio Promoción -->
+                            <div class="text-subtitle-2 font-weight-bold mb-1 text-secondary">
+                                Precio Promocion
                             </div>
-
-                            <div class="">
-                                <span class="text-h4 font-weight-bold text-success mr-3">
-                                    S/ {{ productDetail.precioPromocion }}
-                                </span>
-                                <!-- <v-chip color="success" size="small" class="font-weight-bold">
-                                    OFERTA
-                                </v-chip> -->
+                            <div class="mb-4">
+                                <div v-if="productDetail.precioPromocion">
+                                    <span class="text-h5 font-weight-bold text-success mb-1 mt-3">
+                                        S/ {{ productDetail.precioPromocion }}
+                                    </span>
+                                </div>
+                                <div v-else>
+                                    <span class="text-h7 font-weight-medium"> Sin Promocion </span>
+                                </div>
                             </div>
                         </v-card>
                     </v-col>
@@ -369,18 +368,20 @@ const confirmDelete = async () => {
                     <v-col cols="12" md="4">
                         <!-- Información General -->
                         <v-card class="mb-4 pa-5 columna-general" elevation="3" rounded="xl">
-                            <h3 class="text-h6 font-weight-bold mb-4 text-primary">
-                                Información General
-                            </h3>
+                            <h3 class="text-h6 font-weight-bold mb-4 text-primary">Información General</h3>
                             <v-row>
                                 <v-col cols="12" sm="6">
                                     <div class="d-flex align-center mb-3">
                                         <v-icon color="primary" size="20" class="mr-2">mdi-shape-outline</v-icon>
                                         <span class="text-body-2 font-weight-bold">Categoría</span>
                                     </div>
-                                    <v-chip color="primary" variant="tonal" size="default">
-                                        {{ productDetail.categoria.nombre }}
-                                    </v-chip>
+
+                                    <div class="d-flex justify-center">
+                                        <v-chip color="primary" variant="tonal" size="default">
+                                            {{ productDetail.categoria.nombre }}
+                                        </v-chip>
+                                    </div>
+
                                 </v-col>
 
                                 <v-col cols="12" sm="6">
@@ -388,9 +389,11 @@ const confirmDelete = async () => {
                                         <v-icon color="primary" size="20" class="mr-2">mdi-ruler</v-icon>
                                         <span class="text-body-2 font-weight-bold">Unidad de medida</span>
                                     </div>
-                                    <v-chip color="teal" variant="tonal" size="default">
-                                        {{ productDetail.unidadMedida }}
-                                    </v-chip>
+                                    <div class="d-flex justify-center">
+                                        <v-chip color="teal" variant="tonal" size="default">
+                                            {{ productDetail.unidadMedida }}
+                                        </v-chip>
+                                    </div>
                                 </v-col>
 
                                 <v-col cols="12" sm="6">
@@ -412,27 +415,30 @@ const confirmDelete = async () => {
                                         <v-icon color="primary" size="20" class="mr-2">mdi-barcode</v-icon>
                                         <span class="text-body-2 font-weight-bold">Código de barra</span>
                                     </div>
-                                    <v-chip color="teal" variant="tonal" size="default">
-                                        {{ productDetail.codigoBarra }}
-                                    </v-chip>
+                                    <div class="d-flex justify-center">
+                                        <v-chip color="teal" variant="tonal" size="default">
+                                            {{ productDetail.codigoBarra }}
+                                        </v-chip>
+                                    </div>
+
                                 </v-col>
                             </v-row>
                         </v-card>
 
                         <!-- Promoción y Logística -->
                         <v-card class="pa-5 columna-logistica" elevation="3" rounded="xl">
-                            <h3 class="text-h6 font-weight-bold mb-4 text-primary">
-                                Promoción y Logística
-                            </h3>
+                            <h3 class="text-h6 font-weight-bold mb-4 text-primary">Promoción y Logística</h3>
                             <v-row dense class="mb-4">
                                 <v-col cols="12" sm="6">
                                     <div class="d-flex align-center mb-3">
                                         <v-icon color="primary" size="20" class="mr-2">mdi-calendar-start</v-icon>
                                         <span class="text-body-2 font-weight-bold">Inicio Promoción</span>
                                     </div>
-                                    <div class="text-body-3 font-weight-bold mb-3">
+                                    <div v-if="productDetail.inicioPromocion"
+                                        class="text-body-3 font-weight-bold mb-3 text-center">
                                         {{ productDetail.inicioPromocion }}
                                     </div>
+                                    <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>
                                 </v-col>
 
                                 <v-col cols="12" sm="6">
@@ -440,9 +446,13 @@ const confirmDelete = async () => {
                                         <v-icon color="primary" size="20" class="mr-2">mdi-calendar-end</v-icon>
                                         <span class="text-body-2 font-weight-bold">Fin Promoción</span>
                                     </div>
-                                    <div class="text-body-3 font-weight-bold mb-3">
+
+                                    <div v-if="productDetail.finPromocion"
+                                        class="text-body-3 font-weight-bold mb-3 text-center">
                                         {{ productDetail.finPromocion }}
                                     </div>
+
+                                    <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>
                                 </v-col>
 
                                 <v-col cols="12" sm="6" class="mt-2">
@@ -450,15 +460,16 @@ const confirmDelete = async () => {
                                         <v-icon color="primary" size="20" class="mr-2">mdi-truck-outline</v-icon>
                                         <span class="text-body-2 font-weight-bold">Proveedor</span>
                                     </div>
-                                    <v-chip color="teal" variant="tonal" size="default">
-                                        {{ productDetail.proveedor.razonSocial }}
-                                    </v-chip>
+                                    <div class="d-flex justify-center">
+                                        <v-chip color="teal" variant="tonal" size="default">
+                                            {{ productDetail.proveedor.razonSocial }}
+                                        </v-chip>
+                                    </div>
                                 </v-col>
                             </v-row>
                         </v-card>
                     </v-col>
                 </v-row>
-
             </v-card-text>
             <v-divider :thickness="3"></v-divider>
             <v-card-actions class="pa-4 justify-end">
@@ -474,7 +485,7 @@ const confirmDelete = async () => {
     <v-dialog v-model="productDeleteModal" max-width="500">
         <v-card>
             <!-- Título centrado, grande y negro -->
-            <v-card-title class="text-h5 font-weight-bold  text-black mb-8">
+            <v-card-title class="text-h5 font-weight-bold text-black mb-8">
                 Eliminar producto
             </v-card-title>
 
@@ -501,7 +512,7 @@ const confirmDelete = async () => {
         <v-card title="Filtrar Productos">
             <v-card-text>
                 <base-filter v-model:search="search" :filters="selectFilter"
-                    @update:filter="({ key, value }) => tipoCliente = value" />
+                    @update:filter="({ key, value }) => (tipoCliente = value)" />
             </v-card-text>
 
             <v-card-actions>
@@ -513,7 +524,6 @@ const confirmDelete = async () => {
     </v-dialog>
 
     <fab-menu v-model:FormModal="productFormModal" v-model:filterDialog="filterDialog" />
-
 </template>
 <style scoped>
 .card-hover {
@@ -530,28 +540,11 @@ const confirmDelete = async () => {
 
 .title {
     height: 75px;
-
 }
 
-@media (max-width:345px) {
+@media (max-width: 345px) {
     .title {
         font-size: 11px;
     }
-}
-
-@media (max-width:600px) {
-
-    .columna-general,
-    .columna-logistica {
-        text-align: center;
-    }
-}
-
-@media (max-width:959px) {
-    .columna-centra {
-
-        text-align: center;
-    }
-
 }
 </style>

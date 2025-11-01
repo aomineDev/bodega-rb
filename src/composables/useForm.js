@@ -22,6 +22,12 @@ export const useForm = (initialValue, onSubmit) => {
     return valid
   }
 
+  const cleanFormData = () => {
+    Object.keys(formData.value).forEach((key) => {
+      if (formData.value[key] === '') formData.value[key] = null
+    })
+  }
+
   const asignForm = (data) => {
     Object.assign(formData.value, { ...data })
     console.log(formData.value)
@@ -33,6 +39,8 @@ export const useForm = (initialValue, onSubmit) => {
     const valid = await isValid()
 
     if (!valid) return
+
+    cleanFormData()
 
     if (onSubmit) await onSubmit()
     else await callback()
