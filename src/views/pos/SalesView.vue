@@ -49,10 +49,12 @@ const {
 
 const {
   createBillAsync,
+  generatePdfBill,
 } = useBill()
 
 const {
   createTicketAsync,
+  generatePdfTicket,
 } = useTicket()
 
 /* --------------------   Filtros   ------------------- */
@@ -269,6 +271,7 @@ const vuelto = computed(() => {
 const confirmSaleModal = ref(false)
 const ventaCompletadaModal = ref(false)
 const ventaProcesando = ref(false)
+const lastComprobante = ref(null)
 
 const validForm = () => {
   confirmSaleModal.value = true
@@ -318,7 +321,7 @@ const createSale = async () => {
       clienteNatural: { id: customer.value.id },
     }
 
-    await createTicketAsync(dataToSend)
+    lastComprobante.value = await createTicketAsync(dataToSend)
 
   } else {
     dataToSend = {
@@ -326,13 +329,35 @@ const createSale = async () => {
       clienteJuridico: { id: customer.value.id },
     }
 
-    await createBillAsync(dataToSend)
+    lastComprobante.value = await createBillAsync(dataToSend)
   }
 
   cartItems.value = []
   montoEfectivo.value = 1
   tipoPago.value = 'Efectivo'
   customer.value = null
+}
+
+const imprimirComprobante = async () => {
+  if (!lastComprobante.value) {
+    showWarningSnackbar('No hay comprobante generado aún')
+    return
+  }
+
+  let pdfUrl = null
+  const id = lastComprobante.value.id
+
+  if (customerType.value === 'natural') {
+    pdfUrl = await generatePdfTicket(id)
+  } else {
+    pdfUrl = await generatePdfBill(id)
+  }
+
+  if (pdfUrl) {
+    window.open(pdfUrl, '_blank')
+  } else {
+    showErrorSnackbar('No se pudo generar el comprobante')
+  }
 }
 
 </script>
@@ -627,7 +652,7 @@ const createSale = async () => {
         <v-btn color="primary" @click="showClientDialog = true, ventaCompletadaModal = false">
           Nueva venta
         </v-btn>
-        <v-btn text>Imprimir comprobante</v-btn>
+        <v-btn @click="imprimirComprobante">Imprimir comprobante</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
