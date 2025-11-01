@@ -210,8 +210,8 @@ const search = ref('') //busqueda
   </v-card>
 
   <!-- Tabla -->
-  <v-data-table :headers="headers" :items="items" :loading="isPending" loading-text="Cargando clientes..."
-    no-data-text="No se encontraron clientes">
+  <v-data-table :headers="headers" :items="items" :search="search" :loading="isPending"
+    loading-text="Cargando clientes..." no-data-text="No se encontraron clientes">
     <template #item.actions="{ item }">
       <action-menu @edit="handleEdit(item)" />
     </template>

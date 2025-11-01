@@ -140,8 +140,8 @@ const search = ref('')
   </v-card>
 
   <!-- Tabla -->
-  <v-data-table :headers="headers" :items="items" :loading="isPending" loading-text="Cargando comprobantes..."
-    no-data-text="No se encontraron comprobantes">
+  <v-data-table :headers="headers" :items="items" :search="search" :loading="isPending"
+    loading-text="Cargando comprobantes..." no-data-text="No se encontraron comprobantes">
     <template #item.actions="{ item }">
       <action-menu @view="handleView(item)"></action-menu>
     </template>

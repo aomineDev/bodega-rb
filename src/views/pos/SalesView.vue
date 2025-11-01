@@ -62,6 +62,14 @@ const filterDialog = ref(false)
 const search = ref('') //busqueda
 const { mdAndUp, smAndDown } = useDisplay()
 
+const filteredItems = computed(() => {
+  if (!search.value) return items.value
+  const term = search.value.toLowerCase().trim()
+  return items.value.filter((item) =>
+    item.nombre.toLowerCase().includes(term)
+  )
+})
+
 const items = computed(() => product.value || [])
 
 const router = useRouter()
@@ -434,7 +442,7 @@ const imprimirComprobante = async () => {
         </v-row>
 
         <v-row v-else>
-          <v-col v-for="item in items" :key="item.id" cols="12" sm="6" md="6" lg="4">
+          <v-col v-for="item in filteredItems" :key="item.id" cols="12" sm="6" md="6" lg="4">
             <v-hover v-slot="{ isHovering, props }">
               <v-card v-bind="props" :elevation="isHovering ? 4 : 1" class="transition-fast" rounded="xl">
                 <v-img :src="item.imagen" height="220" cover>
@@ -459,6 +467,12 @@ const imprimirComprobante = async () => {
                 </v-card-actions>
               </v-card>
             </v-hover>
+          </v-col>
+        </v-row>
+
+        <v-row v-if="!isPending && !filteredItems.length" class="text-center">
+          <v-col>
+            <p class="text-grey-darken-1 mt-8">No se encontraron productos.</p>
           </v-col>
         </v-row>
       </v-col>
