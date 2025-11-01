@@ -12,14 +12,11 @@ const { closeSnackbar } = snackbarRef
 
 <template>
   <v-app>
-    <!-- <router-view v-slot="{ Component }">
-      <v-fade-transition hide-on-leave>
+    <router-view v-slot="{ Component }">
+      <v-fade-transition>
         <component :is="Component" />
       </v-fade-transition>
-    </router-view> -->
-    <v-fade-transition>
-      <router-view></router-view>
-    </v-fade-transition>
+    </router-view>
     <v-snackbar
       v-model="snackbar"
       timeout="2000"
