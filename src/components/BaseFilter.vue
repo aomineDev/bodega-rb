@@ -35,7 +35,8 @@ defineEmits(['update:search', 'update:filter'])
         <!-- Date Range -->
         <v-date-input v-else-if="filter.type === 'range'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :label="filter.label"
-          multiple="range" variant="underlined" hide-details />
+          multiple="range" variant="underlined" clearable hide-details />
+
       </v-col>
 
     </template>

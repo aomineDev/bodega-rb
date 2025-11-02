@@ -4,7 +4,6 @@ import ActionMenu from '@/components/ActionMenu.vue';
 import { computed, ref, watch } from 'vue';
 import { reactive } from 'vue';
 import { VDateInput } from 'vuetify/labs/VDateInput'
-
 import { useForm } from '@/composables/useForm';
 import FabMenu from '@/components/FabMenu.vue';
 import { useDisplay } from 'vuetify/lib/composables/display';
@@ -12,45 +11,26 @@ import { useRole } from '@/composables/query/useRole';
 import { useEmployee } from '@/composables/query/useEmployee';
 import { storageService } from '@/services/storage/imageService';
 import { useSnackbar } from '@/stores/snackbar';
+//-----------------------------------------------CONSTANTES---------------------------------------//
+
 const { mdAndUp, smAndDown } = useDisplay()
 const { showSuccessSnackbar } = useSnackbar()
-const filtros = reactive({
-    rol: null,
-})
-const {
-    role
-} = useRole()
-
-const selectFilter = computed(() => [
-    {
-        key: 'rol',
-        label: 'Rol',
-        type: 'select',
-        model: filtros.rol,
-        items: role.value,
-        itemTitle: 'nombre',
-        itemValue: 'id',
-
-    }
-])
-
 const {
     employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync
 } = useEmployee()
-
-//modla eliminar
+//modal eliminar
 const employeeDeleteModal = ref(false)
-//modal abrir modal del formumulario
+//modal formulario
 const employeeFormModal = ref(false)
 //modal del filtro que se habre en responsive
 const filterDialog = ref(false)
-//modal ver detalles
+//modal detalles
 const employeeDetailModal = ref(false)
-//campos reactvios para el modal creal y editar al mismo tiempo
+//campos reactivos
 const modalTitle = computed(() => (employeeEdit.value ? 'Editar Empleado' : 'Crear Empleado'))
 const actionLabel = computed(() => (employeeEdit.value ? 'Actualizar' : 'Crear'))
 const employeeEdit = ref(null)
-
+//-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
 const handleActionFabMenu = (type) => {
 
     if (type === 'add') {
@@ -61,7 +41,7 @@ const handleActionFabMenu = (type) => {
         filterDialog.value = true
     }
 }
-
+//-----------------------------------------------DATA---------------------------------------//
 const {
     formData, handleSubmit, formRef, asignForm,
     resetForm, nombre, apellidoMaterno, apellidoPaterno, email, dni,
@@ -80,8 +60,9 @@ const {
     rolId: '',
 
 })
+//-----------------------------------------------SUBIDA DE IMAGEN---------------------------------------//
 const previewUrl = ref(null)
-
+//cambio de imagen
 const onImageChange = (file) => {
     const selectedFile = Array.isArray(file) ? file[0] : file;
 
@@ -92,15 +73,80 @@ const onImageChange = (file) => {
     }
 
 }
-
+//creaccion de la imagen ala api
 const getImageUrl = async () => {
     if (imagen.value instanceof File) {
         return await storageService.upload('employees', imagen.value);
     }
     return employeeEdit.value?.imagen || "/img/default.png";
 }
-//vistas boton crear y editar
 
+//-----------------------------------------------ABRIR MODALES---------------------------------------//
+const emp = ref(false)
+const handleView = (item) => {
+    emp.value = item
+    employeeDetailModal.value = true
+}
+
+//abrir modal editar
+const handleEdit = (item) => {
+    employeeEdit.value = item
+    asignForm(employeeEdit.value)
+    employeeFormModal.value = true
+}
+
+//abrir modal eliminar
+const deleteModal = (item) => {
+    employeeDeleteModal.value = true
+    console.log(item)
+
+}
+
+watch(employeeFormModal, (isOpen) => {
+    if (!isOpen) resetForm()
+})
+//-----------------------------------------------FILTROS---------------------------------------//
+const filtros = reactive({
+    rol: null,
+})
+const {
+    role
+} = useRole()
+const selectFilter = computed(() => [
+    {
+        key: 'rol',
+        label: 'Rol',
+        type: 'select',
+        model: filtros.rol,
+        items: role.value,
+        itemTitle: 'nombre',
+        itemValue: 'id',
+
+    }
+])
+const search = ref('')
+
+const filtroEmpleado = computed(() => {
+    const empleados = employee.value
+    if (!Array.isArray(empleados)) return []
+
+    const query = search.value.trim().toLowerCase()
+    const rolSeleccionado = filtros.rol
+
+    return empleados.filter(e => {
+        const coincideBusqueda = query
+            ? [e.nombre, e.apellidoPaterno, e.dni?.toString()]
+                .some(campo => campo?.toLowerCase().includes(query))
+            : true
+
+        const coincideRol = rolSeleccionado
+            ? e.rolId?.id === rolSeleccionado
+            : true
+        return coincideBusqueda && coincideRol
+    })
+})
+//-----------------------------------------------ACCIONES---------------------------------------//
+//agregar y editar
 const handleCreateEmployee = async () => {
 
     try {
@@ -123,87 +169,19 @@ const handleCreateEmployee = async () => {
         console.log(error)
     }
 }
-
-//vistas darle al ver detalles
-const emp = ref(false)
-const handleView = (item) => {
-    emp.value = item
-    employeeDetailModal.value = true
-}
-watch(employeeFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
-})
-
-//vista darle al editar
-const handleEdit = (item) => {
-    employeeEdit.value = item
-    asignForm(employeeEdit.value)
-    employeeFormModal.value = true
-}
-
-//vista darle al eliminar
-const deleteModal = (item) => {
-    employeeDeleteModal.value = true
-    console.log(item)
-
-}
-//vista cerrar modal del formulario 
-const closeFormModal = () => {
-    employeeFormModal.value = false
-    resetForm()
-}
-//vista cerrar modal eliminar
-const close = () => {
-    employeeDeleteModal.value = false
-}
-
-const deleteEmploye = ref(false)
+//eliminar
 const confirmDelete = async () => {
     try {
-        deleteEmploye.value = employee.value[0]
+        employeeEdit.value = employee.value[0]
 
-        await deleteEmployeeAsync(deleteEmploye.value.id)
+        await deleteEmployeeAsync(employeeEdit.value.id)
         showSuccessSnackbar("Eliminado correctamente")
         employeeDeleteModal.value = false
     } catch (error) {
         console.log("error" + error)
     }
 }
-
-const search = ref('')
-
-const filtroEmpleado = computed(() => {
-    if (!Array.isArray(employee.value)) return []
-
-    let resultado = employee.value
-
-    // Filtro por búsqueda de texto
-    const query = search.value.toLowerCase().trim()
-    if (query) {
-        resultado = resultado.filter(e => {
-            const nombre = e.nombre?.toLowerCase() || ''
-            const apellidoPaterno = e.apellidoPaterno?.toLowerCase() || ''
-            const dni = e.dni?.toString() || ''
-
-            return (
-                nombre.includes(query) ||
-                apellidoPaterno.includes(query) ||
-                dni.includes(query)
-            )
-        })
-    }
-
-    // Filtro por rol
-    if (filtros.rol) {
-        resultado = resultado.filter(e => e.rolId?.id === filtros.rol)
-    }
-
-    return resultado
-})
 </script>
-
-
-
 <template>
     <h1>Empleados</h1>
     <!-- filtros -->
@@ -218,10 +196,11 @@ const filtroEmpleado = computed(() => {
         </v-row>
     </v-card>
     <!-- cartas -->
-    <v-row>
+    <v-row v-if="filtroEmpleado.length > 0">
         <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in filtroEmpleado" :key="index">
             <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
+                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover"
+                    no-data-text="No se encontraron empleados">
 
                     <v-img height="220px" :src="item.imagen" contain>
                     </v-img>
@@ -239,6 +218,12 @@ const filtroEmpleado = computed(() => {
                     </v-chip>
                 </v-card>
             </v-hover>
+        </v-col>
+    </v-row>
+    <v-row v-else>
+        <v-col cols="12" class="text-center py-16">
+            <v-icon size="64" color="grey-lighten-1">mdi-account-group</v-icon>
+            <p class="text-h6 text-grey mt-4">No se encontraron empleados</p>
         </v-col>
     </v-row>
     <!-- modal crear -->
@@ -300,7 +285,7 @@ const filtroEmpleado = computed(() => {
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-mask-input label="Dni" variant="underlined" v-model="dni"
-                                :rules="[rules.required, rules.distinct(employee, 'dni', employeeEdit?.id)]"
+                                :rules="[rules.required, rules.dni, rules.distinct(employee, 'dni', employeeEdit?.id)]"
                                 mask="########">
                             </v-mask-input>
                         </v-col>
@@ -319,8 +304,8 @@ const filtroEmpleado = computed(() => {
 
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="closeFormModal()"></v-btn>
-                <v-btn class="ms-auto" :text="actionLabel" variant="tonal" color="primary"
+                <v-btn class="ms-auto" text="Cerrar" @click="modalEliminar = false"></v-btn>
+                <v-btn class=" ms-auto" :text="actionLabel" variant="tonal" color="primary"
                     @click="handleSubmit(handleCreateEmployee)"></v-btn>
 
             </v-card-actions>
@@ -348,7 +333,7 @@ const filtroEmpleado = computed(() => {
 
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
-                <v-btn text="Cerrar" @click="close"></v-btn>
+                <v-btn text="Cerrar" @click="employeeDeleteModal = false"></v-btn>
                 <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>

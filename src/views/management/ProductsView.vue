@@ -11,23 +11,37 @@ import { useProduct } from '@/composables/query/useProduct'
 import { useSupplier } from '@/composables/query/useSupplier'
 import { useCategory } from '@/composables/query/useCategory'
 import { storageService } from '@/services/storage/imageService'
+//-----------------------------------------------CONSTANTES---------------------------------------//
 const { showSuccessSnackbar } = useSnackbar()
-
-const ud = ref(['Unidad', 'Kilogramo', 'Litro', 'Caja'])
-
+const ud = ref(['Unidad', 'Kilogramo', 'Litro'])
 const { category } = useCategory()
+const { supplier } = useSupplier()
 
 const productFormModal = ref(false)
+
+const { createProductAsync, product, deleteProductAsync, updateProductAsync } = useProduct()
+
 const productDetailModal = ref(false)
 const productDeleteModal = ref(false)
 const filterDialog = ref(false)
 const { mdAndUp, smAndDown } = useDisplay()
-// const product = ref(false)
-// const customerEdit = ref(false)
 const modalTitle = computed(() => (productItem.value ? 'Editar Producto' : 'Crear Producto'))
-
 const actionLabel = computed(() => (productItem.value ? 'Actualizar' : 'Crear'))
 const productItem = ref(false)
+//-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
+const handleActionFabMenu = (type) => {
+    if (type === 'add') {
+        productItem.value = false
+        productFormModal.value = true
+    }
+    if (type === 'filter') filterDialog.value = true
+}
+const filtros = reactive({
+    categorias: null,
+    proveedores: null,
+})
+//-----------------------------------------------DATA---------------------------------------//
+
 const {
     formRef,
     formData,
@@ -62,18 +76,52 @@ const {
     unidadMedida: '',
 })
 
-const handleActionFabMenu = (type) => {
-    if (type === 'add') {
-        productItem.value = false
-        productFormModal.value = true
-    }
-    if (type === 'filter') filterDialog.value = true
-}
-const filtros = reactive({
-    categorias: null,
-    proveedores: null,
-})
+//-----------------------------------------------SUBIDA DE IMAGEN---------------------------------------//
 
+const previewUrl = ref(null)
+const onImageChange = (file) => {
+    const selectedFile = Array.isArray(file) ? file[0] : file
+
+    if (selectedFile instanceof File) {
+        previewUrl.value = URL.createObjectURL(selectedFile)
+    } else {
+        previewUrl.value = productItem.value?.imagen || null
+    }
+}
+
+const getImageUrl = async () => {
+    if (imagen.value instanceof File) {
+        return await storageService.upload('products', imagen.value)
+    }
+    return productItem.value?.imagen || '/img/default.png'
+}
+//-----------------------------------------------ABRIR MODALES---------------------------------------//
+// abrir modal detalles
+const productDetail = ref(false)
+//accion detalle
+const handleView = (item) => {
+    productDetail.value = item
+    productDetailModal.value = true
+}
+
+//abrir modal editar
+const handleEdit = (item) => {
+    productItem.value = item
+    asignForm(productItem.value)
+
+    productFormModal.value = true
+}
+
+//abrir modal eliminar
+const deleteModal = (item) => {
+    productDeleteModal.value = true
+    console.log('card eliminada' + item.id)
+}
+
+watch(productFormModal, (isOpen) => {
+    if (!isOpen) resetForm()
+})
+//-----------------------------------------------FILTROS---------------------------------------//
 const selectFilter = computed(() => [
     {
         key: 'categorias',
@@ -94,55 +142,30 @@ const selectFilter = computed(() => [
         itemValue: 'id',
     },
 ])
-const { createProductAsync, product, deleteProductAsync, updateProductAsync } = useProduct()
 
-const { supplier } = useSupplier()
-//cerrar modal
-const closeFormModal = () => {
-    productFormModal.value = false
-    resetForm()
-}
-//accion eliminar
-const deleteModal = (item) => {
-    productDeleteModal.value = true
-    console.log('card eliminada' + item.id)
-}
-const productDetail = ref(false)
-//accion detalle
-const handleView = (item) => {
-    productDetail.value = item
-    productDetailModal.value = true
-}
+const search = ref('')
+const filtroProducto = computed(() => {
+    const productos = product.value
 
-const handleEdit = (item) => {
-    productItem.value = item
-    asignForm(productItem.value)
+    if (!Array.isArray(product.value)) return []
 
-    productFormModal.value = true
-}
-watch(productFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
+    const query = search.value.trim().toLowerCase()
+    const categoriaSeleccionada = filtros.categorias
+    const proveedorSeleccionado = filtros.proveedores
+
+    return productos.filter(p => {
+        const coincidenciaBusqueda = query ?
+            [p.nombre].some(campo => campo?.toLowerCase().includes(query))
+            : true
+
+        const coincidenciaCategoria = categoriaSeleccionada ? p.categoria?.id === categoriaSeleccionada : true
+        const coincidenciaProveedor = proveedorSeleccionado ? p.proveedor?.id === proveedorSeleccionado : true
+
+        return coincidenciaCategoria && coincidenciaBusqueda && coincidenciaProveedor
+    })
 })
-
-const previewUrl = ref(null)
-const onImageChange = (file) => {
-    const selectedFile = Array.isArray(file) ? file[0] : file
-
-    if (selectedFile instanceof File) {
-        previewUrl.value = URL.createObjectURL(selectedFile)
-    } else {
-        previewUrl.value = productItem.value?.imagen || null
-    }
-}
-
-const getImageUrl = async () => {
-    if (imagen.value instanceof File) {
-        return await storageService.upload('products', imagen.value)
-    }
-    return productItem.value?.imagen || '/img/default.png'
-}
-
-// crear y editar
+//-----------------------------------------------ACCIONES---------------------------------------//
+//agregar y editar
 const handleCreateProduct = async () => {
     try {
         const imagenUrl = await getImageUrl()
@@ -167,7 +190,8 @@ const handleCreateProduct = async () => {
         console.error('Error:', error)
     }
 }
-//accion eliminar
+
+//eliminar
 const editingProduct = ref(false)
 const confirmDelete = async () => {
     try {
@@ -179,37 +203,6 @@ const confirmDelete = async () => {
         console.log(error)
     }
 }
-
-
-const search = ref('')
-const filtroProducto = computed(() => {
-    if (!Array.isArray(product.value)) return []
-
-    let resultado = product.value
-
-    // Filtro por búsqueda de texto
-    const query = search.value.toLowerCase().trim()
-    if (query) {
-        resultado = resultado.filter(e => {
-            const nombre = e.nombre?.toLowerCase() || ''
-
-            return (
-                nombre.includes(query)
-            )
-        })
-    }
-
-    // Filtro por rol
-    if (filtros.categorias) {
-        resultado = resultado.filter(p => p.categoria?.id === filtros.categorias)
-    }
-    if (filtros.proveedores) {
-        resultado = resultado.filter(p => p.proveedor?.id === filtros.proveedores)
-    }
-
-    return resultado
-})
-
 </script>
 
 <template>
@@ -226,31 +219,40 @@ const filtroProducto = computed(() => {
         </v-row>
     </v-card>
 
-    <!-- cartas -->
-    <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in filtroProducto" :key="index">
-            <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
-                    <v-img height="220px" :src="item.imagen" contain></v-img>
-                    <v-divider :thickness="3"></v-divider>
+    <!-- Si hay datos, muestra los cards -->
+    <v-row v-if="filtroProducto.length > 0">
+        <v-col v-for="item in filtroProducto" :key="item.id" cols="12" sm="6" md="4" lg="3">
+            <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
+                <v-img height="220px" :src="item.imagen" contain></v-img>
+                <v-divider :thickness="3"></v-divider>
 
-                    <v-card-title class="d-flex justify-space-between align-center">
-                        <span>{{ item.nombre }}</span>
-                        <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)">
-                        </ActionMenu>
-                    </v-card-title>
+                <v-card-title class="d-flex justify-space-between align-center">
+                    <span>{{ item.nombre }}</span>
+                    <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)" />
+                </v-card-title>
 
-                    <v-chip class="position-absolute chip-categoria" color="primary" size="default"
-                        style="top: 12px; right: 12px; z-index: 1">
-                        {{ item.categoria?.nombre }}
-                    </v-chip>
-                    <v-card-text class="text-end">
-                        <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
-                            {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}
-                        </span>
-                    </v-card-text>
-                </v-card>
-            </v-hover>
+                <v-chip class="position-absolute chip-categoria" color="primary" size="default"
+                    style="top: 12px; right: 12px; z-index: 1">
+                    {{ item.categoria?.nombre }}
+                </v-chip>
+
+                <v-card-text class="text-end">
+                    <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
+                        {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}
+                    </span>
+                </v-card-text>
+            </v-card>
+        </v-col>
+    </v-row>
+
+    <!-- Si NO hay datos, muestra mensaje -->
+    <v-row v-else>
+        <v-col cols="12" class="text-center py-16">
+            <v-icon size="64" color="grey-lighten-1">mdi-package-variant-closed</v-icon>
+            <p class="text-h6 text-grey mt-4">No se encontraron productos</p>
+            <p class="text-body-2 text-grey-lighten-1">
+                Intenta ajustar los filtros de búsqueda
+            </p>
         </v-col>
     </v-row>
     <!-- modal crear -->
@@ -330,7 +332,7 @@ const filtroProducto = computed(() => {
             <!-- acciones -->
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="closeFormModal()"></v-btn>
+                <v-btn class="ms-auto" text="Cerrar" @click="productFormModal = false"></v-btn>
                 <v-btn class="ms-auto" :text="actionLabel" variant="tonal" color="primary"
                     @click="handleSubmit(handleCreateProduct)"></v-btn>
             </v-card-actions>
@@ -539,7 +541,7 @@ const filtroProducto = computed(() => {
 
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
-                <v-btn text="Cerrar" @click="close()"></v-btn>
+                <v-btn text="Cerrar" @click="productDeleteModal = false"></v-btn>
                 <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>
