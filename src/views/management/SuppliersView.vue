@@ -32,9 +32,9 @@ const {
 
 //data header
 const headers = [
+    { title: 'Razón social', key: 'razonSocial' },
     { title: 'Tipo de contribuyente', key: 'tipoContribuyente' },
     { title: 'Actividad económica', key: 'actividadEconomica' },
-    { title: 'Razón social', key: 'razonSocial' },
     { title: 'Fecha de registro', key: 'fechaRegistro' },
     { title: 'RUC', key: 'ruc' },
     { title: 'Dirección', key: 'direccion' },
@@ -137,6 +137,29 @@ watch(supplierFormModal, (isOpen) => {
     if (!isOpen) resetForm()
     supplier.value = null
 })
+
+// filtros
+
+const search = ref('')
+
+const filtroProveedores = computed(() => {
+
+    if (!Array.isArray(supplier.value)) return []
+
+    const query = search.value.toLowerCase().trim()
+    if (!query) return supplier.value
+
+    return supplier.value.filter(s => {
+        const razonSocial = s.razonSocial?.toLowerCase() || ''
+        const telefono = s.telefono?.toString()
+
+        return (
+            razonSocial.includes(query) ||
+            telefono.includes(query)
+        )
+    })
+})
+
 </script>
 
 <template>
@@ -157,7 +180,7 @@ watch(supplierFormModal, (isOpen) => {
 
 
     <!-- Tabla -->
-    <v-data-table :headers="headers" :items="supplier">
+    <v-data-table :headers="headers" :items="filtroProveedores">
         <template #[`item.actions`]="{ item }">
             <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
         </template>

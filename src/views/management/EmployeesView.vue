@@ -15,20 +15,24 @@ import { useSnackbar } from '@/stores/snackbar';
 const { mdAndUp, smAndDown } = useDisplay()
 const { showSuccessSnackbar } = useSnackbar()
 const filtros = reactive({
-    rol: [],
+    rol: null,
 })
-const selectFilter = computed(() => [
-    {
-        key: 'roles',
-        label: 'Roles',
-        type: 'select',
-        model: filtros.rol
-    }
-])
-
 const {
     role
 } = useRole()
+
+const selectFilter = computed(() => [
+    {
+        key: 'rol',
+        label: 'Rol',
+        type: 'select',
+        model: filtros.rol,
+        items: role.value,
+        itemTitle: 'nombre',
+        itemValue: 'id',
+
+    }
+])
 
 const {
     employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync
@@ -166,6 +170,36 @@ const confirmDelete = async () => {
     }
 }
 
+const search = ref('')
+
+const filtroEmpleado = computed(() => {
+    if (!Array.isArray(employee.value)) return []
+
+    let resultado = employee.value
+
+    // Filtro por búsqueda de texto
+    const query = search.value.toLowerCase().trim()
+    if (query) {
+        resultado = resultado.filter(e => {
+            const nombre = e.nombre?.toLowerCase() || ''
+            const apellidoPaterno = e.apellidoPaterno?.toLowerCase() || ''
+            const dni = e.dni?.toString() || ''
+
+            return (
+                nombre.includes(query) ||
+                apellidoPaterno.includes(query) ||
+                dni.includes(query)
+            )
+        })
+    }
+
+    // Filtro por rol
+    if (filtros.rol) {
+        resultado = resultado.filter(e => e.rolId?.id === filtros.rol)
+    }
+
+    return resultado
+})
 </script>
 
 
@@ -185,7 +219,7 @@ const confirmDelete = async () => {
     </v-card>
     <!-- cartas -->
     <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in employee" :key="index">
+        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in filtroEmpleado" :key="index">
             <v-hover v-slot="{ isHovering, props }">
                 <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
 

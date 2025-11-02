@@ -70,22 +70,28 @@ const handleActionFabMenu = (type) => {
     if (type === 'filter') filterDialog.value = true
 }
 const filtros = reactive({
-    categorias: [],
-    proveedores: [],
+    categorias: null,
+    proveedores: null,
 })
 
 const selectFilter = computed(() => [
     {
         key: 'categorias',
-        label: 'Categoria',
+        label: 'Categorias',
         type: 'select',
         model: filtros.categorias,
+        items: category.value,
+        itemTitle: 'nombre',
+        itemValue: 'id',
     },
     {
         key: 'proveedores',
-        label: 'Proveedor',
+        label: 'Proveedores',
         type: 'select',
         model: filtros.proveedores,
+        items: supplier.value,
+        itemTitle: 'razonSocial',
+        itemValue: 'id',
     },
 ])
 const { createProductAsync, product, deleteProductAsync, updateProductAsync } = useProduct()
@@ -173,6 +179,37 @@ const confirmDelete = async () => {
         console.log(error)
     }
 }
+
+
+const search = ref('')
+const filtroProducto = computed(() => {
+    if (!Array.isArray(product.value)) return []
+
+    let resultado = product.value
+
+    // Filtro por búsqueda de texto
+    const query = search.value.toLowerCase().trim()
+    if (query) {
+        resultado = resultado.filter(e => {
+            const nombre = e.nombre?.toLowerCase() || ''
+
+            return (
+                nombre.includes(query)
+            )
+        })
+    }
+
+    // Filtro por rol
+    if (filtros.categorias) {
+        resultado = resultado.filter(p => p.categoria?.id === filtros.categorias)
+    }
+    if (filtros.proveedores) {
+        resultado = resultado.filter(p => p.proveedor?.id === filtros.proveedores)
+    }
+
+    return resultado
+})
+
 </script>
 
 <template>
@@ -191,7 +228,7 @@ const confirmDelete = async () => {
 
     <!-- cartas -->
     <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in product" :key="index">
+        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in filtroProducto" :key="index">
             <v-hover v-slot="{ isHovering, props }">
                 <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
                     <v-img height="220px" :src="item.imagen" contain></v-img>
