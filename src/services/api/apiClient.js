@@ -31,6 +31,11 @@ export const apiFetch = async (endpoint, options = {}) => {
     return null
   }
 
-  return response.json()
+  const contentType = response.headers.get('content-type')
 
+  if (contentType?.includes('application/pdf')) {
+    return response.arrayBuffer()
+  }
+
+  return response.json()
 }

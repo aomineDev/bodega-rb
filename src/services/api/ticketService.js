@@ -13,4 +13,6 @@ export const ticketService = {
     apiFetch(`${service}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   delete: async (id) => apiFetch(`${service}/${id}`, { method: 'DELETE' }),
+
+  getGeneratePdfById: async (id) => apiFetch(`${service}/${id}/pdf`),
 }

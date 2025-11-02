@@ -42,6 +42,17 @@ export const useBill = () => {
     onError: (error) => console.log('Error: ' + error),
   })
 
+  const generatePdfBill = async (id) => {
+    try {
+      const response = await billService.getGeneratePdfById(id)
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      return url
+    } catch (error) {
+      console.error('Error al generar PDF:', error)
+    }
+  }
+
   return {
     bills,
     isPending,
@@ -63,5 +74,7 @@ export const useBill = () => {
     deleteBillAsync: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
     deleteError: deleteMutation.error,
+
+    generatePdfBill,
   }
 }

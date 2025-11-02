@@ -18,5 +18,8 @@ export const vuetify = createVuetify({
     VTextField: {
       variant: 'underlined',
     },
+    VSelect: {
+      variant: 'underlined',
+    },
   },
 })

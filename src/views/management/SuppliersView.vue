@@ -32,9 +32,9 @@ const {
 
 //data header
 const headers = [
+    { title: 'Razón social', key: 'razonSocial' },
     { title: 'Tipo de contribuyente', key: 'tipoContribuyente' },
     { title: 'Actividad económica', key: 'actividadEconomica' },
-    { title: 'Razón social', key: 'razonSocial' },
     { title: 'Fecha de registro', key: 'fechaRegistro' },
     { title: 'RUC', key: 'ruc' },
     { title: 'Dirección', key: 'direccion' },
@@ -137,6 +137,29 @@ watch(supplierFormModal, (isOpen) => {
     if (!isOpen) resetForm()
     supplier.value = null
 })
+
+// filtros
+
+const search = ref('')
+
+const filtroProveedores = computed(() => {
+
+    if (!Array.isArray(supplier.value)) return []
+
+    const query = search.value.toLowerCase().trim()
+    if (!query) return supplier.value
+
+    return supplier.value.filter(s => {
+        const razonSocial = s.razonSocial?.toLowerCase() || ''
+        const telefono = s.telefono?.toString()
+
+        return (
+            razonSocial.includes(query) ||
+            telefono.includes(query)
+        )
+    })
+})
+
 </script>
 
 <template>
@@ -157,7 +180,7 @@ watch(supplierFormModal, (isOpen) => {
 
 
     <!-- Tabla -->
-    <v-data-table :headers="headers" :items="supplier">
+    <v-data-table :headers="headers" :items="filtroProveedores">
         <template #[`item.actions`]="{ item }">
             <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
         </template>
@@ -181,19 +204,21 @@ watch(supplierFormModal, (isOpen) => {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-text-field label="Ruc" variant="underlined" v-model="ruc"
-                                :rules="[rules.ruc]"></v-text-field>
+                            <v-mask-input label="Ruc" variant="underlined" v-model="ruc"
+                                :rules="[rules.required, rules.distinct(supplier, 'ruc', supplierItem?.id)]"
+                                mask="###########"></v-mask-input>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <v-mask-input label="Telefono" variant="underlined" v-model="telefono"
-                                :rules="[rules.required, rules.phone]" mask="+51 ### ### ###">
+                                :rules="[rules.required, rules.phone, rules.distinct(supplier, 'telefono', supplierItem?.id)]"
+                                mask="+51 ### ### ###">
                             </v-mask-input>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.email]"></v-text-field>
+                                :rules="[rules.email, rules.required, rules.distinct(supplier, 'email', supplierItem?.id)]"></v-text-field>
                         </v-col>
 
 

@@ -15,20 +15,24 @@ import { useSnackbar } from '@/stores/snackbar';
 const { mdAndUp, smAndDown } = useDisplay()
 const { showSuccessSnackbar } = useSnackbar()
 const filtros = reactive({
-    rol: [],
+    rol: null,
 })
-const selectFilter = computed(() => [
-    {
-        key: 'roles',
-        label: 'Roles',
-        type: 'select',
-        model: filtros.rol
-    }
-])
-
 const {
     role
 } = useRole()
+
+const selectFilter = computed(() => [
+    {
+        key: 'rol',
+        label: 'Rol',
+        type: 'select',
+        model: filtros.rol,
+        items: role.value,
+        itemTitle: 'nombre',
+        itemValue: 'id',
+
+    }
+])
 
 const {
     employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync
@@ -45,7 +49,7 @@ const employeeDetailModal = ref(false)
 //campos reactvios para el modal creal y editar al mismo tiempo
 const modalTitle = computed(() => (employeeEdit.value ? 'Editar Empleado' : 'Crear Empleado'))
 const actionLabel = computed(() => (employeeEdit.value ? 'Actualizar' : 'Crear'))
-const employeeEdit = ref(false)
+const employeeEdit = ref(null)
 
 const handleActionFabMenu = (type) => {
 
@@ -166,6 +170,36 @@ const confirmDelete = async () => {
     }
 }
 
+const search = ref('')
+
+const filtroEmpleado = computed(() => {
+    if (!Array.isArray(employee.value)) return []
+
+    let resultado = employee.value
+
+    // Filtro por búsqueda de texto
+    const query = search.value.toLowerCase().trim()
+    if (query) {
+        resultado = resultado.filter(e => {
+            const nombre = e.nombre?.toLowerCase() || ''
+            const apellidoPaterno = e.apellidoPaterno?.toLowerCase() || ''
+            const dni = e.dni?.toString() || ''
+
+            return (
+                nombre.includes(query) ||
+                apellidoPaterno.includes(query) ||
+                dni.includes(query)
+            )
+        })
+    }
+
+    // Filtro por rol
+    if (filtros.rol) {
+        resultado = resultado.filter(e => e.rolId?.id === filtros.rol)
+    }
+
+    return resultado
+})
 </script>
 
 
@@ -185,7 +219,7 @@ const confirmDelete = async () => {
     </v-card>
     <!-- cartas -->
     <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in employee" :key="index">
+        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in filtroEmpleado" :key="index">
             <v-hover v-slot="{ isHovering, props }">
                 <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
 
@@ -232,8 +266,8 @@ const confirmDelete = async () => {
                         </v-col>
                         <!-- fecha nacimineto -->
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="fechaNacimiento" label="Fecha de nacimiento"
-                                variant="underlined"></v-date-input>
+                            <v-date-input label="Fecha de nacimiento" variant="underlined" v-model="fechaNacimiento"
+                                :rules="[rules.required]"></v-date-input>
                         </v-col>
 
                         <!-- direccion -->
@@ -245,27 +279,30 @@ const confirmDelete = async () => {
 
                         <v-col cols="12" md="6">
                             <v-mask-input label="Telefono" variant="underlined" v-model="telefono"
-                                :rules="[rules.required, rules.phone]" mask="+51 ### ### ###">
+                                :rules="[rules.required, rules.phone, rules.distinct(employee, 'telefono', employeeEdit?.id)]"
+                                mask="+51 ### ### ###">
                             </v-mask-input>
                         </v-col>
 
                         <!-- email -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.email]"></v-text-field>
+                                :rules="[rules.required, rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
                         </v-col>
                         <!-- roles -->
                         <v-col cols="12" md="6">
                             <v-select label="Rol" variant="underlined" :items="role" v-model="rolId" item-title="nombre"
-                                return-object :rules=[rules.proveedor]></v-select> </v-col>
+                                return-object :rules=[rules.rol]></v-select> </v-col>
                         <v-col cols="12" md="6">
                             <v-text-field label="Clave" variant="underlined" v-model="clave" type="password"
                                 :rules="[rules.required]"></v-text-field>
 
                         </v-col>
                         <v-col cols="12" md="6">
-                            <v-text-field label="Dni" variant="underlined" v-model="dni" :rules="[rules.dni]"
-                                :counter="8"></v-text-field>
+                            <v-mask-input label="Dni" variant="underlined" v-model="dni"
+                                :rules="[rules.required, rules.distinct(employee, 'dni', employeeEdit?.id)]"
+                                mask="########">
+                            </v-mask-input>
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-file-input label="Imagen" variant="underlined" @update:model-value="onImageChange"
