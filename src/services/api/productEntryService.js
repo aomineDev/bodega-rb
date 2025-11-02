@@ -1,7 +1,7 @@
 import { apiFetch } from './apiClient'
 
 //backend service spring boot - conexi[on api]
-const service = '/ingreso-productos'
+const service = '/ingreso-producto'
 
 export const productEntryService = {
   getAll: async () => apiFetch(service),
