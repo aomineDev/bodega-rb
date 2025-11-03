@@ -30,13 +30,6 @@ const modalTitle = computed(() => (productItem.value ? 'Editar Producto' : 'Crea
 const actionLabel = computed(() => (productItem.value ? 'Actualizar' : 'Crear'))
 const productItem = ref(false)
 //-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
-const handleActionFabMenu = (type) => {
-    if (type === 'add') {
-        productItem.value = false
-        productFormModal.value = true
-    }
-    if (type === 'filter') filterDialog.value = true
-}
 const filtros = reactive({
     categorias: null,
     proveedores: null,
@@ -123,7 +116,9 @@ const handleEdit = (item) => {
 
     productFormModal.value = true
 }
-
+const handleOpen = () => {
+    productFormModal.value = true
+}
 //abrir modal eliminar
 const deleteModal = (item) => {
     productDeleteModal.value = true
@@ -131,7 +126,10 @@ const deleteModal = (item) => {
 }
 
 watch(productFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
+    if (!isOpen) {
+        resetForm()
+        productItem.value = null
+    }
 })
 //-----------------------------------------------FILTROS---------------------------------------//
 const selectFilter = computed(() => [
@@ -225,7 +223,7 @@ const confirmDelete = async () => {
                 @update:filter="({ key, value }) => (filtros[key] = value)" />
 
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleActionFabMenu('add')">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleOpen">Crear
                     Producto</v-btn>
             </v-col>
         </v-row>
@@ -284,7 +282,7 @@ const confirmDelete = async () => {
                         <!-- categoria -->
                         <v-col cols="12" md="6">
                             <v-select label="Categoria" variant="underlined" :items="category" v-model="categoria"
-                                item-title="nombre" return-object item-value="id" :rules="[rules.categoria]"></v-select>
+                                item-title="nombre" :rules="[rules.required]" return-object item-value="id"></v-select>
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-select label="Proveedor" variant="underlined" :items="supplier" v-model="proveedor"

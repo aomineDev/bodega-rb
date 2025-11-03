@@ -38,18 +38,7 @@ const editingSupplier = ref(null)
 const supplierFormModal = ref(false)
 const filterDialog = ref(false)
 const supplierDeleteModal = ref(false)
-//-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
-//acciones del fab
-const handleActionFabMenu = (type) => {
-
-    if (type === 'add') {
-        supplierItem.value = false
-        supplierFormModal.value = true
-    }
-    if (type === 'filter') {
-        filterDialog.value = true
-    }
-}
+supplierFormModal.value = true
 //-----------------------------------------------DATA---------------------------------------//
 
 const {
@@ -76,9 +65,17 @@ const handleEdit = (item) => {
     supplierFormModal.value = true
 
 }
+//abrir modal
+const handleOpen = () => {
+
+    supplierFormModal.value = true
+}
 watch(supplierFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
-    supplier.value = null
+    if (!isOpen) {
+        resetForm()
+        supplierItem.value = null
+
+    }
 })
 //abrir modal eliminar
 const handleDelete = (item) => {
@@ -191,7 +188,7 @@ const confirmDelete = async () => {
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
                 filtros[key] = value" />
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleActionFabMenu('add')">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleOpen">Crear
                     Proveedor</v-btn>
             </v-col>
         </v-row>

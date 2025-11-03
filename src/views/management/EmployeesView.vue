@@ -33,17 +33,6 @@ const modalTitle = computed(() => (employeeEdit.value ? 'Editar Empleado' : 'Cre
 const actionLabel = computed(() => (employeeEdit.value ? 'Actualizar' : 'Crear'))
 const employeeEdit = ref(null)
 
-//-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
-const handleActionFabMenu = (type) => {
-
-    if (type === 'add') {
-        employeeEdit.value = false
-        employeeFormModal.value = true
-    }
-    if (type === 'filter') {
-        filterDialog.value = true
-    }
-}
 //-----------------------------------------------DATA---------------------------------------//
 const {
     formData, handleSubmit, formRef, asignForm,
@@ -96,13 +85,19 @@ const handleView = (item) => {
 //abrir modal editar
 const handleEdit = (item) => {
     employeeEdit.value = item
-    console.log(employeeEdit)
     asignForm({
-        ...item, rolId: item.rolId?.id || null
+        ...item,
+        rolId: item.rolId ? {
+            ...item.rolId,
+            nombre: formatRoleName(item.rolId.nombre)
+        } : null
     })
     employeeFormModal.value = true
 }
-
+//abrir
+const handleOpen = () => {
+    employeeFormModal.value = true
+}
 //abrir modal eliminar
 const deleteModal = (item) => {
     employeeDeleteModal.value = true
@@ -111,7 +106,10 @@ const deleteModal = (item) => {
 }
 
 watch(employeeFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
+    if (!isOpen) {
+        resetForm()
+        employeeEdit.value = null
+    }
 })
 //-----------------------------------------------FILTROS---------------------------------------//
 const filtros = reactive({
@@ -213,7 +211,7 @@ const confirmDelete = async () => {
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
                 filtros[key] = value" />
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleActionFabMenu('add')">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleOpen">Crear
                     Empleado</v-btn>
             </v-col>
         </v-row>
