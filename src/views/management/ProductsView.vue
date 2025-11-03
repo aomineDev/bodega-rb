@@ -293,7 +293,7 @@ const confirmDelete = async () => {
                         <!-- descripcion -->
                         <v-col cols="12" md="12">
                             <v-textarea label="Descripcion" variant="underlined" rows="2" auto-grow
-                                v-model="descripcion" :rules="[rules.required]"></v-textarea>
+                                v-model="descripcion"></v-textarea>
                         </v-col>
                         <!-- precio unitario -->
                         <v-col cols="12" md="6">
