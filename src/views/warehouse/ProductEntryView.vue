@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
 import ActionMenu from '@/components/ActionMenu.vue'
 import { useSnackbar } from '@/stores/snackbar'
 import FabMenu from '@/components/FabMenu.vue'
@@ -51,24 +51,24 @@ const filtros = reactive({
 //   }
 // ])
 const selectFilter = computed(() => [
-  // {
-  //   key: 'fechaInicio',
-  //   label: 'Fecha inicio',
-  //   type: 'date',
-  //   model: filtros.fechaInicio,
-  // },
-  // {
-  //   key: 'fechaFin',
-  //   label: 'Fecha fin',
-  //   type: 'date',
-  //   model: filtros.fechaFin,
-  // },
   {
-    key:'rangoFechas',
-    label:'Rango de Fechas',
-    type:'range',
-    model: filtros.rangoFechas
+    key: 'fechaInicio',
+    label: 'Fecha inicio',
+    type: 'date',
+    model: filtros.fechaInicio,
   },
+  {
+    key: 'fechaFin',
+    label: 'Fecha fin',
+    type: 'date',
+    model: filtros.fechaFin,
+  },
+  // {
+  //   key:'rangoFechas',
+  //   label:'Rango de Fechas',
+  //   type:'range',
+  //   model: filtros.rangoFechas
+  // },
   {
     key: 'estado',
     label: 'Estado',
@@ -290,15 +290,24 @@ const agregarProducto = async () => {
 
   itemsProductos.value.push(nuevoProducto)
 
-  // Limpiar campos del producto
+  resetProductFields()
+
+  showSuccessSnackbar('Producto agregado a la lista')
+}
+
+const resetProductFields = () => {
   productoId.value = ''
   cantidad.value = ''
   precioCompra.value = ''
+  lote.value = ''
   fechaProduccion.value = ''
   fechaVencimiento.value = ''
-  lote.value = ''
 
-  showSuccessSnackbar('Producto agregado a la lista')
+  nextTick(() => {
+    if (productForm.value) {
+      productForm.value.resetValidation()
+    }
+  })
 }
 
 // Eliminar producto de la lista temporal
