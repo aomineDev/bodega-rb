@@ -28,12 +28,12 @@ defineEmits(['update:search', 'update:filter'])
           :label="filter.label" variant="underlined" hide-details />
 
         <!-- Date simple -->
-        <v-date-input v-else-if="filter.type === 'date'" :model-value="filter.model"
+        <v-date-input clearable v-else-if="filter.type === 'date'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :label="filter.label"
           variant="underlined" hide-details />
 
         <!-- Date Range -->
-        <v-date-input v-else-if="filter.type === 'range'" :model-value="filter.model"
+        <v-date-input clearable v-else-if="filter.type === 'range'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :label="filter.label"
           multiple="range" variant="underlined" hide-details />
       </v-col>

@@ -25,6 +25,29 @@ const {
   generatePdfBill,
 } = useBill()
 
+/* --------------- Filtros ---------------*/
+const search = ref('')
+const filtros = reactive({
+  rangoFechas: [],
+  tipoComprobante: 'Boletas',
+})
+
+const selectFilter = computed(() => [
+  {
+    key: 'rangoFechas',
+    label: 'Rango de fechas',
+    type: 'range',
+    model: filtros.rangoFechas
+  },
+  {
+    key: 'tipoComprobante',
+    label: 'Tipo de comprobante',
+    type: 'select',
+    items: ['Boletas', 'Facturas'],
+    model: filtros.tipoComprobante
+  }
+])
+
 /* --------------- Relleno Tabla ---------------*/
 const headers = computed(() => {
   if (filtros.tipoComprobante === 'Boletas') {
@@ -101,30 +124,6 @@ watch(comprobanteDetailModal, (val) => {
     pdfUrl.value = null
   }
 })
-
-/* --------------- Filtros ---------------*/
-const filtros = reactive({
-  rangoFechas: [],
-  tipoComprobante: 'Boletas',
-})
-
-const selectFilter = computed(() => [
-  {
-    key: 'rangoFechas',
-    label: 'Rango de fechas',
-    type: 'range',
-    model: filtros.rangoFechas
-  },
-  {
-    key: 'tipoComprobante',
-    label: 'Tipo de comprobante',
-    type: 'select',
-    items: ['Boletas', 'Facturas'],
-    model: filtros.tipoComprobante
-  }
-])
-
-const search = ref('')
 </script>
 
 <template>
