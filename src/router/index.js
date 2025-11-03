@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import HomeView from '@/views/HomeView.vue'
-import AboutView from '@/views/AboutView.vue'
 import DashboardLayout from '@/layout/DashboardLayout.vue'
 
 import SuppliersView from '@/views/management/SuppliersView.vue'
@@ -11,9 +10,9 @@ import SalesView from '@/views/pos/SalesView.vue'
 import CustomersView from '@/views/pos/CustomersView.vue'
 import VouchersView from '@/views/pos/VouchersView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
-import TakeInventoryView from '@/views/inventory/TakeInventoryView.vue'
-import AuditView from '@/views/inventory/AuditView.vue'
 import ProductEntryView from '@/views/warehouse/ProductEntryView.vue'
+import InventoryView from '@/views/inventory/InventoryView.vue'
+import TakeInventoryView from '@/views/inventory/TakeInventoryView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,69 +30,60 @@ const router = createRouter({
           component: HomeView,
         },
         {
-          path: 'about',
-          component: AboutView,
-        },
-      ],
-    },
-    {
-      path: '/gestion',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'proveedores',
-          component: SuppliersView,
-        },
-        {
-          path: 'empleados',
-          component: EmployeesView,
+          path: 'inventario',
+          children: [
+            {
+              path: '',
+              component: InventoryView,
+            },
+            {
+              path: 'toma',
+              component: TakeInventoryView,
+            },
+          ],
         },
         {
-          path: 'productos',
-          component: ProductsView,
-        },
-      ],
-    },
-    {
-      path: '/caja',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'ventas',
-          component: SalesView,
-        },
-        {
-          path: 'comprobantes',
-          component: VouchersView,
-        },
-        {
-          path: 'clientes',
-          component: CustomersView,
-        },
-      ],
-    },
-
-    {
-      path: '/almacen',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'ingreso-productos',
-          component: ProductEntryView,
-        },
-      ],
-    },
-    {
-      path: '/inventory',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'toma-inventario',
-          component: TakeInventoryView,
+          path: 'gestion',
+          children: [
+            {
+              path: 'proveedores',
+              component: SuppliersView,
+            },
+            {
+              path: 'empleados',
+              component: EmployeesView,
+            },
+            {
+              path: 'productos',
+              component: ProductsView,
+            },
+          ],
         },
         {
-          path: 'auditoria',
-          component: AuditView,
+          path: 'caja',
+          children: [
+            {
+              path: 'ventas',
+              component: SalesView,
+            },
+            {
+              path: 'comprobantes',
+              component: VouchersView,
+            },
+            {
+              path: 'clientes',
+              component: CustomersView,
+            },
+          ],
+        },
+        {
+          path: '/almacen',
+          children: [
+            {
+              path: 'ingreso-productos',
+              component: ProductEntryView,
+            },
+          ],
         },
       ],
     },

@@ -11,23 +11,38 @@ import { useProduct } from '@/composables/query/useProduct'
 import { useSupplier } from '@/composables/query/useSupplier'
 import { useCategory } from '@/composables/query/useCategory'
 import { storageService } from '@/services/storage/imageService'
+import { useDateInput } from '@/composables/useDateInput'
+//-----------------------------------------------CONSTANTES---------------------------------------//
 const { showSuccessSnackbar } = useSnackbar()
-
-const ud = ref(['Unidad', 'Kilogramo', 'Litro', 'Caja'])
-
+const ud = ref(['Unidad', 'Kilogramo', 'Litro'])
 const { category } = useCategory()
+const { supplier } = useSupplier()
 
 const productFormModal = ref(false)
+
+const { createProductAsync, product, deleteProductAsync, updateProductAsync } = useProduct()
+
 const productDetailModal = ref(false)
 const productDeleteModal = ref(false)
 const filterDialog = ref(false)
 const { mdAndUp, smAndDown } = useDisplay()
-// const product = ref(false)
-// const customerEdit = ref(false)
 const modalTitle = computed(() => (productItem.value ? 'Editar Producto' : 'Crear Producto'))
-
 const actionLabel = computed(() => (productItem.value ? 'Actualizar' : 'Crear'))
 const productItem = ref(false)
+//-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
+const handleActionFabMenu = (type) => {
+    if (type === 'add') {
+        productItem.value = false
+        productFormModal.value = true
+    }
+    if (type === 'filter') filterDialog.value = true
+}
+const filtros = reactive({
+    categorias: null,
+    proveedores: null,
+})
+//-----------------------------------------------DATA---------------------------------------//
+
 const {
     formRef,
     formData,
@@ -61,62 +76,19 @@ const {
     finPromocion: '',
     unidadMedida: '',
 })
+const {
+    formatDate: formatInicioPromocion,
+    inputDate: inputInicioPromocion,
+    today
+} = useDateInput(inicioPromocion)
 
-const handleActionFabMenu = (type) => {
-    if (type === 'add') {
-        productItem.value = false
-        productFormModal.value = true
-    }
-    if (type === 'filter') filterDialog.value = true
-}
-const filtros = reactive({
-    categorias: [],
-    proveedores: [],
-})
+const {
+    formatDate: formatFinPromocion,
+    inputDate: inputFinPromocion
+    // No necesitas 'today' otra vez, ya lo tienes arriba
+} = useDateInput(finPromocion)
 
-const selectFilter = computed(() => [
-    {
-        key: 'categorias',
-        label: 'Categoria',
-        type: 'select',
-        model: filtros.categorias,
-    },
-    {
-        key: 'proveedores',
-        label: 'Proveedor',
-        type: 'select',
-        model: filtros.proveedores,
-    },
-])
-const { createProductAsync, product, deleteProductAsync, updateProductAsync } = useProduct()
-
-const { supplier } = useSupplier()
-//cerrar modal
-const closeFormModal = () => {
-    productFormModal.value = false
-    resetForm()
-}
-//accion eliminar
-const deleteModal = (item) => {
-    productDeleteModal.value = true
-    console.log('card eliminada' + item.id)
-}
-const productDetail = ref(false)
-//accion detalle
-const handleView = (item) => {
-    productDetail.value = item
-    productDetailModal.value = true
-}
-
-const handleEdit = (item) => {
-    productItem.value = item
-    asignForm(productItem.value)
-
-    productFormModal.value = true
-}
-watch(productFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
-})
+//-----------------------------------------------SUBIDA DE IMAGEN---------------------------------------//
 
 const previewUrl = ref(null)
 const onImageChange = (file) => {
@@ -135,8 +107,77 @@ const getImageUrl = async () => {
     }
     return productItem.value?.imagen || '/img/default.png'
 }
+//-----------------------------------------------ABRIR MODALES---------------------------------------//
+// abrir modal detalles
+const productDetail = ref(false)
+//accion detalle
+const handleView = (item) => {
+    productDetail.value = item
+    productDetailModal.value = true
+}
 
-// crear y editar
+//abrir modal editar
+const handleEdit = (item) => {
+    productItem.value = item
+    asignForm(productItem.value)
+
+    productFormModal.value = true
+}
+
+//abrir modal eliminar
+const deleteModal = (item) => {
+    productDeleteModal.value = true
+    console.log('card eliminada' + item.id)
+}
+
+watch(productFormModal, (isOpen) => {
+    if (!isOpen) resetForm()
+})
+//-----------------------------------------------FILTROS---------------------------------------//
+const selectFilter = computed(() => [
+    {
+        key: 'categorias',
+        label: 'Categorias',
+        type: 'select',
+        model: filtros.categorias,
+        items: category.value,
+        itemTitle: 'nombre',
+        itemValue: 'id',
+    },
+    {
+        key: 'proveedores',
+        label: 'Proveedores',
+        type: 'select',
+        model: filtros.proveedores,
+        items: supplier.value,
+        itemTitle: 'razonSocial',
+        itemValue: 'id',
+    },
+])
+
+const search = ref('')
+const filtroProducto = computed(() => {
+    const productos = product.value
+
+    if (!Array.isArray(product.value)) return []
+
+    const query = search.value.trim().toLowerCase()
+    const categoriaSeleccionada = filtros.categorias
+    const proveedorSeleccionado = filtros.proveedores
+
+    return productos.filter(p => {
+        const coincidenciaBusqueda = query ?
+            [p.nombre].some(campo => campo?.toLowerCase().includes(query))
+            : true
+
+        const coincidenciaCategoria = categoriaSeleccionada ? p.categoria?.id === categoriaSeleccionada : true
+        const coincidenciaProveedor = proveedorSeleccionado ? p.proveedor?.id === proveedorSeleccionado : true
+
+        return coincidenciaCategoria && coincidenciaBusqueda && coincidenciaProveedor
+    })
+})
+//-----------------------------------------------ACCIONES---------------------------------------//
+//agregar y editar
 const handleCreateProduct = async () => {
     try {
         const imagenUrl = await getImageUrl()
@@ -161,7 +202,8 @@ const handleCreateProduct = async () => {
         console.error('Error:', error)
     }
 }
-//accion eliminar
+
+//eliminar
 const editingProduct = ref(false)
 const confirmDelete = async () => {
     try {
@@ -189,31 +231,38 @@ const confirmDelete = async () => {
         </v-row>
     </v-card>
 
-    <!-- cartas -->
-    <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in product" :key="index">
-            <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
-                    <v-img height="220px" :src="item.imagen" contain></v-img>
-                    <v-divider :thickness="3"></v-divider>
+    <!-- Si hay datos, muestra los cards -->
+    <v-row v-if="filtroProducto.length > 0">
+        <v-col v-for="item in filtroProducto" :key="item.id" cols="12" sm="6" md="4" lg="3">
+            <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
+                <v-img height="220px" :src="item.imagen" contain></v-img>
+                <v-divider :thickness="3"></v-divider>
 
-                    <v-card-title class="d-flex justify-space-between align-center">
-                        <span>{{ item.nombre }}</span>
-                        <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)">
-                        </ActionMenu>
-                    </v-card-title>
+                <v-card-title class="d-flex justify-space-between align-center">
+                    <span>{{ item.nombre }}</span>
+                    <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)" />
+                </v-card-title>
 
-                    <v-chip class="position-absolute chip-categoria" color="primary" size="default"
-                        style="top: 12px; right: 12px; z-index: 1">
-                        {{ item.categoria?.nombre }}
-                    </v-chip>
-                    <v-card-text class="text-end">
-                        <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
-                            {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}
-                        </span>
-                    </v-card-text>
-                </v-card>
-            </v-hover>
+                <v-chip class="position-absolute chip-categoria" color="primary" size="default"
+                    style="top: 12px; right: 12px; z-index: 1">
+                    {{ item.categoria?.nombre }}
+                </v-chip>
+
+                <v-card-text class="text-end">
+                    <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
+                        {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}
+                    </span>
+                </v-card-text>
+            </v-card>
+        </v-col>
+    </v-row>
+
+    <!-- Si NO hay datos, muestra mensaje -->
+    <v-row v-else>
+        <v-col cols="12" class="text-center py-16">
+            <v-icon size="64" color="grey-lighten-1">mdi-package-variant-closed</v-icon>
+            <p class="text-h6 text-grey mt-4">No se encontraron productos</p>
+
         </v-col>
     </v-row>
     <!-- modal crear -->
@@ -244,18 +293,18 @@ const confirmDelete = async () => {
                         <!-- descripcion -->
                         <v-col cols="12" md="12">
                             <v-textarea label="Descripcion" variant="underlined" rows="2" auto-grow
-                                v-model="descripcion" :rules="[rules.required]"></v-textarea>
+                                v-model="descripcion"></v-textarea>
                         </v-col>
                         <!-- precio unitario -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Precio unitario" type="number" variant="underlined"
-                                v-model="precioUnitario" step="1" :rules="[rules.required, rules.precio]"
+                            <v-text-field label="Precio unitario" v-model="precioUnitario" type="number"
+                                variant="underlined" step="1" :rules="[rules.required, rules.precio]"
                                 prefix="S/ "></v-text-field>
                         </v-col>
                         <!-- precio promociom -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Precio promocion" type="number" variant="underlined"
-                                v-model="precioPromocion" step="0.01" prefix="S/ ">
+                            <v-text-field label="Precio promocion" v-model="precioPromocion" type="number"
+                                variant="underlined" step="0.01" prefix="S/ ">
                             </v-text-field>
                         </v-col>
                         <!-- stock -->
@@ -266,13 +315,14 @@ const confirmDelete = async () => {
                         </v-col>
                         <!-- inicion promocio -->
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="inicioPromocion" label="Inicio de promocion"
-                                variant="underlined"></v-date-input>
+                            <v-date-input label="Inicio de promocion" variant="underlined"
+                                v-model="inputInicioPromocion" :min="today"
+                                :display-format="formatInicioPromocion"></v-date-input>
                         </v-col>
                         <!-- fin promocion -->
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="finPromocion" label="Fin de promocion"
-                                variant="underlined"></v-date-input>
+                            <v-date-input v-model="inputFinPromocion" :min="today" label="Fin de promocion"
+                                variant="underlined" :display-format="formatFinPromocion"></v-date-input>
                         </v-col>
                         <!-- unidad de medida -->
                         <v-col cols="12" md="6">
@@ -293,7 +343,7 @@ const confirmDelete = async () => {
             <!-- acciones -->
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="closeFormModal()"></v-btn>
+                <v-btn class="ms-auto" text="Cerrar" @click="productFormModal = false"></v-btn>
                 <v-btn class="ms-auto" :text="actionLabel" variant="tonal" color="primary"
                     @click="handleSubmit(handleCreateProduct)"></v-btn>
             </v-card-actions>
@@ -436,7 +486,7 @@ const confirmDelete = async () => {
                                     </div>
                                     <div v-if="productDetail.inicioPromocion"
                                         class="text-body-3 font-weight-bold mb-3 text-center">
-                                        {{ productDetail.inicioPromocion }}
+                                        {{ formatInicioPromocion(productDetail.inicioPromocion) }}
                                     </div>
                                     <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>
                                 </v-col>
@@ -449,7 +499,7 @@ const confirmDelete = async () => {
 
                                     <div v-if="productDetail.finPromocion"
                                         class="text-body-3 font-weight-bold mb-3 text-center">
-                                        {{ productDetail.finPromocion }}
+                                        {{ formatFinPromocion(productDetail.finPromocion) }}
                                     </div>
 
                                     <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>
@@ -502,7 +552,7 @@ const confirmDelete = async () => {
 
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
-                <v-btn text="Cerrar" @click="close()"></v-btn>
+                <v-btn text="Cerrar" @click="productDeleteModal = false"></v-btn>
                 <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>

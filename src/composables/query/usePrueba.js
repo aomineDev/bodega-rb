@@ -1,5 +1,6 @@
 import { pruebaService } from '@/services/api/pruebaService'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { computed } from 'vue'
 
 export const usePruebas = () => {
   const queryClient = useQueryClient()
@@ -18,7 +19,7 @@ export const usePruebas = () => {
     useQuery({
       queryKey: ['prueba', id],
       queryFn: () => pruebaService.getById(id.value),
-      enabled: !!id.value,
+      enabled: computed(() => !!id.value),
     })
 
   const createMutation = useMutation({

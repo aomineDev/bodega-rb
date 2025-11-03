@@ -25,17 +25,18 @@ defineEmits(['update:search', 'update:filter'])
         <!-- Buscador -->
         <v-select v-if="filter.type === 'select'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :items="filter.items"
-          :label="filter.label" variant="underlined" hide-details />
-
+          :label="filter.label" variant="underlined" :item-title="filter.itemTitle" :item-value="filter.itemValue"
+          clearable hide-details />
         <!-- Date simple -->
         <v-date-input clearable v-else-if="filter.type === 'date'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :label="filter.label"
           variant="underlined" hide-details />
 
         <!-- Date Range -->
-        <v-date-input clearable v-else-if="filter.type === 'range'" :model-value="filter.model"
+        <v-date-input v-else-if="filter.type === 'range'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :label="filter.label"
-          multiple="range" variant="underlined" hide-details />
+          multiple="range" variant="underlined" clearable hide-details />
+
       </v-col>
 
     </template>

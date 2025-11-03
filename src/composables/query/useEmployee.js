@@ -1,6 +1,7 @@
 import { employeeService } from '@/services/api/employeeSevice'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+
 export const useEmployee = () => {
   const queryClient = useQueryClient()
   const {
@@ -9,7 +10,7 @@ export const useEmployee = () => {
     data: employee,
     error,
   } = useQuery({
-    queryKey: ['employee'],
+    queryKey: ['employees'],
     queryFn: employeeService.getAll,
   })
 
@@ -21,21 +22,21 @@ export const useEmployee = () => {
     })
   const createMutation = useMutation({
     mutationFn: employeeService.create,
-    onSuccess: () => queryClient.invalidateQueries(['employee']),
+    onSuccess: () => queryClient.invalidateQueries(['employees']),
     onError: (error) => console.log('Error' + error),
   })
 
   const updateMutation = useMutation({
     mutationFn: employeeService.update,
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries(['employee'])
-      queryClient.invalidateQueries(['employee', variables.id])
+      queryClient.invalidateQueries(['employees'])
+      queryClient.invalidateQueries(['employees', variables.id])
     },
     onError: (error) => console.log('Erorr' + error),
   })
   const deleteMutation = useMutation({
     mutationFn: employeeService.delete,
-    onSuccess: () => queryClient.invalidateQueries(['employee']),
+    onSuccess: () => queryClient.invalidateQueries(['employees']),
     onError: (error) => console.log('Eerror' + error),
   })
   return {
@@ -61,3 +62,9 @@ export const useEmployee = () => {
     deleteError: deleteMutation.error,
   }
 }
+
+export const useEmployeesByRol = (rol) =>
+  useQuery({
+    queryKey: ['employeesByRol', rol],
+    queryFn: () => employeeService.getAllByRol(rol),
+  })
