@@ -38,7 +38,6 @@ const editingSupplier = ref(null)
 const supplierFormModal = ref(false)
 const filterDialog = ref(false)
 const supplierDeleteModal = ref(false)
-supplierFormModal.value = true
 //-----------------------------------------------DATA---------------------------------------//
 
 const {
@@ -64,11 +63,6 @@ const handleEdit = (item) => {
     asignForm(supplierItem.value)
     supplierFormModal.value = true
 
-}
-//abrir modal
-const handleOpen = () => {
-
-    supplierFormModal.value = true
 }
 watch(supplierFormModal, (isOpen) => {
     if (!isOpen) {
@@ -104,18 +98,6 @@ const filtroProveedores = computed(() => {
 
     let resultado = supplier.value
 
-    const query = search.value.toLowerCase().trim()
-    if (query) {
-        resultado = resultado.filter(s => {
-            const razonSocial = s.razonSocial?.toLowerCase() || ''
-            const telefono = s.telefono?.toString() || ''
-            return (
-                razonSocial.includes(query) ||
-                telefono.includes(query)
-            )
-        })
-    }
-
     if (Array.isArray(filtros.rangoFechas) && filtros.rangoFechas.length >= 2) {
         const fechaInicio = filtros.rangoFechas[0]
         const fechaFin = filtros.rangoFechas[filtros.rangoFechas.length - 1]
@@ -130,8 +112,6 @@ const filtroProveedores = computed(() => {
 
             const fechaInicioStr = formatearFecha(fechaInicio)
             const fechaFinStr = formatearFecha(fechaFin)
-
-
 
             resultado = resultado.filter(s => {
                 if (!s.fechaRegistro) return false
@@ -188,7 +168,7 @@ const confirmDelete = async () => {
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
                 filtros[key] = value" />
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleOpen">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="supplierFormModal = true">Crear
                     Proveedor</v-btn>
             </v-col>
         </v-row>
@@ -196,7 +176,7 @@ const confirmDelete = async () => {
 
 
     <!-- Tabla -->
-    <v-data-table :headers="headers" :items="filtroProveedores" no-data-text="No se encontraron proveedores">
+    <v-data-table :headers="headers" :items="filtroProveedores" :search no-data-text="No se encontraron proveedores">
         <template #item.fechaRegistro="{ value }">
             {{ formatDate(value) }}
         </template>

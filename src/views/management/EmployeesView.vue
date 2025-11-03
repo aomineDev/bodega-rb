@@ -94,10 +94,7 @@ const handleEdit = (item) => {
     })
     employeeFormModal.value = true
 }
-//abrir
-const handleOpen = () => {
-    employeeFormModal.value = true
-}
+
 //abrir modal eliminar
 const deleteModal = (item) => {
     employeeDeleteModal.value = true
@@ -211,7 +208,7 @@ const confirmDelete = async () => {
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
                 filtros[key] = value" />
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleOpen">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="employeeFormModal = true">Crear
                     Empleado</v-btn>
             </v-col>
         </v-row>

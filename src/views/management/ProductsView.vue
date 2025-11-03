@@ -116,9 +116,7 @@ const handleEdit = (item) => {
 
     productFormModal.value = true
 }
-const handleOpen = () => {
-    productFormModal.value = true
-}
+
 //abrir modal eliminar
 const deleteModal = (item) => {
     productDeleteModal.value = true
@@ -223,7 +221,7 @@ const confirmDelete = async () => {
                 @update:filter="({ key, value }) => (filtros[key] = value)" />
 
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleOpen">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="productFormModal = true">Crear
                     Producto</v-btn>
             </v-col>
         </v-row>
