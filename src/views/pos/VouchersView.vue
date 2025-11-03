@@ -4,10 +4,11 @@ import ActionMenu from '@/components/ActionMenu.vue';
 import FabMenu from '@/components/FabMenu.vue';
 import BaseFilter from '@/components/BaseFilter.vue';
 import { computed, reactive, ref, watch } from 'vue';
-import { useDisplay } from 'vuetify'
 
 import { useTicket } from '@/composables/query/useTicket';
 import { useBill } from '@/composables/query/useBill';
+import { useDisplay } from 'vuetify/lib/composables/display';
+import { useDateInput } from '@/composables/useDateInput'
 
 const {
   tickets,
@@ -24,6 +25,30 @@ const {
   error: errorBill,
   generatePdfBill,
 } = useBill()
+
+/* --------------- Filtros ---------------*/
+const search = ref('')
+
+const filtros = reactive({
+  rangoFechas: [],
+  tipoComprobante: 'Boletas',
+})
+
+const selectFilter = computed(() => [
+  {
+    key: 'rangoFechas',
+    label: 'Rango de fechas',
+    type: 'range',
+    model: filtros.rangoFechas
+  },
+  {
+    key: 'tipoComprobante',
+    label: 'Tipo de comprobante',
+    type: 'select',
+    items: ['Boletas', 'Facturas'],
+    model: filtros.tipoComprobante
+  }
+])
 
 /* --------------- Relleno Tabla ---------------*/
 const headers = computed(() => {
@@ -50,17 +75,35 @@ const headers = computed(() => {
   }
 })
 
+const { formatDate } = useDateInput(ref(null), 'keyboardDate')
+
 const items = computed(() => {
   const data = filtros.tipoComprobante === 'Boletas'
     ? tickets.value || []
     : bills.value || []
 
-  return data.map(item => ({
+  let resultado = data.map(item => ({
     ...item,
     cliente: filtros.tipoComprobante === 'Boletas'
       ? `${item.clienteNatural?.nombre || ''} ${item.clienteNatural?.apellidoPaterno || ''}`.trim()
       : item.clienteJuridico?.razonSocial || '',
   }))
+
+  if (Array.isArray(filtros.rangoFechas) && filtros.rangoFechas.length > 1) {
+    const fechaInicio = filtros.rangoFechas[0]
+    const fechaFin = filtros.rangoFechas[filtros.rangoFechas.length - 1]
+
+    const inicioStr = formatDate(fechaInicio)
+    const finStr = formatDate(fechaFin)
+
+    resultado = resultado.filter(s => {
+      if (!s.fecha) return false
+      const fechaItemStr = formatDate(new Date(s.fecha))
+      return fechaItemStr >= inicioStr && fechaItemStr <= finStr
+    })
+  }
+
+  return resultado
 })
 
 
@@ -101,30 +144,6 @@ watch(comprobanteDetailModal, (val) => {
     pdfUrl.value = null
   }
 })
-
-/* --------------- Filtros ---------------*/
-const filtros = reactive({
-  rangoFechas: [],
-  tipoComprobante: 'Boletas',
-})
-
-const selectFilter = computed(() => [
-  {
-    key: 'rangoFechas',
-    label: 'Rango de fechas',
-    type: 'range',
-    model: filtros.rangoFechas
-  },
-  {
-    key: 'tipoComprobante',
-    label: 'Tipo de comprobante',
-    type: 'select',
-    items: ['Boletas', 'Facturas'],
-    model: filtros.tipoComprobante
-  }
-])
-
-const search = ref('')
 </script>
 
 <template>

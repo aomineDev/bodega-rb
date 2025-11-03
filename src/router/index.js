@@ -59,34 +59,31 @@ const router = createRouter({
             },
           ],
         },
-      ],
-    },
-
-    {
-      path: '/caja',
-      component: DashboardLayout,
-      children: [
         {
-          path: 'ventas',
-          component: SalesView,
+          path: 'caja',
+          children: [
+            {
+              path: 'ventas',
+              component: SalesView,
+            },
+            {
+              path: 'comprobantes',
+              component: VouchersView,
+            },
+            {
+              path: 'clientes',
+              component: CustomersView,
+            },
+          ],
         },
         {
-          path: 'comprobantes',
-          component: VouchersView,
-        },
-        {
-          path: 'clientes',
-          component: CustomersView,
-        },
-      ],
-    },
-    {
-      path: '/almacen',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'ingreso-productos',
-          component: ProductEntryView,
+          path: '/almacen',
+          children: [
+            {
+              path: 'ingreso-productos',
+              component: ProductEntryView,
+            },
+          ],
         },
       ],
     },
