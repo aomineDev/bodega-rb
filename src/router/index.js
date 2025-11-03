@@ -42,26 +42,26 @@ const router = createRouter({
             },
           ],
         },
+        {
+          path: 'gestion',
+          children: [
+            {
+              path: 'proveedores',
+              component: SuppliersView,
+            },
+            {
+              path: 'empleados',
+              component: EmployeesView,
+            },
+            {
+              path: 'productos',
+              component: ProductsView,
+            },
+          ],
+        },
       ],
     },
-    {
-      path: '/gestion',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'proveedores',
-          component: SuppliersView,
-        },
-        {
-          path: 'empleados',
-          component: EmployeesView,
-        },
-        {
-          path: 'productos',
-          component: ProductsView,
-        },
-      ],
-    },
+
     {
       path: '/caja',
       component: DashboardLayout,

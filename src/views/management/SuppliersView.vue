@@ -8,6 +8,7 @@ import { useSnackbar } from '@/stores/snackbar';
 import { useForm } from '@/composables/useForm';
 import { useDisplay } from 'vuetify';
 import { useSupplier } from '@/composables/query/useSupplier';
+import { useDateInput } from '@/composables/useDateInput';
 //-----------------------------------------------CONSTANTES---------------------------------------//
 const { showSuccessSnackbar } = useSnackbar()
 const { mdAndUp, smAndDown } = useDisplay()
@@ -15,6 +16,7 @@ const { mdAndUp, smAndDown } = useDisplay()
 const {
     createSupplierAsync, supplier, deleteSupplierAsync, updateSupplierAsync
 } = useSupplier()
+
 //data header
 const headers = [
     { title: 'Razón social', key: 'razonSocial' },
@@ -64,7 +66,8 @@ const {
     telefono: '',
     email: ''
 })
-
+const { formatDate, inputDate, today
+} = useDateInput(fechaRegistro)
 //-----------------------------------------------ABRIR MODALES---------------------------------------//
 //abrir modal editar
 const handleEdit = (item) => {
@@ -197,6 +200,9 @@ const confirmDelete = async () => {
 
     <!-- Tabla -->
     <v-data-table :headers="headers" :items="filtroProveedores" no-data-text="No se encontraron proveedores">
+        <template #item.fechaRegistro="{ value }">
+            {{ formatDate(value) }}
+        </template>
         <template #[`item.actions`]="{ item }">
             <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
         </template>
@@ -249,8 +255,8 @@ const confirmDelete = async () => {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="fechaRegistro" label="Fecha de registro" :rules="[rules.fecha]"
-                                variant="underlined"></v-date-input>
+                            <v-date-input v-model="inputDate" :min="today" :display-format="formatDate"
+                                label="Fecha de registro" :rules="[rules.fecha]" variant="underlined"></v-date-input>
                         </v-col>
                     </v-row>
                 </v-container>

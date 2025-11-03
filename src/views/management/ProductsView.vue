@@ -11,6 +11,7 @@ import { useProduct } from '@/composables/query/useProduct'
 import { useSupplier } from '@/composables/query/useSupplier'
 import { useCategory } from '@/composables/query/useCategory'
 import { storageService } from '@/services/storage/imageService'
+import { useDateInput } from '@/composables/useDateInput'
 //-----------------------------------------------CONSTANTES---------------------------------------//
 const { showSuccessSnackbar } = useSnackbar()
 const ud = ref(['Unidad', 'Kilogramo', 'Litro'])
@@ -75,6 +76,17 @@ const {
     finPromocion: '',
     unidadMedida: '',
 })
+const {
+    formatDate: formatInicioPromocion,
+    inputDate: inputInicioPromocion,
+    today
+} = useDateInput(inicioPromocion)
+
+const {
+    formatDate: formatFinPromocion,
+    inputDate: inputFinPromocion
+    // No necesitas 'today' otra vez, ya lo tienes arriba
+} = useDateInput(finPromocion)
 
 //-----------------------------------------------SUBIDA DE IMAGEN---------------------------------------//
 
@@ -250,9 +262,7 @@ const confirmDelete = async () => {
         <v-col cols="12" class="text-center py-16">
             <v-icon size="64" color="grey-lighten-1">mdi-package-variant-closed</v-icon>
             <p class="text-h6 text-grey mt-4">No se encontraron productos</p>
-            <p class="text-body-2 text-grey-lighten-1">
-                Intenta ajustar los filtros de búsqueda
-            </p>
+
         </v-col>
     </v-row>
     <!-- modal crear -->
@@ -287,14 +297,14 @@ const confirmDelete = async () => {
                         </v-col>
                         <!-- precio unitario -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Precio unitario" type="number" variant="underlined"
-                                v-model="precioUnitario" step="1" :rules="[rules.required, rules.precio]"
+                            <v-text-field label="Precio unitario" v-model="precioUnitario" type="number"
+                                variant="underlined" step="1" :rules="[rules.required, rules.precio]"
                                 prefix="S/ "></v-text-field>
                         </v-col>
                         <!-- precio promociom -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Precio promocion" type="number" variant="underlined"
-                                v-model="precioPromocion" step="0.01" prefix="S/ ">
+                            <v-text-field label="Precio promocion" v-model="precioPromocion" type="number"
+                                variant="underlined" step="0.01" prefix="S/ ">
                             </v-text-field>
                         </v-col>
                         <!-- stock -->
@@ -305,13 +315,14 @@ const confirmDelete = async () => {
                         </v-col>
                         <!-- inicion promocio -->
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="inicioPromocion" label="Inicio de promocion"
-                                variant="underlined"></v-date-input>
+                            <v-date-input label="Inicio de promocion" variant="underlined"
+                                v-model="inputInicioPromocion" :min="today"
+                                :display-format="formatInicioPromocion"></v-date-input>
                         </v-col>
                         <!-- fin promocion -->
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="finPromocion" label="Fin de promocion"
-                                variant="underlined"></v-date-input>
+                            <v-date-input v-model="inputFinPromocion" :min="today" label="Fin de promocion"
+                                variant="underlined" :display-format="formatFinPromocion"></v-date-input>
                         </v-col>
                         <!-- unidad de medida -->
                         <v-col cols="12" md="6">
@@ -475,7 +486,7 @@ const confirmDelete = async () => {
                                     </div>
                                     <div v-if="productDetail.inicioPromocion"
                                         class="text-body-3 font-weight-bold mb-3 text-center">
-                                        {{ productDetail.inicioPromocion }}
+                                        {{ formatInicioPromocion(productDetail.inicioPromocion) }}
                                     </div>
                                     <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>
                                 </v-col>
@@ -488,7 +499,7 @@ const confirmDelete = async () => {
 
                                     <div v-if="productDetail.finPromocion"
                                         class="text-body-3 font-weight-bold mb-3 text-center">
-                                        {{ productDetail.finPromocion }}
+                                        {{ formatFinPromocion(productDetail.finPromocion) }}
                                     </div>
 
                                     <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>

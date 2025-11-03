@@ -11,6 +11,7 @@ import { useRole } from '@/composables/query/useRole';
 import { useEmployee } from '@/composables/query/useEmployee';
 import { storageService } from '@/services/storage/imageService';
 import { useSnackbar } from '@/stores/snackbar';
+import { useDateInput } from '@/composables/useDateInput';
 //-----------------------------------------------CONSTANTES---------------------------------------//
 
 const { mdAndUp, smAndDown } = useDisplay()
@@ -30,6 +31,7 @@ const employeeDetailModal = ref(false)
 const modalTitle = computed(() => (employeeEdit.value ? 'Editar Empleado' : 'Crear Empleado'))
 const actionLabel = computed(() => (employeeEdit.value ? 'Actualizar' : 'Crear'))
 const employeeEdit = ref(null)
+
 //-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
 const handleActionFabMenu = (type) => {
 
@@ -56,10 +58,12 @@ const {
     direccion: '',
     clave: '',
     imagen: '',
-    fechaNacimiento: '',
+    fechaNacimiento: null,
     rolId: '',
 
 })
+const { formatDate, inputDate, today } = useDateInput(fechaNacimiento)
+
 //-----------------------------------------------SUBIDA DE IMAGEN---------------------------------------//
 const previewUrl = ref(null)
 //cambio de imagen
@@ -251,8 +255,8 @@ const confirmDelete = async () => {
                         </v-col>
                         <!-- fecha nacimineto -->
                         <v-col cols="12" md="6">
-                            <v-date-input label="Fecha de nacimiento" variant="underlined" v-model="fechaNacimiento"
-                                :rules="[rules.required]"></v-date-input>
+                            <v-date-input label="Fecha de nacimiento" variant="underlined" v-model="inputDate"
+                                :rules="[rules.required]" :min="today" :display-format="formatDate"></v-date-input>
                         </v-col>
 
                         <!-- direccion -->
@@ -430,8 +434,9 @@ const confirmDelete = async () => {
                                         <v-icon color="primary" size="22" class="mr-2">mdi-calendar-account</v-icon>
                                         <span class="text-body-2 font-weight-bold">Fecha de Nacimiento</span>
                                     </div>
+
                                     <div class="text-body-1 font-weight-medium ml-8">
-                                        {{ emp.fechaNacimiento }}
+                                        {{ formatDate(emp.fechaNacimiento) }}
                                     </div>
                                 </v-col>
 
