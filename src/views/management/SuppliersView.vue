@@ -8,23 +8,10 @@ import { useSnackbar } from '@/stores/snackbar';
 import { useForm } from '@/composables/useForm';
 import { useDisplay } from 'vuetify';
 import { useSupplier } from '@/composables/query/useSupplier';
-
+import { useDateInput } from '@/composables/useDateInput';
+//-----------------------------------------------CONSTANTES---------------------------------------//
 const { showSuccessSnackbar } = useSnackbar()
 const { mdAndUp, smAndDown } = useDisplay()
-
-//filtros
-const filtros = reactive({
-    rangoFechas: [],
-})
-const selectFilter = computed(() => [
-    {
-        key: 'rangoFechas',
-        label: 'Rango de fechas',
-        type: 'range',
-        model: filtros.rangoFechas
-    }
-])
-
 //servicio
 const {
     createSupplierAsync, supplier, deleteSupplierAsync, updateSupplierAsync
@@ -42,17 +29,28 @@ const headers = [
     { title: 'Email', key: 'email' },
     { title: 'Acción', key: 'actions', sortable: false }
 ]
-
 //actualizar nombre y boton del modal al actualizar
 const modalTitle = computed(() => (supplierItem.value ? 'Editar Proveedor' : 'Crear Proveedor'))
 const actionLabel = computed(() => (supplierItem.value ? 'Actualizar' : 'Crear'))
 const supplierItem = ref(null)
 const editingSupplier = ref(null)
-
 //modales
 const supplierFormModal = ref(false)
 const filterDialog = ref(false)
 const supplierDeleteModal = ref(false)
+//-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
+//acciones del fab
+const handleActionFabMenu = (type) => {
+
+    if (type === 'add') {
+        supplierItem.value = false
+        supplierFormModal.value = true
+    }
+    if (type === 'filter') {
+        filterDialog.value = true
+    }
+}
+//-----------------------------------------------DATA---------------------------------------//
 
 const {
     formRef, formData, asignForm, resetForm, rules, handleSubmit
@@ -68,38 +66,92 @@ const {
     telefono: '',
     email: ''
 })
+const { formatDate, inputDate, today
+} = useDateInput(fechaRegistro)
+//-----------------------------------------------ABRIR MODALES---------------------------------------//
+//abrir modal editar
+const handleEdit = (item) => {
+    supplierItem.value = item
+    asignForm(supplierItem.value)
+    supplierFormModal.value = true
 
-//acciones del fab
-const handleActionFabMenu = (type) => {
-
-    if (type === 'add') {
-        supplierItem.value = false
-        supplierFormModal.value = true
-    }
-    if (type === 'filter') {
-        filterDialog.value = true
-    }
 }
+watch(supplierFormModal, (isOpen) => {
+    if (!isOpen) resetForm()
+    supplier.value = null
+})
 //abrir modal eliminar
-
 const handleDelete = (item) => {
-
     supplierDeleteModal.value = true
-
     console.log("proveedor eliminado con id" + item.nombre)
 }
-const confirmDelete = async () => {
-    try {
-        editingSupplier.value = supplier.value[0]
-        console.log("id " + editingSupplier.value.id)
-        await deleteSupplierAsync(editingSupplier.value.id)
-        showSuccessSnackbar('Eliminado correctamente')
-        supplierDeleteModal.value = false
-    } catch (error) {
-        console.log(error)
+
+//-----------------------------------------------FILTROS---------------------------------------//
+//filtros
+const filtros = reactive({
+    rangoFechas: [],
+})
+const selectFilter = computed(() => [
+    {
+        key: 'rangoFechas',
+        label: 'Rango de fechas',
+        type: 'range',
+        model: filtros.rangoFechas
     }
-}
-//creare proveedor
+])
+// filtros
+const search = ref('')
+
+const filtroProveedores = computed(() => {
+    if (!Array.isArray(supplier.value)) return []
+
+    let resultado = supplier.value
+
+    const query = search.value.toLowerCase().trim()
+    if (query) {
+        resultado = resultado.filter(s => {
+            const razonSocial = s.razonSocial?.toLowerCase() || ''
+            const telefono = s.telefono?.toString() || ''
+            return (
+                razonSocial.includes(query) ||
+                telefono.includes(query)
+            )
+        })
+    }
+
+    if (Array.isArray(filtros.rangoFechas) && filtros.rangoFechas.length >= 2) {
+        const fechaInicio = filtros.rangoFechas[0]
+        const fechaFin = filtros.rangoFechas[filtros.rangoFechas.length - 1]
+
+        if (fechaInicio && fechaFin) {
+            const formatearFecha = (fecha) => {
+                const año = fecha.getFullYear()
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+                const dia = String(fecha.getDate()).padStart(2, '0')
+                return `${año}-${mes}-${dia}`
+            }
+
+            const fechaInicioStr = formatearFecha(fechaInicio)
+            const fechaFinStr = formatearFecha(fechaFin)
+
+
+
+            resultado = resultado.filter(s => {
+                if (!s.fechaRegistro) return false
+
+                const fechaRegistroStr = s.fechaRegistro.split('T')[0]
+                const cumple = fechaRegistroStr >= fechaInicioStr && fechaRegistroStr <= fechaFinStr
+
+                return cumple
+            })
+
+        }
+    }
+
+    return resultado
+})
+//-----------------------------------------------ACCIONES---------------------------------------//
+//agregar y editar
 const handleCreateSupplier = async () => {
     try {
         if (supplierItem.value) {
@@ -114,52 +166,19 @@ const handleCreateSupplier = async () => {
         console.log(error)
     }
     supplierFormModal.value = false
-
-
 }
-//cerrar modal de crear
-const closeFormModal = () => {
-    supplierFormModal.value = false
-    resetForm()
+//eliminar
+const confirmDelete = async () => {
+    try {
+        editingSupplier.value = supplier.value[0]
+        console.log("id " + editingSupplier.value.id)
+        await deleteSupplierAsync(editingSupplier.value.id)
+        showSuccessSnackbar('Eliminado correctamente')
+        supplierDeleteModal.value = false
+    } catch (error) {
+        console.log(error)
+    }
 }
-//cerar modal de eliminar
-const close = () => {
-    supplierDeleteModal.value = false
-}
-//abrir edicion
-const handleEdit = (item) => {
-    supplierItem.value = item
-    asignForm(supplierItem.value)
-    supplierFormModal.value = true
-
-}
-watch(supplierFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
-    supplier.value = null
-})
-
-// filtros
-
-const search = ref('')
-
-const filtroProveedores = computed(() => {
-
-    if (!Array.isArray(supplier.value)) return []
-
-    const query = search.value.toLowerCase().trim()
-    if (!query) return supplier.value
-
-    return supplier.value.filter(s => {
-        const razonSocial = s.razonSocial?.toLowerCase() || ''
-        const telefono = s.telefono?.toString()
-
-        return (
-            razonSocial.includes(query) ||
-            telefono.includes(query)
-        )
-    })
-})
-
 </script>
 
 <template>
@@ -180,7 +199,10 @@ const filtroProveedores = computed(() => {
 
 
     <!-- Tabla -->
-    <v-data-table :headers="headers" :items="filtroProveedores">
+    <v-data-table :headers="headers" :items="filtroProveedores" no-data-text="No se encontraron proveedores">
+        <template #item.fechaRegistro="{ value }">
+            {{ formatDate(value) }}
+        </template>
         <template #[`item.actions`]="{ item }">
             <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
         </template>
@@ -205,7 +227,7 @@ const filtroProveedores = computed(() => {
 
                         <v-col cols="12" md="6">
                             <v-mask-input label="Ruc" variant="underlined" v-model="ruc"
-                                :rules="[rules.required, rules.distinct(supplier, 'ruc', supplierItem?.id)]"
+                                :rules="[rules.required, rules.ruc, rules.distinct(supplier, 'ruc', supplierItem?.id)]"
                                 mask="###########"></v-mask-input>
                         </v-col>
 
@@ -233,8 +255,8 @@ const filtroProveedores = computed(() => {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-date-input v-model="fechaRegistro" label="Fecha de registro" :rules="[rules.fecha]"
-                                variant="underlined"></v-date-input>
+                            <v-date-input v-model="inputDate" :min="today" :display-format="formatDate"
+                                label="Fecha de registro" :rules="[rules.fecha]" variant="underlined"></v-date-input>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -242,7 +264,7 @@ const filtroProveedores = computed(() => {
 
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="closeFormModal()"></v-btn>
+                <v-btn class="ms-auto" text="Cerrar" @click="supplierFormModal = false"></v-btn>
                 <v-btn class="ms-auto" :text="actionLabel" variant="tonal" color="primary"
                     @click="handleSubmit(handleCreateSupplier)"></v-btn>
 
@@ -287,7 +309,7 @@ const filtroProveedores = computed(() => {
 
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
-                <v-btn text="Cerrar" @click="close"></v-btn>
+                <v-btn text="Cerrar" @click="supplierDeleteModal = false"></v-btn>
                 <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>

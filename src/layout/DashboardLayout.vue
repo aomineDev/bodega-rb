@@ -55,6 +55,7 @@
         :value="item.value"
         :to="item.to"
         color="primary"
+        exact
       ></v-list-item>
 
       <v-divider></v-divider>
@@ -175,13 +176,13 @@ const cajaitems = [
   },
 ]
 const inventarioItems = [
+  { title: 'inventario', icon: 'mdi-clipboard-outline', value: 'inventario', to: '/inventario' },
   {
     title: 'Toma de inventario',
-    icon: 'mdi-clipboard-list',
+    icon: 'mdi-clipboard-check-outline',
     value: 'toma-inventario',
-    to: '/inventory/toma-inventario',
+    to: '/inventario/toma',
   },
-  { title: 'Auditoría', icon: 'mdi-magnify', value: 'auditoria', to: '/inventory/auditoria' },
 ]
 
 const gestionItems = [

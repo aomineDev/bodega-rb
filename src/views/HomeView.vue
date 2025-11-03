@@ -1,16 +1,16 @@
 <script setup>
-import { ref } from 'vue'
-import { usePruebas } from '@/composables/query/usePrueba'
+// import { ref } from 'vue'
+// import { usePruebas } from '@/composables/query/usePrueba'
 
-const id = ref(null)
-const { pruebas, isPending, isError, error, getQuery } = usePruebas()
+// const id = ref(null)
+// const { pruebas, isPending, isError, error, getQuery } = usePruebas()
 
-const { data: prueba } = getQuery(id)
+// const { data: prueba } = getQuery(id)
 </script>
 
 <template>
   <h1>Home</h1>
-  <div v-if="isPending">
+  <!-- <div v-if="isPending">
     <h1>Loading...</h1>
   </div>
   <div v-else-if="isError">
@@ -30,5 +30,5 @@ const { data: prueba } = getQuery(id)
     <div v-if="prueba">
       <h1>{{ prueba.name }}</h1>
     </div>
-  </div>
+  </div> -->
 </template>
