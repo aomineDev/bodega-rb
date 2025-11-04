@@ -78,6 +78,7 @@ const headers = computed(() => {
 const { formatDate } = useDateInput(ref(null), 'keyboardDate')
 
 const items = computed(() => {
+
   const data = filtros.tipoComprobante === 'Boletas'
     ? tickets.value || []
     : bills.value || []

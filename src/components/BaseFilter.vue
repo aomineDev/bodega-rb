@@ -15,25 +15,25 @@ defineEmits(['update:search', 'update:filter'])
 <template>
   <v-row dense>
     <v-col cols="12" md="6">
-      <v-text-field :model-value="search" @update:model-value="$emit('update:search', $event)" label="Buscar"
-        prepend-inner-icon="mdi-magnify" variant="underlined" hide-details />
+      <v-text-field color="primary" clearable :model-value="search" @update:model-value="$emit('update:search', $event)"
+        label="Buscar" prepend-inner-icon="mdi-magnify" variant="underlined" hide-details />
     </v-col>
 
     <!-- Campos dinámicos -->
     <template v-for="filter in filters" :key="filter.key">
       <v-col cols="12" md="6" lg="3">
-        <!-- Buscador -->
-        <v-select v-if="filter.type === 'select'" :model-value="filter.model"
+        <!-- Select -->
+        <v-select color="primary" v-if="filter.type === 'select'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :items="filter.items"
           :label="filter.label" variant="underlined" :item-title="filter.itemTitle" :item-value="filter.itemValue"
           hide-details />
         <!-- Date simple -->
-        <v-date-input clearable v-else-if="filter.type === 'date'" :model-value="filter.model"
+        <v-date-input color="primary" clearable v-else-if="filter.type === 'date'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :label="filter.label"
           variant="underlined" hide-details />
 
         <!-- Date Range -->
-        <v-date-input v-else-if="filter.type === 'range'" :model-value="filter.model"
+        <v-date-input color="primary" v-else-if="filter.type === 'range'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :label="filter.label"
           multiple="range" variant="underlined" clearable hide-details />
 
