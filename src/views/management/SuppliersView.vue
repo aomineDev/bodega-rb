@@ -14,7 +14,7 @@ const { showSuccessSnackbar } = useSnackbar()
 const { mdAndUp, smAndDown } = useDisplay()
 //servicio
 const {
-    createSupplierAsync, supplier, deleteSupplierAsync, updateSupplierAsync
+    createSupplierAsync, supplier, deleteSupplierAsync, updateSupplierAsync, isPending,
 } = useSupplier()
 
 //data header
@@ -176,7 +176,8 @@ const confirmDelete = async () => {
 
 
     <!-- Tabla -->
-    <v-data-table :headers="headers" :items="filtroProveedores" :search no-data-text="No se encontraron proveedores">
+    <v-data-table :headers="headers" :items="filtroProveedores" :search :loading="isPending"
+        loading-text="Cargando proveedores..." no-data-text="No se encontraron proveedores">
         <template #item.fechaRegistro="{ value }">
             {{ formatDate(value) }}
         </template>
@@ -193,19 +194,18 @@ const confirmDelete = async () => {
                 <v-container fluid>
                     <v-row>
                         <v-col cols="12" md="6">
+                            <v-mask-input label="Ruc" variant="underlined" v-model="ruc"
+                                :rules="[rules.required, rules.ruc, rules.distinct(supplier, 'ruc', supplierItem?.id)]"
+                                mask="###########" :counter="11"></v-mask-input>
+                        </v-col>
+                        <v-col cols="12" md="6">
                             <v-text-field label="Razon social" variant="underlined" v-model="razonSocial"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Actividad economica" variant="underlined" v-model="actividadEconomica"
-                                :rules="[rules.required]"></v-text-field>
-                        </v-col>
-
-                        <v-col cols="12" md="6">
-                            <v-mask-input label="Ruc" variant="underlined" v-model="ruc"
-                                :rules="[rules.required, rules.ruc, rules.distinct(supplier, 'ruc', supplierItem?.id)]"
-                                mask="###########"></v-mask-input>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
@@ -223,7 +223,7 @@ const confirmDelete = async () => {
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Tipo contribuyente" variant="underlined" v-model="tipoContribuyente"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">

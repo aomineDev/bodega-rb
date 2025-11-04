@@ -251,26 +251,32 @@ const confirmDelete = async () => {
             <v-form ref="formRef" class="pa-3">
                 <v-container fluid>
                     <v-row>
+                        <v-col cols="12" md="6">
+                            <v-mask-input label="Dni" variant="underlined" v-model="dni"
+                                :rules="[rules.required, rules.dni, rules.distinct(employee, 'dni', employeeEdit?.id)]"
+                                mask="########">
+                            </v-mask-input>
+                        </v-col>
                         <!-- nombre -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre" variant="underlined" v-model="nombre"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
 
                         <!-- apellido paterno -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Apellido Paterno" variant="underlined" v-model="apellidoPaterno"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
                         <!-- apellido marterno -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Apellido Materno" variant="underlined" v-model="apellidoMaterno"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
                         <!-- fecha nacimineto -->
                         <v-col cols="12" md="6">
                             <v-date-input label="Fecha de nacimiento" variant="underlined" v-model="inputDate"
-                                :min="today" :display-format="formatDate"></v-date-input>
+                                :max="today" :display-format="formatDate" :rules="[rules.required]"></v-date-input>
                         </v-col>
 
                         <!-- direccion -->
@@ -298,15 +304,10 @@ const confirmDelete = async () => {
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-text-field label="Clave" variant="underlined" v-model="clave" type="password"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.min6]"></v-text-field>
 
                         </v-col>
-                        <v-col cols="12" md="6">
-                            <v-mask-input label="Dni" variant="underlined" v-model="dni"
-                                :rules="[rules.required, rules.dni, rules.distinct(employee, 'dni', employeeEdit?.id)]"
-                                mask="########">
-                            </v-mask-input>
-                        </v-col>
+
                         <v-col cols="12" md="6">
                             <v-file-input label="Imagen" variant="underlined" @update:model-value="onImageChange"
                                 v-model="imagen"></v-file-input>

@@ -270,12 +270,12 @@ const confirmDelete = async () => {
                         <!-- codigo de barra -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Codigo de barra" variant="underlined" v-model="codigoBarra"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.distinct(product, 'codigoBarra', productItem?.id)]"></v-text-field>
                         </v-col>
                         <!-- nombre -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre" variant="underlined" v-model="nombre"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
                         <!-- categoria -->
                         <v-col cols="12" md="6">
