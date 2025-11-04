@@ -32,6 +32,11 @@ const filterDialog = ref(false)
 const selectedEntry = ref(null)
 const selectedProductToDelete = ref(null)
 
+// Props y emisores
+const detallesModal = ref(false)
+const selectedIngreso = ref(null)
+const observacionesJefe = ref('')
+
 // Busqueda y filtros
 const search = ref('')
 const filtros = reactive({
@@ -42,14 +47,6 @@ const filtros = reactive({
   estado: null
 })
 
-// const selectFilter = computed(() => [
-//   {
-//     key: 'rangoFechas',
-//     label: 'Rango de fechas',
-//     type: 'range',
-//     model: filtros.rangoFechas,
-//   }
-// ])
 const selectFilter = computed(() => [
   {
     key: 'fechaInicio',
@@ -94,7 +91,7 @@ const headers = [
   { title: '# Ingreso', key: 'id' },
   { title: 'Proveedor', key: 'proveedor' },
   { title: 'Asistente', key: 'asistente' },
-  { title: 'Observación', key: 'observacion' },
+  // { title: 'Observación', key: 'observacion' },
   { title: 'Fecha', key: 'fecha' },
   { title: 'Hora', key: 'hora' },
   { title: 'Total', key: 'total' },
@@ -112,6 +109,18 @@ const headersProductos = [
   { title: 'F. venc.', key: 'fechaVencimiento' },
   { title: 'Acciones', key: 'actions', sortable: false },
 ]
+
+// Headers de la tabla de productos en el modal
+const headersDetalles = [
+  { title: 'Producto', key: 'producto' },
+  { title: 'Cantidad', key: 'cantidad' },
+  { title: 'Precio Compra', key: 'precioCompra' },
+  { title: 'Subtotal', key: 'subtotal' },
+  { title: 'Lote', key: 'lote' },
+  { title: 'F. Producción', key: 'fechaProduccion' },
+  { title: 'F. Vencimiento', key: 'fechaVencimiento' },
+]
+
 
 // Formulario
 const {
@@ -201,7 +210,7 @@ const items = computed(() => {
     asistente: entry.asistenteAlmacen
       ? `${entry.asistenteAlmacen.nombre ?? ''} ${entry.asistenteAlmacen.apellidoPaterno ?? ''}`
       : '-',
-    observacion: entry.observaciones ?? '-',
+    // observacion: entry.observaciones ?? '-',
     fecha: entry.fechaIngreso ?? '-',
     hora: entry.horaIngreso ?? '-',
     total: `S/ ${calcularTotal(entry.detalleIngresos ?? []).toFixed(2)}`,
@@ -213,17 +222,17 @@ const items = computed(() => {
 
 
 // CRUD - Ver detalles
-const handleView = (item) => {
-  console.log('Ver detalles de', item)
-  showSuccessSnackbar(`Viendo detalles del ingreso #${item.id}`)
-}
+// const handleView = (item) => {
+//   console.log('Ver detalles de', item)
+//   showSuccessSnackbar(`Viendo detalles del ingreso #${item.id}`)
+// }
 
 // crud - editar
 const handleEdit = (item) => {
   selectedEntry.value = item.rawData
 
   proveedorId.value = item.rawData.proveedor?.id || ''
-  observaciones.value = item.rawData.observaciones || ''
+  // observaciones.value = item.rawData.observaciones || ''
 
   if (!item.rawData.detalleIngresos || item.rawData.detalleIngresos.length === 0) {
     itemsProductos.value = []
@@ -348,10 +357,10 @@ const finishEntryProduct = async () => {
     return
   }
 
-  const now = new Date();
+  const now = new Date()
+
   const ingresoData = {
     proveedor: { id: proveedorId.value },
-    observaciones: observaciones.value,
     fechaIngreso: now.toISOString().split('T')[0],
     horaIngreso: now.toTimeString().split(' ')[0],
     estado: 'Pendiente',
@@ -411,10 +420,165 @@ const handleActionFabMenu = (type) => {
   }
 }
 
+
+// Computed para formatear los productos del ingreso seleccionado
+const productosDetalle = computed(() => {
+  console.log('selectedIngreso.value:', selectedIngreso.value)
+
+  if (!selectedIngreso.value?.detalleIngresos) {
+    console.log('No hay detalleIngresos')
+    return []
+  }
+
+  console.log('detalleIngresos:', selectedIngreso.value.detalleIngresos)
+
+  return selectedIngreso.value.detalleIngresos.map(detalle => ({
+    producto: detalle.producto?.nombre ?? '-',
+    cantidad: detalle.cantidad ?? 0,
+    precioCompra: `S/ ${(detalle.precioCompra ?? 0).toFixed(2)}`,
+    subtotal: `S/ ${((detalle.cantidad ?? 0) * (detalle.precioCompra ?? 0)).toFixed(2)}`,
+    lote: detalle.lote ?? '-',
+    fechaProduccion: detalle.fechaProduccion ?? '-',
+    fechaVencimiento: detalle.fechaVencimiento ?? '-',
+  }))
+})
+
+// Computed para calcular el total del ingreso
+const totalIngreso = computed(() => {
+  if (!selectedIngreso.value?.detalleIngresos) return '0.00'
+
+  const total = selectedIngreso.value.detalleIngresos.reduce(
+    (acc, d) => acc + ((d.cantidad ?? 0) * (d.precioCompra ?? 0)),
+    0
+  )
+
+  return total.toFixed(2)
+})
+
+// Función para abrir el modal (llamar desde el componente padre)
+const abrirDetalles = (ingreso) => {
+  console.log('Abriendo detalles con ingreso:', ingreso)
+  selectedIngreso.value = ingreso.rawData || ingreso
+  observacionesJefe.value = ingreso.observacionesJefe || ''
+  detallesModal.value = true
+}
+
+// Funcion para cerrar el modal
+const cerrarModal = () => {
+  detallesModal.value = false
+  selectedIngreso.value = null
+  observacionesJefe.value = ''
+}
+
+// Función para aprobar el ingreso
+const aprobarIngreso = async () => {
+  if (!selectedIngreso.value) return
+
+  try {
+    const now = new Date()
+
+    await updateProductEntryAsync({
+      id: selectedIngreso.value.id,
+      proveedor: { id: selectedIngreso.value.proveedor?.id },
+      observaciones: observacionesJefe.value,
+      fechaIngreso: selectedIngreso.value.fechaIngreso,
+      horaIngreso: selectedIngreso.value.horaIngreso,
+      estado: 'Aprobado',
+      fechaAprobacion: now.toISOString().split('T')[0],
+      // observacionesJefe: observacionesJefe.value,
+      asistenteAlmacen: { id: selectedIngreso.value.asistenteAlmacen?.id },
+      jefeAlmacen: { id: selectedIngreso.value.jefeAlmacen?.id },
+      detalleIngresos: selectedIngreso.value.detalleIngresos.map(item => ({
+        id: item.id,
+        producto: { id: item.producto?.id },
+        cantidad: item.cantidad,
+        precioCompra: item.precioCompra,
+        lote: item.lote,
+        fechaProduccion: item.fechaProduccion,
+        fechaVencimiento: item.fechaVencimiento
+      }))
+    })
+
+    showSuccessSnackbar('Ingreso aprobado correctamente')
+    cerrarModal()
+  } catch (error) {
+    console.error('Error al aprobar ingreso:', error)
+    showErrorSnackbar('Error al aprobar el ingreso')
+  }
+}
+
+// Funcion para rechazar el ingreso
+const rechazarIngreso = async () => {
+  if (!selectedIngreso.value) return
+
+  if (!observacionesJefe.value.trim()) {
+    showErrorSnackbar('Debes agregar observaciones para rechazar el ingreso')
+    return
+  }
+  const now = new Date()
+  try {
+    await updateProductEntryAsync({
+      id: selectedIngreso.value.id,
+      proveedor: { id: selectedIngreso.value.proveedor?.id },
+      observaciones: observacionesJefe.value,
+      fechaIngreso: selectedIngreso.value.fechaIngreso,
+      horaIngreso: selectedIngreso.value.horaIngreso,
+      estado: 'Rechazado',
+      fechaAprobacion: now.toISOString().split('T')[0],
+      asistenteAlmacen: { id: selectedIngreso.value.asistenteAlmacen?.id },
+      jefeAlmacen: { id: selectedIngreso.value.jefeAlmacen?.id },
+      detalleIngresos: selectedIngreso.value.detalleIngresos.map(item => ({
+        id: item.id,
+        producto: { id: item.producto?.id },
+        cantidad: item.cantidad,
+        precioCompra: item.precioCompra,
+        lote: item.lote,
+        fechaProduccion: item.fechaProduccion,
+        fechaVencimiento: item.fechaVencimiento
+      }))
+    })
+
+    showSuccessSnackbar('Ingreso rechazado')
+    cerrarModal()
+  } catch (error) {
+    console.error('Error al rechazar ingreso:', error)
+    showErrorSnackbar('Error al rechazar el ingreso')
+  }
+}
+
+/////////
+// watch(selectedIngreso, async (nuevo) => {
+//   if (nuevo) {
+//     await nextTick()
+//   }
+// })
+/////////
+
+
+
+
+
+
+
 // Watch para limpiar al cerrar modal
 watch(productFormModal, (isOpen) => {
   if (!isOpen) {
     closeFormModal()
+  }
+})
+
+// Cuando se selecciona un ingreso (abrir modal)
+watch(selectedIngreso, (nuevo) => {
+  if (nuevo) {
+    if (nuevo.estado === 'Rechazado') {
+      observacionesJefe.value = nuevo.observacion || nuevo.observaciones || ''
+    }
+    else if (nuevo.estado === 'Pendiente') {
+      observacionesJefe.value = ''
+    }
+    else if (nuevo.estado === 'Aprobado') {
+      observacionesJefe.value = nuevo.observacion || nuevo.observaciones || ''
+    }
   }
 })
 </script>
@@ -448,7 +612,7 @@ watch(productFormModal, (isOpen) => {
   <v-data-table :headers="headers" :items="items">
     <template #[`item.actions`]="{ item }">
       <action-menu
-        @view="() => handleView(item)"
+        @view="() => abrirDetalles(item)"
         @edit="() => handleEdit(item)"
         @delete="() => handleDelete(item)"
       />
@@ -476,14 +640,14 @@ watch(productFormModal, (isOpen) => {
                   />
                 </v-col>
 
-                <v-col cols="12">
+                <!-- <v-col cols="12">
                   <v-textarea
                     v-model="observaciones"
                     label="Observaciones"
                     variant="underlined"
                     rows="2"
                   />
-                </v-col>
+                </v-col> -->
 
                 <v-divider class="my-3" />
 
@@ -575,6 +739,7 @@ watch(productFormModal, (isOpen) => {
                 :items="itemsProductos"
                 class="elevation-1"
                 density="compact"
+                :items-per-page="10"
               >
                 <template #[`item.precioCompra`]="{ item }">
                   S/ {{ item.precioCompra.toFixed(2) }}
@@ -664,6 +829,128 @@ watch(productFormModal, (isOpen) => {
     v-model:FormModal="productFormModal"
     v-model:filterDialog="filterDialog"
   />
+
+  <!-- Modal de detalles del ingreso -->
+  <v-dialog v-model="detallesModal" max-width="900" persistent>
+    <v-card v-if="selectedIngreso">
+      <v-card-title class="d-flex justify-space-between align-center bg-primary text-white pa-4">
+        <div class="d-flex align-center">
+          <v-icon class="mr-2">mdi-file-document-outline</v-icon>
+          <span class="text-h5">Detalles del Ingreso #{{ String(selectedIngreso.id).padStart(3, '0') }}</span>
+        </div>
+        <v-btn icon variant="text" @click="cerrarModal">
+          <v-icon color="white">mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+
+      <v-card-text class="pa-6">
+        <v-row class="mb-4">
+          <v-col cols="12" md="6">
+            <div class="mb-3">
+              <span class="font-weight-bold">Proveedor:</span>
+              <span class="ml-2">{{ selectedIngreso.proveedor?.razonSocial || '-' }}</span>
+            </div>
+            <div class="mb-3">
+              <span class="font-weight-bold">Asistente:</span>
+              <span class="ml-2">
+                {{ selectedIngreso.asistenteAlmacen
+                  ? `${selectedIngreso.asistenteAlmacen.nombre || ''} ${selectedIngreso.asistenteAlmacen.apellidoPaterno || ''}`.trim()
+                  : '-'
+                }}
+              </span>
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="mb-3">
+              <span class="font-weight-bold">Fecha / Hora:</span>
+              <span class="ml-2">{{ selectedIngreso.fechaIngreso || '-' }} / {{ selectedIngreso.horaIngreso || '-' }}</span>
+            </div>
+            <div class="mb-3">
+              <span class="font-weight-bold">Estado:</span>
+              <v-chip
+                :color="selectedIngreso.estado === 'Aprobado' ? 'success' : selectedIngreso.estado === 'Rechazado' ? 'error' : 'warning'"
+                size="small"
+                class="ml-2"
+              >
+                {{ selectedIngreso.estado || 'Pendiente' }}
+              </v-chip>
+            </div>
+          </v-col>
+
+          <v-col cols="12">
+            <div class="mb-3">
+              <span class="font-weight-bold">Total:</span>
+              <span class="ml-2 text-h6 text-primary">
+                S/ {{ totalIngreso }}
+              </span>
+            </div>
+          </v-col>
+
+          <!-- <v-col cols="12" v-if="selectedIngreso.observaciones">
+            <div class="mb-3">
+              <span class="font-weight-bold">Observaciones del asistente:</span>
+              <p class="ml-2 mt-1">{{ selectedIngreso.observaciones }}</p>
+            </div>
+          </v-col> -->
+        </v-row>
+
+        <v-divider class="my-4" />
+
+        <!-- Tabla de productos -->
+        <div class="mb-4">
+          <h3 class="text-h6 mb-3">Detalle de Productos</h3>
+          <v-sheet max-height="300" class="overflow-y-auto">
+            <v-data-table
+              :headers="headersDetalles"
+              :items="productosDetalle"
+              density="compact"
+              class="elevation-1"
+              :items-per-page="-1"
+              hide-default-footer
+            >
+            </v-data-table>
+          </v-sheet>
+        </div>
+
+        <v-divider class="my-4" />
+
+        <div class="mb-4">
+          <h3 class="text-h6 mb-3">Observaciones del Jefe de Almacén</h3>
+          <v-textarea
+            v-model="observacionesJefe"
+            label="Escribe las observaciones aqui"
+            variant="outlined"
+            rows="3"
+            :readonly="selectedIngreso.estado !== 'Pendiente'"
+            :placeholder="selectedIngreso.estado !== 'Pendiente'
+              ? 'Este ingreso ya fue procesado'
+              : 'Agrega observaciones si es necesario (requerido para rechazar)'"
+          />
+
+        </div>
+      </v-card-text>
+
+      <!-- Acciones -->
+      <v-card-actions class="pa-4 bg-grey-lighten-4">
+        <v-spacer />
+        <v-btn
+          v-if="selectedIngreso.estado === 'Pendiente'"
+          text="Rechazar"
+          color="error"
+          variant="outlined"
+          @click="rechazarIngreso"
+        />
+        <v-btn
+          v-if="selectedIngreso.estado === 'Pendiente'"
+          text="Aprobar"
+          color="success"
+          variant="flat"
+          @click="aprobarIngreso"
+        />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <style scoped>

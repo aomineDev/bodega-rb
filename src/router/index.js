@@ -59,6 +59,16 @@ const router = createRouter({
             },
           ],
         },
+        {
+          path: 'almacen',
+          children: [
+            {
+              path: 'ingreso-productos',
+              component: ProductEntryView,
+            },
+          ],
+        },
+
       ],
     },
 
@@ -80,16 +90,7 @@ const router = createRouter({
         },
       ],
     },
-    {
-      path: '/almacen',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'ingreso-productos',
-          component: ProductEntryView,
-        },
-      ],
-    },
+
     {
       path: '/login',
       component: LoginView,
