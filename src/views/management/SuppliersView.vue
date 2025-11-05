@@ -159,17 +159,16 @@ const confirmDelete = async () => {
 }
 //---------------busqueda------------------------//
 const isBuscando = ref(false)
+const { getCustomerByRuc } = useIntegration()
+const { refetch: refetchRuc } = getCustomerByRuc(ruc)
 
 const searchSupplier = async () => {
-    const { getCustomerByRuc } = useIntegration()
 
-    // Validación de longitud de RUC
     if (!ruc.value || ruc.value.length < 11) {
         showWarningSnackbar('Ingrese un RUC válido (11 dígitos)')
         return
     }
 
-    // Verificar si el proveedor ya existe
     const found = supplier.value?.find(s => s.ruc === ruc.value)
     if (found) {
         showWarningSnackbar('El proveedor ya existe en la base de datos')
@@ -178,9 +177,7 @@ const searchSupplier = async () => {
 
     try {
         isBuscando.value = true
-
-        // ✅ Llamar directamente a la función sin refetch
-        const result = await getCustomerByRuc(ruc.value)
+        const result = await refetchRuc()
 
         if (result?.data) {
             const data = result.data

@@ -11,7 +11,8 @@ export const useIntegration = () => {
     error,
   } = useQuery({
     queryKey: ['integrations'],
-    queryFn: integrationService.getAll,
+    queryFn: integrationService.getAll, enabled: false,
+
   })
 
   const getCustomerByDni = (dni) =>

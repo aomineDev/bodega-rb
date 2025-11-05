@@ -201,20 +201,18 @@ const confirmDelete = async () => {
     }
 }
 //---------------busqueda------------------------//
-const { getCustomerByDni } = useIntegration()
+
 
 const isBuscando = ref(false)
-
+const { getCustomerByDni } = useIntegration()
+const { refetch: refetchDni } = getCustomerByDni(dni)
 const searchEmployee = async () => {
-    const { refetch: refetchRuc } = getCustomerByDni(dni)
 
-    // Validación de longitud de RUC
     if (!dni.value || dni.value.length < 8) {
         showWarningSnackbar('Ingrese un DNI válido')
         return
     }
 
-    // Verificar si el proveedor ya existe
     const found = employee.value?.find(s => s.dni === dni.value)
     if (found) {
         showWarningSnackbar('El empleado ya existe en la base de datos')
@@ -223,12 +221,11 @@ const searchEmployee = async () => {
 
     try {
         isBuscando.value = true
-        const result = await refetchRuc()
+        const result = await refetchDni()
 
         if (result?.data) {
             const data = result.data
 
-            // Asignar datos del proveedor
             nombre.value = data.first_name || ''
             apellidoPaterno.value = data.first_last_name || ''
             apellidoMaterno.value = data.second_last_name || ''
@@ -237,7 +234,7 @@ const searchEmployee = async () => {
             showErrorSnackbar('No se encontraron datos para este empleado')
         }
     } catch (error) {
-        console.error('Error al buscar proveedor:', error)
+        console.error('Error al buscar DNI:', error)
         showErrorSnackbar('Error al consultar DNI')
     } finally {
         isBuscando.value = false
