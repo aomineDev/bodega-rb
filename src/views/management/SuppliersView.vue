@@ -256,20 +256,6 @@ const searchSupplier = async () => {
                             <v-text-field label="Actividad economica" variant="underlined" v-model="actividadEconomica"
                                 :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
-
-                        <v-col cols="12" md="6">
-                            <v-mask-input label="Telefono" variant="underlined" v-model="telefono"
-                                :rules="[rules.required, rules.phone, rules.distinct(supplier, 'telefono', supplierItem?.id)]"
-                                mask="+51 ### ### ###">
-                            </v-mask-input>
-                        </v-col>
-
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.email, rules.required, rules.distinct(supplier, 'email', supplierItem?.id)]"></v-text-field>
-                        </v-col>
-
-
                         <v-col cols="12" md="6">
                             <v-text-field label="Tipo contribuyente" variant="underlined" v-model="tipoContribuyente"
                                 :rules="[rules.required, rules.text]"></v-text-field>
@@ -279,11 +265,25 @@ const searchSupplier = async () => {
                             <v-text-field label="Direccion" variant="underlined" v-model="direccion"
                                 :rules="[rules.required]"></v-text-field>
                         </v-col>
+                        <v-col cols="12" md="6">
+                            <v-mask-input label="Telefono" variant="underlined" v-model="telefono"
+                                :rules="[rules.required, rules.phone, rules.distinct(supplier, 'telefono', supplierItem?.id)]"
+                                mask="+51 ### ### ###">
+                            </v-mask-input>
+                        </v-col>
+
 
                         <v-col cols="12" md="6">
                             <v-date-input v-model="inputDate" :min="today" :display-format="formatDate"
                                 label="Fecha de registro" :rules="[rules.fecha]" variant="underlined"></v-date-input>
                         </v-col>
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Email" variant="underlined" v-model="email"
+                                :rules="[rules.email, rules.distinct(supplier, 'email', supplierItem?.id)]"></v-text-field>
+                        </v-col>
+
+
+
                     </v-row>
                 </v-container>
             </v-form>

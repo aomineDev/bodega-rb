@@ -266,13 +266,13 @@ const searchEmployee = async () => {
 
                     <v-divider :thickness="3"></v-divider>
 
-                    <v-card-title class="d-flex justify-space-between align-center">
-                        <span>{{ item.nombre + " " + item.apellidoPaterno }}</span>
+                    <v-card-title class="d-flex justify-space-between align-center flex-wrap">
+                        <span class="format">{{ item.nombre + " " + item.apellidoPaterno }}</span>
                         <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)">
                         </ActionMenu>
                     </v-card-title>
 
-                    <v-chip class="chip-categoria mb-3 mx-3" color="indigo" size="large">
+                    <v-chip class="chip-categoria mb-3 mx-3" color="primary" size="large">
                         {{ formatRoleName(item.rolId?.nombre) }}
                     </v-chip>
                 </v-card>
@@ -324,10 +324,7 @@ const searchEmployee = async () => {
                                 :max="today" :display-format="formatDate" :rules="[rules.required]"></v-date-input>
                         </v-col>
 
-                        <!-- direccion -->
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"></v-text-field>
-                        </v-col>
+
                         <!-- telefono -->
 
                         <v-col cols="12" md="6">
@@ -335,12 +332,6 @@ const searchEmployee = async () => {
                                 :rules="[rules.required, rules.phone, rules.distinct(employee, 'telefono', employeeEdit?.id)]"
                                 mask="+51 ### ### ###">
                             </v-mask-input>
-                        </v-col>
-
-                        <!-- email -->
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
                         </v-col>
                         <!-- roles -->
                         <v-col cols="12" md="6">
@@ -352,6 +343,15 @@ const searchEmployee = async () => {
                                 :rules="[rules.required, rules.min6]"></v-text-field>
 
                         </v-col>
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"></v-text-field>
+                        </v-col>
+                        <!-- email -->
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Email" variant="underlined" v-model="email"
+                                :rules="[rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
+                        </v-col>
+
 
                         <v-col cols="12" md="6">
                             <v-file-input label="Imagen" variant="underlined" @update:model-value="onImageChange"
@@ -455,27 +455,6 @@ const searchEmployee = async () => {
 
                             <!-- Grid de Información -->
                             <v-row class="informacion">
-                                <!-- Email -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-email</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Correo Electrónico</span>
-                                    </div>
-                                    <v-chip color="primary" variant="tonal" size="default" class="ml-8">
-                                        {{ emp.email }}
-                                    </v-chip>
-                                </v-col>
-
-                                <!-- Teléfono -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-phone</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Teléfono</span>
-                                    </div>
-                                    <v-chip color="teal" variant="tonal" size="default" class="ml-8">
-                                        {{ emp.telefono }}
-                                    </v-chip>
-                                </v-col>
 
                                 <!-- Rol -->
                                 <v-col cols="12" sm="6">
@@ -487,6 +466,28 @@ const searchEmployee = async () => {
                                         {{ formatRoleName(emp.rolId.nombre) }}
                                     </v-chip>
                                 </v-col>
+                                <!-- dni -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-card-account-details</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Dni</span>
+                                    </div>
+                                    <div class="text-body-1 font-weight-medium ml-8">
+                                        {{ emp.dni }}
+                                    </div>
+                                </v-col>
+                                <!-- Teléfono -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-phone</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Teléfono</span>
+                                    </div>
+                                    <v-chip color="teal" variant="tonal" size="default" class="ml-8">
+                                        {{ emp.telefono }}
+                                    </v-chip>
+                                </v-col>
+
+
 
                                 <!-- Fecha de Nacimiento -->
                                 <v-col cols="12" sm="6">
@@ -499,6 +500,18 @@ const searchEmployee = async () => {
                                         {{ formatDate(emp.fechaNacimiento) }}
                                     </div>
                                 </v-col>
+                                <!-- Email -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-email</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Correo Electrónico</span>
+                                    </div>
+                                    <v-chip color="primary" variant="tonal" size="default" class="ml-8">
+                                        {{ emp.email }}
+                                    </v-chip>
+                                </v-col>
+
+
 
                                 <!-- Dirección -->
                                 <v-col cols="12" sm="6">
@@ -510,16 +523,7 @@ const searchEmployee = async () => {
                                         {{ emp.direccion }}
                                     </div>
                                 </v-col>
-                                <!-- dni -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-card-account-details</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Dni</span>
-                                    </div>
-                                    <div class="text-body-1 font-weight-medium ml-8">
-                                        {{ emp.dni }}
-                                    </div>
-                                </v-col>
+
                             </v-row>
                         </v-card>
                     </v-col>
@@ -551,7 +555,13 @@ const searchEmployee = async () => {
     transform: translateY(-5px);
 }
 
-
+.format {
+    max-width: 70%;
+    /* ajusta según tu diseño */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 @media (max-width:600px) {
 
