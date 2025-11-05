@@ -9,8 +9,9 @@ import { useForm } from '@/composables/useForm';
 import { useDisplay } from 'vuetify';
 import { useSupplier } from '@/composables/query/useSupplier';
 import { useDateInput } from '@/composables/useDateInput';
+import { useIntegration } from '@/composables/query/useIntegration';
 //-----------------------------------------------CONSTANTES---------------------------------------//
-const { showSuccessSnackbar } = useSnackbar()
+const { showSuccessSnackbar, showWarningSnackbar, showErrorSnackbar } = useSnackbar()
 const { mdAndUp, smAndDown } = useDisplay()
 //servicio
 const {
@@ -156,6 +157,54 @@ const confirmDelete = async () => {
         console.log(error)
     }
 }
+//---------------busqueda------------------------//
+const isBuscando = ref(false)
+
+const searchSupplier = async () => {
+    const { getCustomerByRuc } = useIntegration()
+
+    // Validación de longitud de RUC
+    if (!ruc.value || ruc.value.length < 11) {
+        showWarningSnackbar('Ingrese un RUC válido (11 dígitos)')
+        return
+    }
+
+    // Verificar si el proveedor ya existe
+    const found = supplier.value?.find(s => s.ruc === ruc.value)
+    if (found) {
+        showWarningSnackbar('El proveedor ya existe en la base de datos')
+        return
+    }
+
+    try {
+        isBuscando.value = true
+
+        // ✅ Llamar directamente a la función sin refetch
+        const result = await getCustomerByRuc(ruc.value)
+
+        if (result?.data) {
+            const data = result.data
+
+            razonSocial.value = data.razon_social || ''
+            tipoContribuyente.value = data.tipo || ''
+            actividadEconomica.value = data.actividad_economica || ''
+            direccion.value = data.direccion || ''
+
+            showSuccessSnackbar('Datos obtenidos correctamente')
+        } else {
+            showErrorSnackbar('No se encontraron datos para este RUC')
+        }
+    } catch (error) {
+        console.error('Error al buscar proveedor:', error)
+        showErrorSnackbar('Error al consultar RUC')
+    } finally {
+        isBuscando.value = false
+    }
+}
+
+
+
+
 </script>
 
 <template>
@@ -196,7 +245,10 @@ const confirmDelete = async () => {
                         <v-col cols="12" md="6">
                             <v-mask-input label="Ruc" variant="underlined" v-model="ruc"
                                 :rules="[rules.required, rules.ruc, rules.distinct(supplier, 'ruc', supplierItem?.id)]"
-                                mask="###########" :counter="11"></v-mask-input>
+                                mask="###########" :counter="11"> <template #append-inner>
+                                    <v-btn icon="mdi-magnify" variant="text" density="compact" @click="searchSupplier()"
+                                        :loading="isBuscando" />
+                                </template></v-mask-input>
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-text-field label="Razon social" variant="underlined" v-model="razonSocial"

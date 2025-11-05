@@ -13,10 +13,11 @@ import { storageService } from '@/services/storage/imageService';
 import { useSnackbar } from '@/stores/snackbar';
 import { useDateInput } from '@/composables/useDateInput';
 import { capitalize } from '@/utils/capitalize';
+import { useIntegration } from '@/composables/query/useIntegration';
 //-----------------------------------------------CONSTANTES---------------------------------------//
 
 const { mdAndUp, smAndDown } = useDisplay()
-const { showSuccessSnackbar } = useSnackbar()
+const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 const {
     employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync
 } = useEmployee()
@@ -199,6 +200,49 @@ const confirmDelete = async () => {
         console.log("error" + error)
     }
 }
+//---------------busqueda------------------------//
+const { getCustomerByDni } = useIntegration()
+
+const isBuscando = ref(false)
+
+const searchEmployee = async () => {
+    const { refetch: refetchRuc } = getCustomerByDni(dni)
+
+    // Validación de longitud de RUC
+    if (!dni.value || dni.value.length < 8) {
+        showWarningSnackbar('Ingrese un DNI válido')
+        return
+    }
+
+    // Verificar si el proveedor ya existe
+    const found = employee.value?.find(s => s.dni === dni.value)
+    if (found) {
+        showWarningSnackbar('El empleado ya existe en la base de datos')
+        return
+    }
+
+    try {
+        isBuscando.value = true
+        const result = await refetchRuc()
+
+        if (result?.data) {
+            const data = result.data
+
+            // Asignar datos del proveedor
+            nombre.value = data.first_name || ''
+            apellidoPaterno.value = data.first_last_name || ''
+            apellidoMaterno.value = data.second_last_name || ''
+            showSuccessSnackbar('Datos obtenidos correctamente')
+        } else {
+            showErrorSnackbar('No se encontraron datos para este empleado')
+        }
+    } catch (error) {
+        console.error('Error al buscar proveedor:', error)
+        showErrorSnackbar('Error al consultar DNI')
+    } finally {
+        isBuscando.value = false
+    }
+}
 </script>
 <template>
     <h1>Empleados</h1>
@@ -254,7 +298,11 @@ const confirmDelete = async () => {
                         <v-col cols="12" md="6">
                             <v-mask-input label="Dni" variant="underlined" v-model="dni"
                                 :rules="[rules.required, rules.dni, rules.distinct(employee, 'dni', employeeEdit?.id)]"
-                                mask="########">
+                                mask="########" :counter="8">
+                                <template #append-inner>
+                                    <v-btn icon="mdi-magnify" variant="text" density="compact" @click="searchEmployee()"
+                                        :loading="isBuscando" />
+                                </template>
                             </v-mask-input>
                         </v-col>
                         <!-- nombre -->
