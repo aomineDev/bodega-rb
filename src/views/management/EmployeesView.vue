@@ -19,7 +19,7 @@ import { useIntegration } from '@/composables/query/useIntegration';
 const { mdAndUp, smAndDown } = useDisplay()
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 const {
-    employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync
+    employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync, isPending
 } = useEmployee()
 //modal eliminar
 const employeeDeleteModal = ref(false)
@@ -255,7 +255,18 @@ const searchEmployee = async () => {
         </v-row>
     </v-card>
     <!-- cartas -->
-    <v-row v-if="filtroEmpleado.length > 0">
+
+    <v-row v-if="isPending">
+
+        <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4" loading-text="Cargando proveedores...">
+            <v-skeleton-loader type="card" />
+        </v-col>
+        <!-- <v-col cols="12">
+            <div class="text-center">Cargando productos...</div>
+        </v-col> -->
+    </v-row>
+
+    <v-row v-else>
         <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in filtroEmpleado" :key="index">
             <v-hover v-slot="{ isHovering, props }">
                 <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover"
@@ -279,7 +290,7 @@ const searchEmployee = async () => {
             </v-hover>
         </v-col>
     </v-row>
-    <v-row v-else>
+    <v-row v-if="!isPending && !filtroEmpleado.length">
         <v-col cols="12" class="text-center py-16">
             <v-icon size="64" color="grey-lighten-1">mdi-account-group</v-icon>
             <p class="text-h6 text-grey mt-4">No se encontraron empleados</p>

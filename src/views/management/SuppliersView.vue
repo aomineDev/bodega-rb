@@ -206,7 +206,7 @@ const searchSupplier = async () => {
 
 <template>
 
-    <h1 class="mb-5">Proveedores</h1>
+    <h1>Proveedores</h1>
 
     <!-- filter -->
     <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
