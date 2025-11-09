@@ -60,7 +60,24 @@ const router = createRouter({
           ],
         },
         {
-          path: 'almacen',
+          path: 'caja',
+          children: [
+            {
+              path: 'ventas',
+              component: SalesView,
+            },
+            {
+              path: 'comprobantes',
+              component: VouchersView,
+            },
+            {
+              path: 'clientes',
+              component: CustomersView,
+            },
+          ],
+        },
+        {
+          path: '/almacen',
           children: [
             {
               path: 'ingreso-productos',
@@ -68,29 +85,8 @@ const router = createRouter({
             },
           ],
         },
-
       ],
     },
-
-    {
-      path: '/caja',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'ventas',
-          component: SalesView,
-        },
-        {
-          path: 'comprobantes',
-          component: VouchersView,
-        },
-        {
-          path: 'clientes',
-          component: CustomersView,
-        },
-      ],
-    },
-
     {
       path: '/login',
       component: LoginView,

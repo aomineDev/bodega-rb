@@ -5,15 +5,16 @@ import BaseFilter from '@/components/BaseFilter.vue';
 import { computed, ref } from 'vue';
 import { useSnackbar } from '@/stores/snackbar'
 import { useRouter } from 'vue-router'
-import { naturalCustomerService } from '@/services/api/naturalCustomerService';
-import { juridicalCustomerService } from '@/services/api/juridicalCustomerService';
 import { useProduct } from '@/composables/query/useProduct';
+import { useCategory } from '@/composables/query/useCategory';
 import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer';
 import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer';
 import { useBill } from '@/composables/query/useBill';
 import { useTicket } from '@/composables/query/useTicket';
+import { useIntegration } from '@/composables/query/useIntegration';
 import { useDisplay } from 'vuetify'
 import { useForm } from '@/composables/useForm';
+import { reactive } from 'vue';
 
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 
@@ -40,8 +41,17 @@ const {
 } = useProduct()
 
 const {
+  category,
+} = useCategory()
+
+const {
   naturalCustomers,
 } = useNaturalCustomer()
+
+const {
+  createCustomerByDniAsync,
+  createCustomerByRucAsync,
+} = useIntegration()
 
 const {
   juridicalCustomers,
@@ -60,14 +70,19 @@ const {
 /* --------------------   Filtros   ------------------- */
 const filterDialog = ref(false)
 const search = ref('') //busqueda
+
+const filtros = reactive({
+  categoria: 'Todos',
+})
+
 const { mdAndUp, smAndDown } = useDisplay()
 
 const filteredItems = computed(() => {
-  if (!search.value) return items.value
-  const term = search.value.toLowerCase().trim()
-  return items.value.filter((item) =>
-    item.nombre.toLowerCase().includes(term)
-  )
+  return items.value.filter(item => {
+    const matchSearch = !search.value || item.nombre.toLowerCase().includes(search.value.toLowerCase())
+    const matchCategoria = !filtros.categoria || filtros.categoria === 'Todos' || item.categoria.nombre === filtros.categoria
+    return matchSearch && matchCategoria
+  })
 })
 
 const items = computed(() => product.value || [])
@@ -80,6 +95,7 @@ const customer = ref(null)
 const selectedProduct = ref(null)
 
 const searchCustomer = async () => {
+
   const isNatural = customerType.value === 'natural';
   const value = isNatural ? dni.value : ruc.value;
 
@@ -100,8 +116,8 @@ const searchCustomer = async () => {
 
     if (!foundCustomer) {
       foundCustomer = isNatural
-        ? await crearClienteNatural(value)
-        : await crearClienteJuridico(value);
+        ? await createCustomerByDniAsync(value)
+        : await createCustomerByRucAsync(value)
     }
 
     if (foundCustomer) {
@@ -114,31 +130,6 @@ const searchCustomer = async () => {
     console.error(error);
     showErrorSnackbar('Ocurrió un error al buscar el cliente');
   }
-};
-
-const crearClienteNatural = async (dni) => {
-
-  const data = await naturalCustomerService.getCustomerByDni(dni);
-
-  if (!data) {
-    showErrorSnackbar('No existe ese número de documento');
-    return null;
-  }
-
-  showSuccessSnackbar('Cliente natural creado exitosamente');
-  return data;
-};
-
-const crearClienteJuridico = async (ruc) => {
-  const data = await juridicalCustomerService.getCustomerByRuc(ruc);
-
-  if (!data) {
-    showErrorSnackbar('No existe ese RUC');
-    return null;
-  }
-
-  showSuccessSnackbar('Cliente jurídico creado exitosamente');
-  return data;
 };
 
 const cambiarCliente = () => {
@@ -431,7 +422,16 @@ const imprimirComprobante = async () => {
         <!-- Filtros -->
         <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
           <v-row>
-            <base-filter v-model:search="search" />
+            <base-filter v-model:search="search" :filters="[
+              {
+                key: 'categoria',
+                label: 'Categoría',
+                type: 'select',
+                items: ['Todos', ...(category?.map(c => c.nombre) || [])],
+                model: filtros.categoria
+              },
+            ]" @update:filter="({ key, value }) => (filtros[key] = value)" />
+
           </v-row>
         </v-card>
 

@@ -12,6 +12,7 @@ import { useEmployee } from '@/composables/query/useEmployee';
 import { storageService } from '@/services/storage/imageService';
 import { useSnackbar } from '@/stores/snackbar';
 import { useDateInput } from '@/composables/useDateInput';
+import { capitalize } from '@/utils/capitalize';
 //-----------------------------------------------CONSTANTES---------------------------------------//
 
 const { mdAndUp, smAndDown } = useDisplay()
@@ -32,17 +33,6 @@ const modalTitle = computed(() => (employeeEdit.value ? 'Editar Empleado' : 'Cre
 const actionLabel = computed(() => (employeeEdit.value ? 'Actualizar' : 'Crear'))
 const employeeEdit = ref(null)
 
-//-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
-const handleActionFabMenu = (type) => {
-
-    if (type === 'add') {
-        employeeEdit.value = false
-        employeeFormModal.value = true
-    }
-    if (type === 'filter') {
-        filterDialog.value = true
-    }
-}
 //-----------------------------------------------DATA---------------------------------------//
 const {
     formData, handleSubmit, formRef, asignForm,
@@ -95,7 +85,13 @@ const handleView = (item) => {
 //abrir modal editar
 const handleEdit = (item) => {
     employeeEdit.value = item
-    asignForm(employeeEdit.value)
+    asignForm({
+        ...item,
+        rolId: item.rolId ? {
+            ...item.rolId,
+            nombre: formatRoleName(item.rolId.nombre)
+        } : null
+    })
     employeeFormModal.value = true
 }
 
@@ -107,7 +103,10 @@ const deleteModal = (item) => {
 }
 
 watch(employeeFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
+    if (!isOpen) {
+        resetForm()
+        employeeEdit.value = null
+    }
 })
 //-----------------------------------------------FILTROS---------------------------------------//
 const filtros = reactive({
@@ -116,13 +115,28 @@ const filtros = reactive({
 const {
     role
 } = useRole()
+const formatRoleName = (roleName) => {
+    return roleName
+        .replace('ROLE_', '')
+        .split('_')
+        .map(word => capitalize(word))
+        .join(' ')
+}
+const rolesFormateados = computed(() => {
+    if (!role.value) return []
+
+    return role.value.map(r => ({
+        ...r,
+        nombre: formatRoleName(r.nombre)
+    }))
+})
 const selectFilter = computed(() => [
     {
         key: 'rol',
         label: 'Rol',
         type: 'select',
         model: filtros.rol,
-        items: role.value,
+        items: rolesFormateados.value,
         itemTitle: 'nombre',
         itemValue: 'id',
 
@@ -194,7 +208,7 @@ const confirmDelete = async () => {
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
                 filtros[key] = value" />
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleActionFabMenu('add')">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="employeeFormModal = true">Crear
                     Empleado</v-btn>
             </v-col>
         </v-row>
@@ -218,7 +232,7 @@ const confirmDelete = async () => {
                     </v-card-title>
 
                     <v-chip class="chip-categoria mb-3 mx-3" color="indigo" size="large">
-                        {{ item.rolId?.nombre }}
+                        {{ formatRoleName(item.rolId?.nombre) }}
                     </v-chip>
                 </v-card>
             </v-hover>
@@ -256,13 +270,12 @@ const confirmDelete = async () => {
                         <!-- fecha nacimineto -->
                         <v-col cols="12" md="6">
                             <v-date-input label="Fecha de nacimiento" variant="underlined" v-model="inputDate"
-                                :rules="[rules.required]" :min="today" :display-format="formatDate"></v-date-input>
+                                :min="today" :display-format="formatDate"></v-date-input>
                         </v-col>
 
                         <!-- direccion -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"
-                                :rules="[rules.required]"></v-text-field>
+                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"></v-text-field>
                         </v-col>
                         <!-- telefono -->
 
@@ -276,12 +289,13 @@ const confirmDelete = async () => {
                         <!-- email -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.required, rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
+                                :rules="[rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
                         </v-col>
                         <!-- roles -->
                         <v-col cols="12" md="6">
-                            <v-select label="Rol" variant="underlined" :items="role" v-model="rolId" item-title="nombre"
-                                return-object :rules=[rules.rol]></v-select> </v-col>
+                            <v-select label="Rol" variant="underlined" :items="rolesFormateados" v-model="rolId"
+                                item-title="nombre" item-value="id" :rules=[rules.rol] return-object></v-select>
+                        </v-col>
                         <v-col cols="12" md="6">
                             <v-text-field label="Clave" variant="underlined" v-model="clave" type="password"
                                 :rules="[rules.required]"></v-text-field>
@@ -308,7 +322,7 @@ const confirmDelete = async () => {
 
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="modalEliminar = false"></v-btn>
+                <v-btn class="ms-auto" text="Cerrar" @click="employeeFormModal = false"></v-btn>
                 <v-btn class=" ms-auto" :text="actionLabel" variant="tonal" color="primary"
                     @click="handleSubmit(handleCreateEmployee)"></v-btn>
 
@@ -321,7 +335,7 @@ const confirmDelete = async () => {
         <v-card>
             <!-- Título centrado, grande y negro -->
             <v-card-title class="text-h5 font-weight-bold  text-black mb-8">
-                Eliminar producto
+                Eliminar empleado
             </v-card-title>
 
             <!-- Ícono centrado -->
@@ -331,7 +345,7 @@ const confirmDelete = async () => {
 
             <!-- Texto descriptivo -->
             <v-card-text class="text-center text-body-2">
-                ¿Está seguro que desea eliminar este producto? <br />
+                ¿Está seguro que desea eliminar este empleado? <br />
                 <strong>Esta acción no se puede deshacer.</strong>
             </v-card-text>
 
@@ -424,7 +438,7 @@ const confirmDelete = async () => {
                                         <span class="text-body-2 font-weight-bold">Rol / Cargo</span>
                                     </div>
                                     <v-chip color="indigo" variant="tonal" size="default" class="ml-8">
-                                        {{ emp.rolId.nombre }}
+                                        {{ formatRoleName(emp.rolId.nombre) }}
                                     </v-chip>
                                 </v-col>
 
