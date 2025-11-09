@@ -1,6 +1,5 @@
 import { apiFetch } from '../api/apiClient'
 import { apiConfig } from '../../config/api'
-import { useRouter } from 'vue-router'
 
 const { API_URL } = apiConfig
 
@@ -19,13 +18,6 @@ export const authService = {
     const data = await response.json()
 
     return data
-  },
-  logout: () => {
-    console.log('borrar del pinia')
-    console.log('borrar de local storage')
-    const router = useRouter()
-
-    router.push('/login?logout=true')
   },
   getCurrentUser: async () => apiFetch('/auth/me'),
 }

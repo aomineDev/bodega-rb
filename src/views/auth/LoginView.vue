@@ -1,41 +1,32 @@
-<script setup>
-import { useForm } from '@/composables/useForm'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-const { isValid, formData, formRef, rules, dni, password } = useForm({
-  dni: null,
-  password: null,
-})
-const successLogin = ref(false)
-const show = ref(false)
-
-async function handleLogin() {
-  const valid = await isValid()
-
-  if (!valid) return
-
-  successLogin.value = true
-  console.log(formData.value)
-
-  setTimeout(() => {
-    router.push('/home')
-  }, 1500)
-}
-</script>
-
 <template>
   <div class="login d-flex justify-center align-center" :class="{ active: successLogin }">
     <v-card min-width="400" class="pa-8 form">
-      <v-form ref="formRef">
+      <v-form ref="formRef" @submit.prevent="handleSubmit">
         <h2 class="text-center text-h5 text-capitalize">embutidos RB</h2>
-        <v-mask-input label="dni" v-model="dni" color="primary" prepend-inner-icon="mdi-account" clearable
-          :rules="[rules.required, rules.dni]" mask="########" variant="underlined"></v-mask-input>
-        <v-text-field label="password" v-model="password" color="primary"
-          :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'" prepend-inner-icon="mdi-lock" @click:append="show = !show"
-          :type="show ? 'text' : 'password'" clearable :rules="[rules.required]" class="mt-2"></v-text-field>
-        <v-btn color="primary" @click="handleLogin" block class="mt-4">ingresar</v-btn>
+        <v-mask-input
+          label="dni"
+          v-model="dni"
+          color="primary"
+          prepend-inner-icon="mdi-account"
+          clearable
+          :rules="[rules.required, rules.dni]"
+          mask="########"
+          variant="underlined"
+          autocomplete="off"
+        ></v-mask-input>
+        <v-text-field
+          label="password"
+          v-model="password"
+          color="primary"
+          :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+          prepend-inner-icon="mdi-lock"
+          @click:append="show = !show"
+          :type="show ? 'text' : 'password'"
+          clearable
+          :rules="[rules.required]"
+          class="mt-2"
+        ></v-text-field>
+        <v-btn color="primary" type="submit" block class="mt-4">ingresar</v-btn>
       </v-form>
     </v-card>
 
@@ -46,6 +37,49 @@ async function handleLogin() {
     <div class="sky"></div>
   </div>
 </template>
+
+<script setup>
+import { useForm } from '@/composables/useForm'
+import { authService } from '@/services/auth/authService'
+import { useAuthStore } from '@/stores/auth'
+import { useSnackbar } from '@/stores/snackbar'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const { showErrorSnackbar } = useSnackbar()
+const { setAuth } = useAuthStore()
+const { formData, formRef, rules, dni, password, handleSubmit } = useForm(
+  {
+    dni: null,
+    password: null,
+  },
+  handleLogin,
+  {
+    resetForm: false,
+  },
+)
+const successLogin = ref(false)
+const show = ref(false)
+
+async function handleLogin() {
+  try {
+    const auth = await authService.login(formData.value)
+
+    setAuth(auth)
+
+    successLogin.value = true
+
+    setTimeout(() => {
+      router.push('/home')
+    }, 1500)
+  } catch (error) {
+    console.log(error)
+    password.value = null
+    showErrorSnackbar('Credenciales incorrectas', 'top right')
+  }
+}
+</script>
 
 <style scoped>
 .login {

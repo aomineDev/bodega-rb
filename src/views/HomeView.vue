@@ -6,10 +6,11 @@
 // const { pruebas, isPending, isError, error, getQuery } = usePruebas()
 
 // const { data: prueba } = getQuery(id)
+import { ROLES } from '@/utils/constants/roles'
 </script>
 
 <template>
-  <h1>Home</h1>
+  <h1 v-role="ROLES.CAJERO">Home</h1>
   <!-- <div v-if="isPending">
     <h1>Loading...</h1>
   </div>
