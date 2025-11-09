@@ -13,6 +13,7 @@ import LoginView from '@/views/auth/LoginView.vue'
 import ProductEntryView from '@/views/warehouse/ProductEntryView.vue'
 import InventoryView from '@/views/inventory/InventoryView.vue'
 import TakeInventoryView from '@/views/inventory/TakeInventoryView.vue'
+import CategoriesView from '@/views/management/CategoriesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,6 +57,10 @@ const router = createRouter({
             {
               path: 'productos',
               component: ProductsView,
+            },
+            {
+              path: 'categorias',
+              component: CategoriesView,
             },
           ],
         },
