@@ -13,14 +13,11 @@ import LoginView from '@/views/auth/LoginView.vue'
 import ProductEntryView from '@/views/warehouse/ProductEntryView.vue'
 import InventoryView from '@/views/inventory/InventoryView.vue'
 import TakeInventoryView from '@/views/inventory/TakeInventoryView.vue'
-<<<<<<< HEAD
 import CategoriesView from '@/views/management/CategoriesView.vue'
-=======
 import InventoryReportView from '@/views/inventory/InventoryReportView.vue'
 import OpenInventoryView from '@/views/inventory/OpenInventoryView.vue'
 import { authGuard } from './guards'
 import { ROLES } from '@/utils/constants/roles'
->>>>>>> bc5ce19b8e6a5e9ef2585d203c2c1c22fbff9702
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

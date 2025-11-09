@@ -1,83 +1,4 @@
 <template>
-<<<<<<< HEAD
-  <!-- <v-layout> -->
-  <v-navigation-drawer v-model="drawer" :rail="rail" @click="rail = false" :temporary="mobile" :permanent="!mobile">
-    <template v-slot:prepend>
-      <v-list-item title="Embutidos RB" class="pt-2 pb-2">
-        <template v-slot:prepend>
-          <v-avatar color="grey-darken-4">
-            <v-icon color="white">mdi-store</v-icon>
-          </v-avatar>
-        </template>
-
-        <template #append>
-          <v-btn icon="mdi-chevron-left" variant="text" @click.stop="rail = !rail"></v-btn>
-        </template>
-      </v-list-item>
-      <v-divider></v-divider>
-    </template>
-
-    <v-list density="compact" nav>
-      <v-list-item title="Dashboard" prepend-icon="mdi-view-dashboard" value="dashboard" color="primary"
-        to="/home"></v-list-item>
-
-      <v-divider></v-divider>
-      <v-list-subheader>Caja</v-list-subheader>
-
-      <v-list-item v-for="item in cajaitems" :key="item.value" :title="item.title" :prepend-icon="item.icon"
-        :value="item.value" :to="item.to" color="primary"></v-list-item>
-
-      <v-divider></v-divider>
-      <v-list-subheader>Inventario</v-list-subheader>
-
-      <v-list-item v-for="item in inventarioItems" :key="item.value" :title="item.title" :prepend-icon="item.icon"
-        :value="item.value" :to="item.to" color="primary" exact></v-list-item>
-
-      <v-divider></v-divider>
-      <v-list-subheader>Almacen</v-list-subheader>
-
-      <v-list-item title="Ingreso de productos" prepend-icon="mdi-package-variant-plus" value="ingreso" color="primary"
-        to="/almacen/ingreso-productos"></v-list-item>
-
-      <v-divider></v-divider>
-      <v-list-subheader>Gestion</v-list-subheader>
-
-      <v-list-item v-for="item in gestionItems" :key="item.value" :title="item.title" :prepend-icon="item.icon"
-        :value="item.value" :to="item.to" color="primary"></v-list-item>
-    </v-list>
-
-    <template v-slot:append>
-      <v-divider></v-divider>
-
-      <v-menu location="end">
-        <template #activator="{ props }">
-          <v-list-item prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg" subtitle="admin" title="omar"
-            class="pt-2 pb-2" v-bind="props" append-icon="mdi-chevron-right">
-          </v-list-item>
-        </template>
-
-        <v-list min-width="200" density="compact" class="rounded-lg" elevation="2">
-          <v-list-item prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg" subtitle="admin" title="omar"
-            class="pt-2 pb-2">
-          </v-list-item>
-          <v-divider></v-divider>
-          <v-list-item title="Perfil" prepend-icon="mdi-account" class="primary"
-            @click="console.log('click')"></v-list-item>
-          <v-list-item title="Log out" prepend-icon="mdi-logout" class="text-red" @click="logout"></v-list-item>
-        </v-list>
-      </v-menu>
-    </template>
-  </v-navigation-drawer>
-
-  <v-app-bar elevation="1">
-    <template #prepend v-if="mobile">
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" icon="mdi-collage"></v-app-bar-nav-icon>
-    </template>
-
-    <v-breadcrumbs :items="breandcrumbs">
-      <template #divider>
-        <v-icon color="grey-lighten-1">mdi-chevron-right</v-icon>
-=======
   <v-layout>
     <v-navigation-drawer
       v-model="drawer"
@@ -99,7 +20,6 @@
           </template>
         </v-list-item>
         <v-divider></v-divider>
->>>>>>> bc5ce19b8e6a5e9ef2585d203c2c1c22fbff9702
       </template>
 
       <v-list density="compact" nav>
