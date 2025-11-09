@@ -243,15 +243,19 @@ const search = ref('') //busqueda
   <!-- Filtros -->
   <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
     <v-row>
-      <base-filter v-model:search="search" :filters="[
-        {
-          key: 'tipoCliente',
-          label: 'Tipo de cliente',
-          type: 'select',
-          items: ['Natural', 'Jurídico'],
-          model: filtros.tipoCliente,
-        },
-      ]" @update:filter="({ key, value }) => (filtros[key] = value)" />
+      <base-filter
+        v-model:search="search"
+        :filters="[
+          {
+            key: 'tipoCliente',
+            label: 'Tipo de cliente',
+            type: 'select',
+            items: ['Natural', 'Jurídico'],
+            model: filtros.tipoCliente,
+          },
+        ]"
+        @update:filter="({ key, value }) => (filtros[key] = value)"
+      />
 
       <v-col cols="12" md="2" class="d-flex justify-end align-center">
         <v-btn prepend-icon="mdi-plus" color="primary" elevation="1" @click="handleAdd">
@@ -262,8 +266,14 @@ const search = ref('') //busqueda
   </v-card>
 
   <!-- Tabla -->
-  <v-data-table :headers="headers" :items="items" :search="search" :loading="isPending"
-    loading-text="Cargando clientes..." no-data-text="No se encontraron clientes">
+  <v-data-table
+    :headers="headers"
+    :items="items"
+    :search="search"
+    :loading="isPending"
+    loading-text="Cargando clientes..."
+    no-data-text="No se encontraron clientes"
+  >
     <template #item.actions="{ item }">
       <action-menu @edit="handleEdit(item)" />
     </template>
@@ -277,15 +287,19 @@ const search = ref('') //busqueda
   <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
     <v-card title="Filtrar Clientes">
       <v-card-text>
-        <base-filter v-model:search="search" :filters="[
-          {
-            key: 'tipoCliente',
-            label: 'Tipo de cliente',
-            type: 'select',
-            items: ['Natural', 'Jurídico'],
-            model: tipoCliente,
-          },
-        ]" @update:filter="({ key, value }) => (filtros[key] = value)" />
+        <base-filter
+          v-model:search="search"
+          :filters="[
+            {
+              key: 'tipoCliente',
+              label: 'Tipo de cliente',
+              type: 'select',
+              items: ['Natural', 'Jurídico'],
+              model: tipoCliente,
+            },
+          ]"
+          @update:filter="({ key, value }) => (filtros[key] = value)"
+        />
       </v-card-text>
 
       <v-card-actions>
@@ -309,97 +323,174 @@ const search = ref('') //busqueda
             <v-row dense>
               <template v-if="filtros.tipoCliente === 'Natural'">
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]" />
-                  <v-mask-input label="DNI" v-model="dni" :counter="8" mask="########" variant="underlined" :rules="[
-                    rules.required,
-                    rules.distinct(naturalCustomers, 'dni', selectedItem?.id),
-                  ]">
+                  <v-text-field
+                    v-model="nombre"
+                    label="Nombre"
+                    :rules="[rules.required, rules.text]"
+                  />
+                  <v-mask-input
+                    label="DNI"
+                    v-model="dni"
+                    :counter="8"
+                    mask="########"
+                    variant="underlined"
+                    :rules="[
+                      rules.required,
+                      rules.distinct(naturalCustomers, 'dni', selectedItem?.id),
+                    ]"
+                  >
                     <template #append-inner>
-                      <v-btn icon="mdi-magnify" variant="text" density="compact" @click="searchCustomer('DNI')"
-                        :loading="isBuscando" />
+                      <v-btn
+                        icon="mdi-magnify"
+                        variant="text"
+                        density="compact"
+                        @click="searchCustomer('DNI')"
+                        :loading="isBuscando"
+                      />
                     </template>
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]" />
-                  >>>>>>> 4b776a162585ed7caa32492ce0135ec9bdaaaaa6
+                  <v-text-field
+                    v-model="nombre"
+                    label="Nombre"
+                    :rules="[rules.required, rules.text]"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="apellidoPaterno" label="Apellido Paterno"
-                    :rules="[rules.required, rules.text]" />
+                  <v-text-field
+                    v-model="apellidoPaterno"
+                    label="Apellido Paterno"
+                    :rules="[rules.required, rules.text]"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="apellidoMaterno" label="Apellido Materno"
-                    :rules="[rules.required, rules.text]" />
+                  <v-text-field
+                    v-model="apellidoMaterno"
+                    label="Apellido Materno"
+                    :rules="[rules.required, rules.text]"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-mask-input label="DNI" v-model="dni" :counter="8" mask="########" variant="underlined" :rules="[
-                    rules.required,
-                    rules.distinct(naturalCustomers, 'dni', selectedItem?.id),
-                  ]">
+                  <v-mask-input
+                    label="DNI"
+                    v-model="dni"
+                    :counter="8"
+                    mask="########"
+                    variant="underlined"
+                    :rules="[
+                      rules.required,
+                      rules.distinct(naturalCustomers, 'dni', selectedItem?.id),
+                    ]"
+                  >
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  ======= >>>>>>> 4b776a162585ed7caa32492ce0135ec9bdaaaaa6
                   <v-text-field v-model="direccion" label="Dirección" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########" :rules="[
-                    rules.phone,
-                    rules.distinct(naturalCustomers, 'telefono', selectedItem?.id),
-                  ]" variant="underlined">
+                  <v-mask-input
+                    label="Teléfono"
+                    v-model="telefono"
+                    :counter="9"
+                    mask="#########"
+                    :rules="[
+                      rules.phone,
+                      rules.distinct(naturalCustomers, 'telefono', selectedItem?.id),
+                    ]"
+                    variant="underlined"
+                  >
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="email" label="Email" :rules="[
-                    rules.email,
-                    rules.distinct(naturalCustomers, 'email', selectedItem?.id),
-                  ]" />
+                  <v-text-field
+                    v-model="email"
+                    label="Email"
+                    :rules="[
+                      rules.email,
+                      rules.distinct(naturalCustomers, 'email', selectedItem?.id),
+                    ]"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-date-input v-model="fechaNacimiento" label="Fecha de nacimiento"
-                    variant="underlined"></v-date-input>
+                  <v-date-input
+                    v-model="fechaNacimiento"
+                    label="Fecha de nacimiento"
+                    variant="underlined"
+                  ></v-date-input>
                 </v-col>
               </template>
 
               <template v-else>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="razonSocial" label="Razón Social" :rules="[rules.required]" />
+                  <v-text-field
+                    v-model="razonSocial"
+                    label="Razón Social"
+                    :rules="[rules.required]"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="ruc" label="RUC" counter="11" :rules="[rules.required, rules.ruc]" />
-                  <v-mask-input label="RUC" v-model="ruc" :counter="11" mask="###########" variant="underlined" :rules="[
-                    rules.required,
-                    rules.ruc,
-                    rules.distinct(juridicalCustomers, 'ruc', selectedItem?.id),
-                  ]">
+                  <v-text-field
+                    v-model="ruc"
+                    label="RUC"
+                    counter="11"
+                    :rules="[rules.required, rules.ruc]"
+                  />
+                  <v-mask-input
+                    label="RUC"
+                    v-model="ruc"
+                    :counter="11"
+                    mask="###########"
+                    variant="underlined"
+                    :rules="[
+                      rules.required,
+                      rules.ruc,
+                      rules.distinct(juridicalCustomers, 'ruc', selectedItem?.id),
+                    ]"
+                  >
                     <template #append-inner>
-                      <v-btn icon="mdi-magnify" variant="text" density="compact" @click="searchCustomer('RUC')"
-                        :loading="isBuscando" />
+                      <v-btn
+                        icon="mdi-magnify"
+                        variant="text"
+                        density="compact"
+                        @click="searchCustomer('RUC')"
+                        :loading="isBuscando"
+                      />
                     </template>
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="razonSocial" label="Razón Social" :rules="[rules.required]" />
-                  >>>>>>> 4b776a162585ed7caa32492ce0135ec9bdaaaaa6
+                  <v-text-field
+                    v-model="razonSocial"
+                    label="Razón Social"
+                    :rules="[rules.required]"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="tipoContribuyente" label="Tipo Contribuyente" :rules="[rules.required]" />
+                  <v-text-field
+                    v-model="tipoContribuyente"
+                    label="Tipo Contribuyente"
+                    :rules="[rules.required]"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="actividadEconomica" label="Actividad Economica" :rules="[rules.required]" />
+                  <v-text-field
+                    v-model="actividadEconomica"
+                    label="Actividad Economica"
+                    :rules="[rules.required]"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -407,13 +498,23 @@ const search = ref('') //busqueda
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########" :rules="[rules.phone]"
-                    variant="underlined">
+                  <v-mask-input
+                    label="Teléfono"
+                    v-model="telefono"
+                    :counter="9"
+                    mask="#########"
+                    :rules="[rules.phone]"
+                    variant="underlined"
+                  >
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="email" label="Email" :rules="[rules.required, rules.email]" />
+                  <v-text-field
+                    v-model="email"
+                    label="Email"
+                    :rules="[rules.required, rules.email]"
+                  />
                 </v-col>
               </template>
             </v-row>
