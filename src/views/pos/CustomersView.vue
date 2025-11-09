@@ -66,15 +66,15 @@ const items = computed(() => {
 })
 
 const isPending = computed(() =>
-  filtros.tipoCliente === 'Natural' ? isPendingNatural.value : isPendingJuridical.value
+  filtros.tipoCliente === 'Natural' ? isPendingNatural.value : isPendingJuridical.value,
 )
 
 const isError = computed(() =>
-  filtros.tipoCliente === 'Natural' ? isErrorNatural.value : isErrorJuridical.value
+  filtros.tipoCliente === 'Natural' ? isErrorNatural.value : isErrorJuridical.value,
 )
 
 const error = computed(() =>
-  filtros.tipoCliente === 'Natural' ? errorNatural.value : errorJuridical.value
+  filtros.tipoCliente === 'Natural' ? errorNatural.value : errorJuridical.value,
 )
 
 /* --------------------------------------------*/
@@ -123,7 +123,7 @@ const selectedItem = ref(null)
 const { getCustomerByDni, getCustomerByRuc } = useIntegration()
 
 const isBuscando = ref(false)
-const { refetch: refetchDni, } = getCustomerByDni(dni)
+const { refetch: refetchDni } = getCustomerByDni(dni)
 const { refetch: refetchRuc } = getCustomerByRuc(ruc)
 
 const searchCustomer = async (tipo) => {
@@ -137,7 +137,7 @@ const searchCustomer = async (tipo) => {
     return
   }
 
-  const found = customers?.find(c => c[isDni ? 'dni' : 'ruc'] === value)
+  const found = customers?.find((c) => c[isDni ? 'dni' : 'ruc'] === value)
   if (found) {
     showWarningSnackbar('El cliente ya existe en la base de datos')
     return
@@ -198,8 +198,7 @@ watch(clienteFormModal, (isOpen) => {
 const closeModal = () => (clienteFormModal.value = false)
 
 const save = async () => {
-
-  if (filtros.tipoCliente === "Natural") {
+  if (filtros.tipoCliente === 'Natural') {
     try {
       if (selectedItem.value) {
         await updateNaturalCustomerAsync({ ...formData.value, id: selectedItem.value.id })
@@ -310,8 +309,11 @@ const search = ref('') //busqueda
             <v-row dense>
               <template v-if="filtros.tipoCliente === 'Natural'">
                 <v-col cols="12" md="6">
-                  <v-mask-input label="DNI" v-model="dni" :counter="8" mask="########" variant="underlined"
-                    :rules="[rules.required, rules.distinct(naturalCustomers, 'dni', selectedItem?.id)]">
+                  <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]" />
+                  <v-mask-input label="DNI" v-model="dni" :counter="8" mask="########" variant="underlined" :rules="[
+                    rules.required,
+                    rules.distinct(naturalCustomers, 'dni', selectedItem?.id),
+                  ]">
                     <template #append-inner>
                       <v-btn icon="mdi-magnify" variant="text" density="compact" @click="searchCustomer('DNI')"
                         :loading="isBuscando" />
@@ -321,6 +323,7 @@ const search = ref('') //busqueda
 
                 <v-col cols="12" md="6">
                   <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]" />
+                  >>>>>>> 4b776a162585ed7caa32492ce0135ec9bdaaaaa6
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -334,19 +337,31 @@ const search = ref('') //busqueda
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="direccion" label="Dirección" />
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########"
-                    :rules="[rules.phone, rules.distinct(naturalCustomers, 'telefono', selectedItem?.id)]"
-                    variant="underlined">
+                  <v-mask-input label="DNI" v-model="dni" :counter="8" mask="########" variant="underlined" :rules="[
+                    rules.required,
+                    rules.distinct(naturalCustomers, 'dni', selectedItem?.id),
+                  ]">
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="email" label="Email"
-                    :rules="[rules.email, rules.distinct(naturalCustomers, 'email', selectedItem?.id)]" />
+                  ======= >>>>>>> 4b776a162585ed7caa32492ce0135ec9bdaaaaa6
+                  <v-text-field v-model="direccion" label="Dirección" />
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########" :rules="[
+                    rules.phone,
+                    rules.distinct(naturalCustomers, 'telefono', selectedItem?.id),
+                  ]" variant="underlined">
+                  </v-mask-input>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field v-model="email" label="Email" :rules="[
+                    rules.email,
+                    rules.distinct(naturalCustomers, 'email', selectedItem?.id),
+                  ]" />
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -357,8 +372,16 @@ const search = ref('') //busqueda
 
               <template v-else>
                 <v-col cols="12" md="6">
-                  <v-mask-input label="RUC" v-model="ruc" :counter="11" mask="###########" variant="underlined"
-                    :rules="[rules.required, rules.ruc, rules.distinct(juridicalCustomers, 'ruc', selectedItem?.id)]">
+                  <v-text-field v-model="razonSocial" label="Razón Social" :rules="[rules.required]" />
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field v-model="ruc" label="RUC" counter="11" :rules="[rules.required, rules.ruc]" />
+                  <v-mask-input label="RUC" v-model="ruc" :counter="11" mask="###########" variant="underlined" :rules="[
+                    rules.required,
+                    rules.ruc,
+                    rules.distinct(juridicalCustomers, 'ruc', selectedItem?.id),
+                  ]">
                     <template #append-inner>
                       <v-btn icon="mdi-magnify" variant="text" density="compact" @click="searchCustomer('RUC')"
                         :loading="isBuscando" />
@@ -368,6 +391,7 @@ const search = ref('') //busqueda
 
                 <v-col cols="12" md="6">
                   <v-text-field v-model="razonSocial" label="Razón Social" :rules="[rules.required]" />
+                  >>>>>>> 4b776a162585ed7caa32492ce0135ec9bdaaaaa6
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -406,7 +430,6 @@ const search = ref('') //busqueda
   </template>
 
   <fab-menu v-model:FormModal="clienteFormModal" v-model:filterDialog="filterDialog" />
-
 </template>
 
 <style scoped></style>

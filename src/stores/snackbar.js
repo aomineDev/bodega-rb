@@ -5,22 +5,24 @@ export const useSnackbar = defineStore('snackbar', () => {
   const snackbar = ref(false)
   const snackbarMessage = ref('')
   const snackbarColor = ref('green')
+  const snackBarLocaltion = ref('bottom right')
 
-  function showSuccessSnackbar(message = '') {
-    showSnackbar(message, 'green')
+  function showSuccessSnackbar(message, location) {
+    showSnackbar(message, 'green', location)
   }
 
-  function showErrorSnackbar(message = '') {
-    showSnackbar(message, 'red')
+  function showErrorSnackbar(message, location) {
+    showSnackbar(message, 'red', location)
   }
 
-  function showWarningSnackbar(message = '') {
-    showSnackbar(message, 'yellow')
+  function showWarningSnackbar(message, location) {
+    showSnackbar(message, 'yellow', location)
   }
 
-  function showSnackbar(message, color) {
+  function showSnackbar(message = '', color = 'green', location = 'bottom right') {
     snackbarMessage.value = message
     snackbarColor.value = color
+    snackBarLocaltion.value = location
     snackbar.value = true
   }
 
@@ -32,6 +34,7 @@ export const useSnackbar = defineStore('snackbar', () => {
     snackbar,
     snackbarMessage,
     snackbarColor,
+    snackBarLocaltion,
     showSuccessSnackbar,
     showErrorSnackbar,
     showWarningSnackbar,

@@ -1,9 +1,10 @@
 import { apiConfig } from '@/config/api'
+import { useAuthStore } from '@/stores/auth'
 
 const { API_URL } = apiConfig
 
 export const apiFetch = async (endpoint, options = {}) => {
-  const token = ''
+  const { token, logout } = useAuthStore()
 
   const config = {
     ...options,
@@ -16,9 +17,8 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   const response = await fetch(`${API_URL}${endpoint}`, config)
 
-  if (response.status === 401) {
-    console.log('logout')
-
+  if (response.status === 403) {
+    logout()
     throw new Error('Session expirada, Por favor vuelva a iniciar sesión')
   }
 

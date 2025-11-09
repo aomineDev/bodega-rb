@@ -18,6 +18,15 @@ export const vuetify = createVuetify({
   icons: {
     defaultSet: 'mdi',
   },
+  locale: {
+    locale: 'es',
+    messages: { es },
+  },
+  date: {
+    locale: {
+      es: 'es-PE',
+    },
+  },
   defaults: {
     VTextField: {
       variant: 'underlined',
@@ -28,14 +37,12 @@ export const vuetify = createVuetify({
     VDateInput: {
       variant: 'underlined',
     },
-  },
-  locale: {
-    locale: 'es',
-    messages: { es },
-  },
-  date: {
-    locale: {
-      es: 'es-PE',
+    VAutocomplete: {
+      variant: 'underlined',
+    },
+    VNumberInput: {
+      variant: 'underlined',
+      locale: 'en-US',
     },
   },
 })

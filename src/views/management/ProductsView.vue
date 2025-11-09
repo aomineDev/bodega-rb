@@ -20,7 +20,7 @@ const { supplier } = useSupplier()
 
 const productFormModal = ref(false)
 
-const { createProductAsync, product, deleteProductAsync, updateProductAsync } = useProduct()
+const { createProductAsync, product, deleteProductAsync, updateProductAsync, isPending } = useProduct()
 
 const productDetailModal = ref(false)
 const productDeleteModal = ref(false)
@@ -78,7 +78,6 @@ const {
 const {
     formatDate: formatFinPromocion,
     inputDate: inputFinPromocion
-    // No necesitas 'today' otra vez, ya lo tienes arriba
 } = useDateInput(finPromocion)
 
 //-----------------------------------------------SUBIDA DE IMAGEN---------------------------------------//
@@ -114,6 +113,10 @@ const handleEdit = (item) => {
     productItem.value = item
     asignForm(productItem.value)
 
+    productFormModal.value = true
+}
+//abir modal
+const operModal = () => {
     productFormModal.value = true
 }
 
@@ -211,24 +214,46 @@ const confirmDelete = async () => {
         console.log(error)
     }
 }
+//----validacion precio promo 
+const deshabilitado = ref(true)
+
+const handlePromoChange = () => {
+
+    const hayPromocion = !!precioPromocion.value
+
+    deshabilitado.value = !hayPromocion
+
+    if (!hayPromocion) {
+        inputInicioPromocion.value = ''
+        inputFinPromocion.value = ''
+    }
+}
 </script>
 
 <template>
-    <h1 class="mb-10">Productos</h1>
+    <h1>Productos</h1>
     <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
         <v-row>
             <base-filter v-model:search="search" :filters="selectFilter"
                 @update:filter="({ key, value }) => (filtros[key] = value)" />
 
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="productFormModal = true">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="operModal">Crear
                     Producto</v-btn>
             </v-col>
         </v-row>
     </v-card>
+    <v-row v-if="isPending">
 
+        <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4" loading-text="Cargando proveedores...">
+            <v-skeleton-loader type="card" />
+        </v-col>
+        <!-- <v-col cols="12">
+            <div class="text-center">Cargando productos...</div>
+        </v-col> -->
+    </v-row>
     <!-- Si hay datos, muestra los cards -->
-    <v-row v-if="filtroProducto.length > 0">
+    <v-row v-else>
         <v-col v-for="item in filtroProducto" :key="item.id" cols="12" sm="6" md="4" lg="3">
             <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
                 <v-img height="220px" :src="item.imagen" contain></v-img>
@@ -254,7 +279,7 @@ const confirmDelete = async () => {
     </v-row>
 
     <!-- Si NO hay datos, muestra mensaje -->
-    <v-row v-else>
+    <v-row v-if="!isPending && !filtroProducto.length">
         <v-col cols="12" class="text-center py-16">
             <v-icon size="64" color="grey-lighten-1">mdi-package-variant-closed</v-icon>
             <p class="text-h6 text-grey mt-4">No se encontraron productos</p>
@@ -280,7 +305,7 @@ const confirmDelete = async () => {
                         <!-- categoria -->
                         <v-col cols="12" md="6">
                             <v-select label="Categoria" variant="underlined" :items="category" v-model="categoria"
-                                item-title="nombre" :rules="[rules.required]" return-object item-value="id"></v-select>
+                                item-title="nombre" return-object item-value="id"></v-select>
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-select label="Proveedor" variant="underlined" :items="supplier" v-model="proveedor"
@@ -300,7 +325,7 @@ const confirmDelete = async () => {
                         <!-- precio promociom -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Precio promocion" v-model="precioPromocion" type="number"
-                                variant="underlined" step="0.01" prefix="S/ ">
+                                variant="underlined" step="0.01" prefix="S/ " @input="handlePromoChange">
                             </v-text-field>
                         </v-col>
                         <!-- stock -->
@@ -309,22 +334,26 @@ const confirmDelete = async () => {
                                 :rules="[rules.required, rules.stock]">
                             </v-text-field>
                         </v-col>
-                        <!-- inicion promocio -->
-                        <v-col cols="12" md="6">
-                            <v-date-input label="Inicio de promocion" variant="underlined"
-                                v-model="inputInicioPromocion" :min="today"
-                                :display-format="formatInicioPromocion"></v-date-input>
-                        </v-col>
-                        <!-- fin promocion -->
-                        <v-col cols="12" md="6">
-                            <v-date-input v-model="inputFinPromocion" :min="today" label="Fin de promocion"
-                                variant="underlined" :display-format="formatFinPromocion"></v-date-input>
-                        </v-col>
                         <!-- unidad de medida -->
                         <v-col cols="12" md="6">
                             <v-select label="Unidad de medida" variant="underlined" :items="ud" v-model="unidadMedida"
                                 :rules="[rules.unidadMedida]"></v-select></v-col>
+                        <!-- inicion promocio -->
                         <v-col cols="12" md="6">
+                            <v-date-input label="Inicio de promocion" variant="underlined"
+                                v-model="inputInicioPromocion" :min="today" :display-format="formatInicioPromocion"
+                                :disabled="deshabilitado"
+                                :rules="!deshabilitado ? [rules.required] : []"></v-date-input>
+                        </v-col>
+
+                        <!-- fin promocion -->
+                        <v-col cols="12" md="6">
+                            <v-date-input v-model="inputFinPromocion" :min="today" label="Fin de promocion"
+                                variant="underlined" :display-format="formatFinPromocion" :disabled="deshabilitado"
+                                :rules="!deshabilitado ? [rules.required] : []"> </v-date-input>
+                        </v-col>
+
+                        <v-col cols=" 12" md="6">
                             <v-file-input label="Imagen" @update:model-value="onImageChange" variant="underlined"
                                 v-model="imagen"></v-file-input>
                         </v-col>
