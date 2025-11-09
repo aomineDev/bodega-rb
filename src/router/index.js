@@ -13,6 +13,11 @@ import LoginView from '@/views/auth/LoginView.vue'
 import ProductEntryView from '@/views/warehouse/ProductEntryView.vue'
 import InventoryView from '@/views/inventory/InventoryView.vue'
 import TakeInventoryView from '@/views/inventory/TakeInventoryView.vue'
+import CategoriesView from '@/views/management/CategoriesView.vue'
+import InventoryReportView from '@/views/inventory/InventoryReportView.vue'
+import OpenInventoryView from '@/views/inventory/OpenInventoryView.vue'
+import { authGuard } from './guards'
+import { ROLES } from '@/utils/constants/roles'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,10 +28,12 @@ const router = createRouter({
       children: [
         {
           path: '',
+
           redirect: '/home',
         },
         {
           path: 'home',
+          name: 'home',
           component: HomeView,
         },
         {
@@ -35,10 +42,25 @@ const router = createRouter({
             {
               path: '',
               component: InventoryView,
+              meta: {
+                roles: [ROLES.ASISTENTE],
+              },
             },
             {
-              path: 'toma',
+              path: 'abiertos',
+              component: OpenInventoryView,
+              meta: {
+                roles: [ROLES.ADMIN],
+              },
+            },
+            {
+              path: 'toma/:id',
+              name: 'take-inventory',
               component: TakeInventoryView,
+            },
+            {
+              path: 'reporte',
+              component: InventoryReportView,
             },
           ],
         },
@@ -56,6 +78,10 @@ const router = createRouter({
             {
               path: 'productos',
               component: ProductsView,
+            },
+            {
+              path: 'categorias',
+              component: CategoriesView,
             },
           ],
         },
@@ -89,10 +115,13 @@ const router = createRouter({
     },
     {
       path: '/login',
+      name: 'login',
       component: LoginView,
     },
     { path: '/:pathMatch(.*)*', redirect: '/login' },
   ],
 })
+
+router.beforeEach(authGuard)
 
 export default router

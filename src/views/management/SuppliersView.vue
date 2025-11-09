@@ -9,12 +9,13 @@ import { useForm } from '@/composables/useForm';
 import { useDisplay } from 'vuetify';
 import { useSupplier } from '@/composables/query/useSupplier';
 import { useDateInput } from '@/composables/useDateInput';
+import { useIntegration } from '@/composables/query/useIntegration';
 //-----------------------------------------------CONSTANTES---------------------------------------//
-const { showSuccessSnackbar } = useSnackbar()
+const { showSuccessSnackbar, showWarningSnackbar, showErrorSnackbar } = useSnackbar()
 const { mdAndUp, smAndDown } = useDisplay()
 //servicio
 const {
-    createSupplierAsync, supplier, deleteSupplierAsync, updateSupplierAsync
+    createSupplierAsync, supplier, deleteSupplierAsync, updateSupplierAsync, isPending,
 } = useSupplier()
 
 //data header
@@ -156,11 +157,56 @@ const confirmDelete = async () => {
         console.log(error)
     }
 }
+//---------------busqueda------------------------//
+const isBuscando = ref(false)
+const { getCustomerByRuc } = useIntegration()
+const { refetch: refetchRuc } = getCustomerByRuc(ruc)
+
+const searchSupplier = async () => {
+
+    if (!ruc.value || ruc.value.length < 11) {
+        showWarningSnackbar('Ingrese un RUC válido (11 dígitos)')
+        return
+    }
+
+    const found = supplier.value?.find(s => s.ruc === ruc.value)
+    if (found) {
+        showWarningSnackbar('El proveedor ya existe en la base de datos')
+        return
+    }
+
+    try {
+        isBuscando.value = true
+        const result = await refetchRuc()
+
+        if (result?.data) {
+            const data = result.data
+
+            razonSocial.value = data.razon_social || ''
+            tipoContribuyente.value = data.tipo || ''
+            actividadEconomica.value = data.actividad_economica || ''
+            direccion.value = data.direccion || ''
+
+            showSuccessSnackbar('Datos obtenidos correctamente')
+        } else {
+            showErrorSnackbar('No se encontraron datos para este RUC')
+        }
+    } catch (error) {
+        console.error('Error al buscar proveedor:', error)
+        showErrorSnackbar('Error al consultar RUC')
+    } finally {
+        isBuscando.value = false
+    }
+}
+
+
+
+
 </script>
 
 <template>
 
-    <h1 class="mb-5">Proveedores</h1>
+    <h1>Proveedores</h1>
 
     <!-- filter -->
     <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
@@ -176,7 +222,8 @@ const confirmDelete = async () => {
 
 
     <!-- Tabla -->
-    <v-data-table :headers="headers" :items="filtroProveedores" :search no-data-text="No se encontraron proveedores">
+    <v-data-table :headers="headers" :items="filtroProveedores" :search :loading="isPending"
+        loading-text="Cargando proveedores..." no-data-text="No se encontraron proveedores">
         <template #item.fechaRegistro="{ value }">
             {{ formatDate(value) }}
         </template>
@@ -193,21 +240,31 @@ const confirmDelete = async () => {
                 <v-container fluid>
                     <v-row>
                         <v-col cols="12" md="6">
+                            <v-mask-input label="Ruc" variant="underlined" v-model="ruc"
+                                :rules="[rules.required, rules.ruc, rules.distinct(supplier, 'ruc', supplierItem?.id)]"
+                                mask="###########" :counter="11"> <template #append-inner>
+                                    <v-btn icon="mdi-magnify" variant="text" density="compact" @click="searchSupplier()"
+                                        :loading="isBuscando" />
+                                </template></v-mask-input>
+                        </v-col>
+                        <v-col cols="12" md="6">
                             <v-text-field label="Razon social" variant="underlined" v-model="razonSocial"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <v-text-field label="Actividad economica" variant="underlined" v-model="actividadEconomica"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Tipo contribuyente" variant="underlined" v-model="tipoContribuyente"
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <v-mask-input label="Ruc" variant="underlined" v-model="ruc"
-                                :rules="[rules.required, rules.ruc, rules.distinct(supplier, 'ruc', supplierItem?.id)]"
-                                mask="###########"></v-mask-input>
+                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"
+                                :rules="[rules.required]"></v-text-field>
                         </v-col>
-
                         <v-col cols="12" md="6">
                             <v-mask-input label="Telefono" variant="underlined" v-model="telefono"
                                 :rules="[rules.required, rules.phone, rules.distinct(supplier, 'telefono', supplierItem?.id)]"
@@ -215,26 +272,18 @@ const confirmDelete = async () => {
                             </v-mask-input>
                         </v-col>
 
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.email, rules.required, rules.distinct(supplier, 'email', supplierItem?.id)]"></v-text-field>
-                        </v-col>
-
-
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Tipo contribuyente" variant="underlined" v-model="tipoContribuyente"
-                                :rules="[rules.required]"></v-text-field>
-                        </v-col>
-
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"
-                                :rules="[rules.required]"></v-text-field>
-                        </v-col>
 
                         <v-col cols="12" md="6">
                             <v-date-input v-model="inputDate" :min="today" :display-format="formatDate"
                                 label="Fecha de registro" :rules="[rules.fecha]" variant="underlined"></v-date-input>
                         </v-col>
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Email" variant="underlined" v-model="email"
+                                :rules="[rules.email, rules.distinct(supplier, 'email', supplierItem?.id)]"></v-text-field>
+                        </v-col>
+
+
+
                     </v-row>
                 </v-container>
             </v-form>

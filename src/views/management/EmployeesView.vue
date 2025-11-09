@@ -13,12 +13,13 @@ import { storageService } from '@/services/storage/imageService';
 import { useSnackbar } from '@/stores/snackbar';
 import { useDateInput } from '@/composables/useDateInput';
 import { capitalize } from '@/utils/capitalize';
+import { useIntegration } from '@/composables/query/useIntegration';
 //-----------------------------------------------CONSTANTES---------------------------------------//
 
 const { mdAndUp, smAndDown } = useDisplay()
-const { showSuccessSnackbar } = useSnackbar()
+const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 const {
-    employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync
+    employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync, isPending
 } = useEmployee()
 //modal eliminar
 const employeeDeleteModal = ref(false)
@@ -199,6 +200,46 @@ const confirmDelete = async () => {
         console.log("error" + error)
     }
 }
+//---------------busqueda------------------------//
+
+
+const isBuscando = ref(false)
+const { getCustomerByDni } = useIntegration()
+const { refetch: refetchDni } = getCustomerByDni(dni)
+const searchEmployee = async () => {
+
+    if (!dni.value || dni.value.length < 8) {
+        showWarningSnackbar('Ingrese un DNI válido')
+        return
+    }
+
+    const found = employee.value?.find(s => s.dni === dni.value)
+    if (found) {
+        showWarningSnackbar('El empleado ya existe en la base de datos')
+        return
+    }
+
+    try {
+        isBuscando.value = true
+        const result = await refetchDni()
+
+        if (result?.data) {
+            const data = result.data
+
+            nombre.value = data.first_name || ''
+            apellidoPaterno.value = data.first_last_name || ''
+            apellidoMaterno.value = data.second_last_name || ''
+            showSuccessSnackbar('Datos obtenidos correctamente')
+        } else {
+            showErrorSnackbar('No se encontraron datos para este empleado')
+        }
+    } catch (error) {
+        console.error('Error al buscar DNI:', error)
+        showErrorSnackbar('Error al consultar DNI')
+    } finally {
+        isBuscando.value = false
+    }
+}
 </script>
 <template>
     <h1>Empleados</h1>
@@ -214,7 +255,18 @@ const confirmDelete = async () => {
         </v-row>
     </v-card>
     <!-- cartas -->
-    <v-row v-if="filtroEmpleado.length > 0">
+
+    <v-row v-if="isPending">
+
+        <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4" loading-text="Cargando proveedores...">
+            <v-skeleton-loader type="card" />
+        </v-col>
+        <!-- <v-col cols="12">
+            <div class="text-center">Cargando productos...</div>
+        </v-col> -->
+    </v-row>
+
+    <v-row v-else>
         <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in filtroEmpleado" :key="index">
             <v-hover v-slot="{ isHovering, props }">
                 <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover"
@@ -225,20 +277,20 @@ const confirmDelete = async () => {
 
                     <v-divider :thickness="3"></v-divider>
 
-                    <v-card-title class="d-flex justify-space-between align-center">
-                        <span>{{ item.nombre + " " + item.apellidoPaterno }}</span>
+                    <v-card-title class="d-flex justify-space-between align-center flex-wrap">
+                        <span class="format">{{ item.nombre + " " + item.apellidoPaterno }}</span>
                         <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)">
                         </ActionMenu>
                     </v-card-title>
 
-                    <v-chip class="chip-categoria mb-3 mx-3" color="indigo" size="large">
+                    <v-chip class="chip-categoria mb-3 mx-3" color="primary" size="large">
                         {{ formatRoleName(item.rolId?.nombre) }}
                     </v-chip>
                 </v-card>
             </v-hover>
         </v-col>
     </v-row>
-    <v-row v-else>
+    <v-row v-if="!isPending && !filtroEmpleado.length">
         <v-col cols="12" class="text-center py-16">
             <v-icon size="64" color="grey-lighten-1">mdi-account-group</v-icon>
             <p class="text-h6 text-grey mt-4">No se encontraron empleados</p>
@@ -251,32 +303,39 @@ const confirmDelete = async () => {
             <v-form ref="formRef" class="pa-3">
                 <v-container fluid>
                     <v-row>
+                        <v-col cols="12" md="6">
+                            <v-mask-input label="Dni" variant="underlined" v-model="dni"
+                                :rules="[rules.required, rules.dni, rules.distinct(employee, 'dni', employeeEdit?.id)]"
+                                mask="########" :counter="8">
+                                <template #append-inner>
+                                    <v-btn icon="mdi-magnify" variant="text" density="compact" @click="searchEmployee()"
+                                        :loading="isBuscando" />
+                                </template>
+                            </v-mask-input>
+                        </v-col>
                         <!-- nombre -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre" variant="underlined" v-model="nombre"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
 
                         <!-- apellido paterno -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Apellido Paterno" variant="underlined" v-model="apellidoPaterno"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
                         <!-- apellido marterno -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Apellido Materno" variant="underlined" v-model="apellidoMaterno"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
                         <!-- fecha nacimineto -->
                         <v-col cols="12" md="6">
                             <v-date-input label="Fecha de nacimiento" variant="underlined" v-model="inputDate"
-                                :min="today" :display-format="formatDate"></v-date-input>
+                                :max="today" :display-format="formatDate" :rules="[rules.required]"></v-date-input>
                         </v-col>
 
-                        <!-- direccion -->
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"></v-text-field>
-                        </v-col>
+
                         <!-- telefono -->
 
                         <v-col cols="12" md="6">
@@ -285,12 +344,6 @@ const confirmDelete = async () => {
                                 mask="+51 ### ### ###">
                             </v-mask-input>
                         </v-col>
-
-                        <!-- email -->
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
-                        </v-col>
                         <!-- roles -->
                         <v-col cols="12" md="6">
                             <v-select label="Rol" variant="underlined" :items="rolesFormateados" v-model="rolId"
@@ -298,15 +351,19 @@ const confirmDelete = async () => {
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-text-field label="Clave" variant="underlined" v-model="clave" type="password"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.min6]"></v-text-field>
 
                         </v-col>
                         <v-col cols="12" md="6">
-                            <v-mask-input label="Dni" variant="underlined" v-model="dni"
-                                :rules="[rules.required, rules.dni, rules.distinct(employee, 'dni', employeeEdit?.id)]"
-                                mask="########">
-                            </v-mask-input>
+                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"></v-text-field>
                         </v-col>
+                        <!-- email -->
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Email" variant="underlined" v-model="email"
+                                :rules="[rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
+                        </v-col>
+
+
                         <v-col cols="12" md="6">
                             <v-file-input label="Imagen" variant="underlined" @update:model-value="onImageChange"
                                 v-model="imagen"></v-file-input>
@@ -409,27 +466,6 @@ const confirmDelete = async () => {
 
                             <!-- Grid de Información -->
                             <v-row class="informacion">
-                                <!-- Email -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-email</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Correo Electrónico</span>
-                                    </div>
-                                    <v-chip color="primary" variant="tonal" size="default" class="ml-8">
-                                        {{ emp.email }}
-                                    </v-chip>
-                                </v-col>
-
-                                <!-- Teléfono -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-phone</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Teléfono</span>
-                                    </div>
-                                    <v-chip color="teal" variant="tonal" size="default" class="ml-8">
-                                        {{ emp.telefono }}
-                                    </v-chip>
-                                </v-col>
 
                                 <!-- Rol -->
                                 <v-col cols="12" sm="6">
@@ -441,6 +477,28 @@ const confirmDelete = async () => {
                                         {{ formatRoleName(emp.rolId.nombre) }}
                                     </v-chip>
                                 </v-col>
+                                <!-- dni -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-card-account-details</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Dni</span>
+                                    </div>
+                                    <div class="text-body-1 font-weight-medium ml-8">
+                                        {{ emp.dni }}
+                                    </div>
+                                </v-col>
+                                <!-- Teléfono -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-phone</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Teléfono</span>
+                                    </div>
+                                    <v-chip color="teal" variant="tonal" size="default" class="ml-8">
+                                        {{ emp.telefono }}
+                                    </v-chip>
+                                </v-col>
+
+
 
                                 <!-- Fecha de Nacimiento -->
                                 <v-col cols="12" sm="6">
@@ -453,6 +511,18 @@ const confirmDelete = async () => {
                                         {{ formatDate(emp.fechaNacimiento) }}
                                     </div>
                                 </v-col>
+                                <!-- Email -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-email</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Correo Electrónico</span>
+                                    </div>
+                                    <v-chip color="primary" variant="tonal" size="default" class="ml-8">
+                                        {{ emp.email }}
+                                    </v-chip>
+                                </v-col>
+
+
 
                                 <!-- Dirección -->
                                 <v-col cols="12" sm="6">
@@ -464,16 +534,7 @@ const confirmDelete = async () => {
                                         {{ emp.direccion }}
                                     </div>
                                 </v-col>
-                                <!-- dni -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-card-account-details</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Dni</span>
-                                    </div>
-                                    <div class="text-body-1 font-weight-medium ml-8">
-                                        {{ emp.dni }}
-                                    </div>
-                                </v-col>
+
                             </v-row>
                         </v-card>
                     </v-col>
@@ -505,7 +566,13 @@ const confirmDelete = async () => {
     transform: translateY(-5px);
 }
 
-
+.format {
+    max-width: 70%;
+    /* ajusta según tu diseño */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 @media (max-width:600px) {
 

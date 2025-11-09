@@ -6,7 +6,6 @@ import { computed, ref } from 'vue';
 import { useSnackbar } from '@/stores/snackbar'
 import { useRouter } from 'vue-router'
 import { useProduct } from '@/composables/query/useProduct';
-import { useCategory } from '@/composables/query/useCategory';
 import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer';
 import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer';
 import { useBill } from '@/composables/query/useBill';
@@ -14,7 +13,6 @@ import { useTicket } from '@/composables/query/useTicket';
 import { useIntegration } from '@/composables/query/useIntegration';
 import { useDisplay } from 'vuetify'
 import { useForm } from '@/composables/useForm';
-import { reactive } from 'vue';
 
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 
@@ -37,12 +35,7 @@ const {
 
 const {
   product,
-  isPending,
 } = useProduct()
-
-const {
-  category,
-} = useCategory()
 
 const {
   naturalCustomers,
@@ -71,19 +64,7 @@ const {
 const filterDialog = ref(false)
 const search = ref('') //busqueda
 
-const filtros = reactive({
-  categoria: 'Todos',
-})
-
 const { mdAndUp, smAndDown } = useDisplay()
-
-const filteredItems = computed(() => {
-  return items.value.filter(item => {
-    const matchSearch = !search.value || item.nombre.toLowerCase().includes(search.value.toLowerCase())
-    const matchCategoria = !filtros.categoria || filtros.categoria === 'Todos' || item.categoria.nombre === filtros.categoria
-    return matchSearch && matchCategoria
-  })
-})
 
 const items = computed(() => product.value || [])
 
@@ -414,71 +395,64 @@ const imprimirComprobante = async () => {
     </v-card>
   </v-dialog>
 
-  <v-container fluid class="pa-4">
+  <v-container fluid class="pa-0" style="overflow: visible;">
     <v-row>
       <!-- COLUMNA IZQUIERDA: Productos -->
-      <v-col cols="12" md="8">
-
-        <!-- Filtros -->
+      <v-col cols="12" md="8" class="pa-4">
         <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
           <v-row>
-            <base-filter v-model:search="search" :filters="[
-              {
-                key: 'categoria',
-                label: 'Categoría',
-                type: 'select',
-                items: ['Todos', ...(category?.map(c => c.nombre) || [])],
-                model: filtros.categoria
-              },
-            ]" @update:filter="({ key, value }) => (filtros[key] = value)" />
-
+            <base-filter v-model:search="search" />
           </v-row>
         </v-card>
 
-        <v-row v-if="isPending">
-          <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4">
-            <v-skeleton-loader type="card" />
-          </v-col>
-        </v-row>
-
-        <v-row v-else>
-          <v-col v-for="item in filteredItems" :key="item.id" cols="12" sm="6" md="6" lg="4">
-            <v-hover v-slot="{ isHovering, props }">
-              <v-card v-bind="props" :elevation="isHovering ? 4 : 1" class="transition-fast" rounded="xl">
-                <v-img :src="item.imagen" height="220" cover>
-                  <v-expand-transition>
-                    <div v-if="isHovering" class="position-absolute" style="inset:0; background-color:rgba(0,0,0,0.2);">
+        <v-data-iterator :items="items" :items-per-page="6" :search="search">
+          <template #default="{ items }">
+            <v-row dense>
+              <v-col v-for="item in items" :key="item.raw.id" cols="12" sm="6" md="6" lg="4">
+                <v-card class="pb-3" rounded="xl" width="100%">
+                  <v-img :src="item.raw.imagen" height="180" cover></v-img>
+                  <v-card-text class="py-3">
+                    <!-- Nombre del producto -->
+                    <div class="text-subtitle-1 text-center font-weight-medium">
+                      {{ item.raw.nombre }}
                     </div>
-                  </v-expand-transition>
-                </v-img>
 
-                <v-divider :thickness="2" />
+                    <!-- Código de barra -->
+                    <div class="text-caption text-center text-grey-darken-1 mt-1">
+                      Código: {{ item.raw.codigoBarra }}
+                    </div>
 
-                <v-card-title class="text-h6 font-weight-medium text-center transition-fast"
-                  :class="{ 'text-primary': isHovering }">
-                  {{ item.nombre }}
-                </v-card-title>
+                    <!-- Categoría -->
+                    <div class="text-caption text-center text-grey mt-1">
+                      {{ item.raw.categoria.nombre }}
+                    </div>
+                  </v-card-text>
+                  <v-card-actions class="justify-center pt-3">
+                    <v-btn color="primary" variant="flat" prepend-icon="mdi-cart-plus" @click="viewProduct(item.raw)">
+                      Agregar
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-col>
+            </v-row>
+          </template>
 
-                <v-card-actions class="justify-center pb-4">
-                  <v-btn color="primary" variant="flat" prepend-icon="mdi-cart-plus" @click="viewProduct(item)"
-                    :elevation="isHovering ? 4 : 1" class="transition-fast">
-                    Agregar
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-hover>
-          </v-col>
-        </v-row>
-
-        <v-row v-if="!isPending && !filteredItems.length" class="text-center">
-          <v-col>
-            <p class="text-grey-darken-1 mt-8">No se encontraron productos.</p>
-          </v-col>
-        </v-row>
+          <template #footer="{ page, pageCount, prevPage, nextPage }">
+            <div class="d-flex align-center justify-center pa-4" style="min-height: 60px;">
+              <v-btn :disabled="page === 1" density="comfortable" icon="mdi-arrow-left" variant="tonal" rounded
+                @click="prevPage" />
+              <div class="mx-2 text-caption">
+                Página {{ page }} de {{ pageCount }}
+              </div>
+              <v-btn :disabled="page >= pageCount" density="comfortable" icon="mdi-arrow-right" variant="tonal" rounded
+                @click="nextPage" />
+            </div>
+          </template>
+        </v-data-iterator>
       </v-col>
 
       <!-- COLUMNA DERECHA: Resumen de Venta -->
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" class="bg-grey-lighten-5 pa-4">
         <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px;">
           <!-- Cliente -->
           <div class="d-flex justify-space-between align-center mb-3">

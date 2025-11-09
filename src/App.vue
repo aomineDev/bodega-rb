@@ -1,11 +1,10 @@
 <script setup>
-import { RouterView } from 'vue-router'
 import { useSnackbar } from './stores/snackbar'
 import { storeToRefs } from 'pinia'
 
 const snackbarRef = useSnackbar()
 
-const { snackbar, snackbarMessage, snackbarColor } = storeToRefs(snackbarRef)
+const { snackbar, snackbarMessage, snackbarColor, snackBarLocaltion } = storeToRefs(snackbarRef)
 
 const { closeSnackbar } = snackbarRef
 </script>
@@ -17,12 +16,13 @@ const { closeSnackbar } = snackbarRef
         <component :is="Component" />
       </v-fade-transition>
     </router-view>
+
     <v-snackbar
       v-model="snackbar"
       timeout="2000"
       :color="snackbarColor"
       variant="flat"
-      location="bottom right"
+      :location="snackBarLocaltion"
       :text="snackbarMessage"
     >
       <template v-slot:actions>

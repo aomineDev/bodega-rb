@@ -11,19 +11,20 @@ export const useIntegration = () => {
     error,
   } = useQuery({
     queryKey: ['integrations'],
-    queryFn: integrationService.getAll,
+    queryFn: integrationService.getAll, enabled: false,
+
   })
 
   const getCustomerByDni = (dni) =>
     useQuery({
-      queryKey: ['integration', 'dni', dni],
+      queryKey: ['integration', 'dni'],
       queryFn: () => integrationService.getCustomerByDni(dni.value),
       enabled: false,
     })
 
   const getCustomerByRuc = (ruc) =>
     useQuery({
-      queryKey: ['integration', 'ruc', ruc],
+      queryKey: ['integration', 'ruc'],
       queryFn: () => integrationService.getCustomerByRuc(ruc.value),
       enabled: false,
     })
