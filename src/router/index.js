@@ -63,51 +63,48 @@ const router = createRouter({
             },
           ],
         },
-      ],
-    },
-    {
-      path: '/gestion',
-      component: DashboardLayout,
-      children: [
         {
-          path: 'proveedores',
-          component: SuppliersView,
+          path: 'gestion',
+          children: [
+            {
+              path: 'proveedores',
+              component: SuppliersView,
+            },
+            {
+              path: 'empleados',
+              component: EmployeesView,
+            },
+            {
+              path: 'productos',
+              component: ProductsView,
+            },
+          ],
         },
         {
-          path: 'empleados',
-          component: EmployeesView,
+          path: 'caja',
+          children: [
+            {
+              path: 'ventas',
+              component: SalesView,
+            },
+            {
+              path: 'comprobantes',
+              component: VouchersView,
+            },
+            {
+              path: 'clientes',
+              component: CustomersView,
+            },
+          ],
         },
         {
-          path: 'productos',
-          component: ProductsView,
-        },
-      ],
-    },
-    {
-      path: '/caja',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'ventas',
-          component: SalesView,
-        },
-        {
-          path: 'comprobantes',
-          component: VouchersView,
-        },
-        {
-          path: 'clientes',
-          component: CustomersView,
-        },
-      ],
-    },
-    {
-      path: '/almacen',
-      component: DashboardLayout,
-      children: [
-        {
-          path: 'ingreso-productos',
-          component: ProductEntryView,
+          path: '/almacen',
+          children: [
+            {
+              path: 'ingreso-productos',
+              component: ProductEntryView,
+            },
+          ],
         },
       ],
     },

@@ -1,7 +1,7 @@
 export const rules = {
   // Validacion general
   required: (v) => !!v || 'Campo obligatorio',
-  text: (v) => /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]{3,}$/.test(v) || 'Informacion inválida',
+  text: (v) => /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s.'-]{3,}$/.test(v) || 'Información inválida',
   email: (v) => {
     if (!v) return true
     return /.+@.+\..+/.test(v) || 'Email inválido'
@@ -28,11 +28,11 @@ export const rules = {
     if (v < total) return `El efectivo no cubre el total (S/ ${total})`
     return true
   },
-
+  //empleado
   distinct:
     (arr, key, currentId = null) =>
-    (v) => {
-      if (!v) return true
-      return !arr.some((e) => e[key] === v && e.id !== currentId) || 'Campo ya existe'
-    },
+      (v) => {
+        if (!v) return true
+        return !arr.some((e) => e[key] === v && e.id !== currentId) || 'Campo ya existe'
+      },
 }

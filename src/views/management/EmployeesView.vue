@@ -4,7 +4,6 @@ import ActionMenu from '@/components/ActionMenu.vue';
 import { computed, ref, watch } from 'vue';
 import { reactive } from 'vue';
 import { VDateInput } from 'vuetify/labs/VDateInput'
-
 import { useForm } from '@/composables/useForm';
 import FabMenu from '@/components/FabMenu.vue';
 import { useDisplay } from 'vuetify/lib/composables/display';
@@ -12,56 +11,30 @@ import { useRole } from '@/composables/query/useRole';
 import { useEmployee } from '@/composables/query/useEmployee';
 import { storageService } from '@/services/storage/imageService';
 import { useSnackbar } from '@/stores/snackbar';
+import { useDateInput } from '@/composables/useDateInput';
+import { capitalize } from '@/utils/capitalize';
+import { useIntegration } from '@/composables/query/useIntegration';
+//-----------------------------------------------CONSTANTES---------------------------------------//
+
 const { mdAndUp, smAndDown } = useDisplay()
-const { showSuccessSnackbar } = useSnackbar()
-const filtros = reactive({
-    rol: null,
-})
+const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 const {
-    role
-} = useRole()
-
-const selectFilter = computed(() => [
-    {
-        key: 'rol',
-        label: 'Rol',
-        type: 'select',
-        model: filtros.rol,
-        items: role.value,
-        itemTitle: 'nombre',
-        itemValue: 'id',
-
-    }
-])
-
-const {
-    employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync
+    employee, createEmployeeAsync, updateEmployeeAsync, deleteEmployeeAsync, isPending
 } = useEmployee()
-
-//modla eliminar
+//modal eliminar
 const employeeDeleteModal = ref(false)
-//modal abrir modal del formumulario
+//modal formulario
 const employeeFormModal = ref(false)
 //modal del filtro que se habre en responsive
 const filterDialog = ref(false)
-//modal ver detalles
+//modal detalles
 const employeeDetailModal = ref(false)
-//campos reactvios para el modal creal y editar al mismo tiempo
+//campos reactivos
 const modalTitle = computed(() => (employeeEdit.value ? 'Editar Empleado' : 'Crear Empleado'))
 const actionLabel = computed(() => (employeeEdit.value ? 'Actualizar' : 'Crear'))
 const employeeEdit = ref(null)
 
-const handleActionFabMenu = (type) => {
-
-    if (type === 'add') {
-        employeeEdit.value = false
-        employeeFormModal.value = true
-    }
-    if (type === 'filter') {
-        filterDialog.value = true
-    }
-}
-
+//-----------------------------------------------DATA---------------------------------------//
 const {
     formData, handleSubmit, formRef, asignForm,
     resetForm, nombre, apellidoMaterno, apellidoPaterno, email, dni,
@@ -76,12 +49,15 @@ const {
     direccion: '',
     clave: '',
     imagen: '',
-    fechaNacimiento: '',
+    fechaNacimiento: null,
     rolId: '',
 
 })
-const previewUrl = ref(null)
+const { formatDate, inputDate, today } = useDateInput(fechaNacimiento)
 
+//-----------------------------------------------SUBIDA DE IMAGEN---------------------------------------//
+const previewUrl = ref(null)
+//cambio de imagen
 const onImageChange = (file) => {
     const selectedFile = Array.isArray(file) ? file[0] : file;
 
@@ -92,15 +68,104 @@ const onImageChange = (file) => {
     }
 
 }
-
+//creaccion de la imagen ala api
 const getImageUrl = async () => {
     if (imagen.value instanceof File) {
         return await storageService.upload('employees', imagen.value);
     }
     return employeeEdit.value?.imagen || "/img/default.png";
 }
-//vistas boton crear y editar
 
+//-----------------------------------------------ABRIR MODALES---------------------------------------//
+const emp = ref(false)
+const handleView = (item) => {
+    emp.value = item
+    employeeDetailModal.value = true
+}
+
+//abrir modal editar
+const handleEdit = (item) => {
+    employeeEdit.value = item
+    asignForm({
+        ...item,
+        rolId: item.rolId ? {
+            ...item.rolId,
+            nombre: formatRoleName(item.rolId.nombre)
+        } : null
+    })
+    employeeFormModal.value = true
+}
+
+//abrir modal eliminar
+const deleteModal = (item) => {
+    employeeDeleteModal.value = true
+    console.log(item)
+
+}
+
+watch(employeeFormModal, (isOpen) => {
+    if (!isOpen) {
+        resetForm()
+        employeeEdit.value = null
+    }
+})
+//-----------------------------------------------FILTROS---------------------------------------//
+const filtros = reactive({
+    rol: null,
+})
+const {
+    role
+} = useRole()
+const formatRoleName = (roleName) => {
+    return roleName
+        .replace('ROLE_', '')
+        .split('_')
+        .map(word => capitalize(word))
+        .join(' ')
+}
+const rolesFormateados = computed(() => {
+    if (!role.value) return []
+
+    return role.value.map(r => ({
+        ...r,
+        nombre: formatRoleName(r.nombre)
+    }))
+})
+const selectFilter = computed(() => [
+    {
+        key: 'rol',
+        label: 'Rol',
+        type: 'select',
+        model: filtros.rol,
+        items: rolesFormateados.value,
+        itemTitle: 'nombre',
+        itemValue: 'id',
+
+    }
+])
+const search = ref('')
+
+const filtroEmpleado = computed(() => {
+    const empleados = employee.value
+    if (!Array.isArray(empleados)) return []
+
+    const query = search.value.trim().toLowerCase()
+    const rolSeleccionado = filtros.rol
+
+    return empleados.filter(e => {
+        const coincideBusqueda = query
+            ? [e.nombre, e.apellidoPaterno, e.dni?.toString()]
+                .some(campo => campo?.toLowerCase().includes(query))
+            : true
+
+        const coincideRol = rolSeleccionado
+            ? e.rolId?.id === rolSeleccionado
+            : true
+        return coincideBusqueda && coincideRol
+    })
+})
+//-----------------------------------------------ACCIONES---------------------------------------//
+//agregar y editar
 const handleCreateEmployee = async () => {
 
     try {
@@ -123,87 +188,59 @@ const handleCreateEmployee = async () => {
         console.log(error)
     }
 }
-
-//vistas darle al ver detalles
-const emp = ref(false)
-const handleView = (item) => {
-    emp.value = item
-    employeeDetailModal.value = true
-}
-watch(employeeFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
-})
-
-//vista darle al editar
-const handleEdit = (item) => {
-    employeeEdit.value = item
-    asignForm(employeeEdit.value)
-    employeeFormModal.value = true
-}
-
-//vista darle al eliminar
-const deleteModal = (item) => {
-    employeeDeleteModal.value = true
-    console.log(item)
-
-}
-//vista cerrar modal del formulario 
-const closeFormModal = () => {
-    employeeFormModal.value = false
-    resetForm()
-}
-//vista cerrar modal eliminar
-const close = () => {
-    employeeDeleteModal.value = false
-}
-
-const deleteEmploye = ref(false)
+//eliminar
 const confirmDelete = async () => {
     try {
-        deleteEmploye.value = employee.value[0]
+        employeeEdit.value = employee.value[0]
 
-        await deleteEmployeeAsync(deleteEmploye.value.id)
+        await deleteEmployeeAsync(employeeEdit.value.id)
         showSuccessSnackbar("Eliminado correctamente")
         employeeDeleteModal.value = false
     } catch (error) {
         console.log("error" + error)
     }
 }
+//---------------busqueda------------------------//
 
-const search = ref('')
 
-const filtroEmpleado = computed(() => {
-    if (!Array.isArray(employee.value)) return []
+const isBuscando = ref(false)
+const { getCustomerByDni } = useIntegration()
+const { refetch: refetchDni } = getCustomerByDni(dni)
+const searchEmployee = async () => {
 
-    let resultado = employee.value
-
-    // Filtro por búsqueda de texto
-    const query = search.value.toLowerCase().trim()
-    if (query) {
-        resultado = resultado.filter(e => {
-            const nombre = e.nombre?.toLowerCase() || ''
-            const apellidoPaterno = e.apellidoPaterno?.toLowerCase() || ''
-            const dni = e.dni?.toString() || ''
-
-            return (
-                nombre.includes(query) ||
-                apellidoPaterno.includes(query) ||
-                dni.includes(query)
-            )
-        })
+    if (!dni.value || dni.value.length < 8) {
+        showWarningSnackbar('Ingrese un DNI válido')
+        return
     }
 
-    // Filtro por rol
-    if (filtros.rol) {
-        resultado = resultado.filter(e => e.rolId?.id === filtros.rol)
+    const found = employee.value?.find(s => s.dni === dni.value)
+    if (found) {
+        showWarningSnackbar('El empleado ya existe en la base de datos')
+        return
     }
 
-    return resultado
-})
+    try {
+        isBuscando.value = true
+        const result = await refetchDni()
+
+        if (result?.data) {
+            const data = result.data
+
+            nombre.value = data.first_name || ''
+            apellidoPaterno.value = data.first_last_name || ''
+            apellidoMaterno.value = data.second_last_name || ''
+            showSuccessSnackbar('Datos obtenidos correctamente')
+        } else {
+            showErrorSnackbar('No se encontraron datos para este empleado')
+        }
+    } catch (error) {
+        console.error('Error al buscar DNI:', error)
+        showErrorSnackbar('Error al consultar DNI')
+    } finally {
+        isBuscando.value = false
+    }
+}
 </script>
-
-
-
 <template>
     <h1>Empleados</h1>
     <!-- filtros -->
@@ -212,33 +249,51 @@ const filtroEmpleado = computed(() => {
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
                 filtros[key] = value" />
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleActionFabMenu('add')">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="employeeFormModal = true">Crear
                     Empleado</v-btn>
             </v-col>
         </v-row>
     </v-card>
     <!-- cartas -->
-    <v-row>
+
+    <v-row v-if="isPending">
+
+        <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4" loading-text="Cargando proveedores...">
+            <v-skeleton-loader type="card" />
+        </v-col>
+        <!-- <v-col cols="12">
+            <div class="text-center">Cargando productos...</div>
+        </v-col> -->
+    </v-row>
+
+    <v-row v-else>
         <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in filtroEmpleado" :key="index">
             <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
+                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover"
+                    no-data-text="No se encontraron empleados">
 
                     <v-img height="220px" :src="item.imagen" contain>
                     </v-img>
 
                     <v-divider :thickness="3"></v-divider>
 
-                    <v-card-title class="d-flex justify-space-between align-center">
-                        <span>{{ item.nombre + " " + item.apellidoPaterno }}</span>
+                    <v-card-title class="d-flex justify-space-between align-center flex-wrap">
+                        <span class="format">{{ item.nombre + " " + item.apellidoPaterno }}</span>
                         <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)">
                         </ActionMenu>
                     </v-card-title>
 
-                    <v-chip class="chip-categoria mb-3 mx-3" color="indigo" size="large">
-                        {{ item.rolId?.nombre }}
+                    <v-chip class="chip-categoria mb-3 mx-3" color="primary" size="large">
+                        {{ formatRoleName(item.rolId?.nombre) }}
                     </v-chip>
                 </v-card>
             </v-hover>
+        </v-col>
+    </v-row>
+    <v-row v-if="!isPending && !filtroEmpleado.length">
+        <v-col cols="12" class="text-center py-16">
+            <v-icon size="64" color="grey-lighten-1">mdi-account-group</v-icon>
+            <p class="text-h6 text-grey mt-4">No se encontraron empleados</p>
         </v-col>
     </v-row>
     <!-- modal crear -->
@@ -248,33 +303,39 @@ const filtroEmpleado = computed(() => {
             <v-form ref="formRef" class="pa-3">
                 <v-container fluid>
                     <v-row>
+                        <v-col cols="12" md="6">
+                            <v-mask-input label="Dni" variant="underlined" v-model="dni"
+                                :rules="[rules.required, rules.dni, rules.distinct(employee, 'dni', employeeEdit?.id)]"
+                                mask="########" :counter="8">
+                                <template #append-inner>
+                                    <v-btn icon="mdi-magnify" variant="text" density="compact" @click="searchEmployee()"
+                                        :loading="isBuscando" />
+                                </template>
+                            </v-mask-input>
+                        </v-col>
                         <!-- nombre -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre" variant="underlined" v-model="nombre"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
 
                         <!-- apellido paterno -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Apellido Paterno" variant="underlined" v-model="apellidoPaterno"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
                         <!-- apellido marterno -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Apellido Materno" variant="underlined" v-model="apellidoMaterno"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
                         <!-- fecha nacimineto -->
                         <v-col cols="12" md="6">
-                            <v-date-input label="Fecha de nacimiento" variant="underlined" v-model="fechaNacimiento"
-                                :rules="[rules.required]"></v-date-input>
+                            <v-date-input label="Fecha de nacimiento" variant="underlined" v-model="inputDate"
+                                :max="today" :display-format="formatDate" :rules="[rules.required]"></v-date-input>
                         </v-col>
 
-                        <!-- direccion -->
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"
-                                :rules="[rules.required]"></v-text-field>
-                        </v-col>
+
                         <!-- telefono -->
 
                         <v-col cols="12" md="6">
@@ -283,27 +344,26 @@ const filtroEmpleado = computed(() => {
                                 mask="+51 ### ### ###">
                             </v-mask-input>
                         </v-col>
+                        <!-- roles -->
+                        <v-col cols="12" md="6">
+                            <v-select label="Rol" variant="underlined" :items="rolesFormateados" v-model="rolId"
+                                item-title="nombre" item-value="id" :rules=[rules.rol] return-object></v-select>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Clave" variant="underlined" v-model="clave" type="password"
+                                :rules="[rules.required, rules.min6]"></v-text-field>
 
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <v-text-field label="Direccion" variant="underlined" v-model="direccion"></v-text-field>
+                        </v-col>
                         <!-- email -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Email" variant="underlined" v-model="email"
-                                :rules="[rules.required, rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
+                                :rules="[rules.email, rules.distinct(employee, 'email', employeeEdit?.id)]"></v-text-field>
                         </v-col>
-                        <!-- roles -->
-                        <v-col cols="12" md="6">
-                            <v-select label="Rol" variant="underlined" :items="role" v-model="rolId" item-title="nombre"
-                                return-object :rules=[rules.rol]></v-select> </v-col>
-                        <v-col cols="12" md="6">
-                            <v-text-field label="Clave" variant="underlined" v-model="clave" type="password"
-                                :rules="[rules.required]"></v-text-field>
 
-                        </v-col>
-                        <v-col cols="12" md="6">
-                            <v-mask-input label="Dni" variant="underlined" v-model="dni"
-                                :rules="[rules.required, rules.distinct(employee, 'dni', employeeEdit?.id)]"
-                                mask="########">
-                            </v-mask-input>
-                        </v-col>
+
                         <v-col cols="12" md="6">
                             <v-file-input label="Imagen" variant="underlined" @update:model-value="onImageChange"
                                 v-model="imagen"></v-file-input>
@@ -319,8 +379,8 @@ const filtroEmpleado = computed(() => {
 
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="closeFormModal()"></v-btn>
-                <v-btn class="ms-auto" :text="actionLabel" variant="tonal" color="primary"
+                <v-btn class="ms-auto" text="Cerrar" @click="employeeFormModal = false"></v-btn>
+                <v-btn class=" ms-auto" :text="actionLabel" variant="tonal" color="primary"
                     @click="handleSubmit(handleCreateEmployee)"></v-btn>
 
             </v-card-actions>
@@ -332,7 +392,7 @@ const filtroEmpleado = computed(() => {
         <v-card>
             <!-- Título centrado, grande y negro -->
             <v-card-title class="text-h5 font-weight-bold  text-black mb-8">
-                Eliminar producto
+                Eliminar empleado
             </v-card-title>
 
             <!-- Ícono centrado -->
@@ -342,13 +402,13 @@ const filtroEmpleado = computed(() => {
 
             <!-- Texto descriptivo -->
             <v-card-text class="text-center text-body-2">
-                ¿Está seguro que desea eliminar este producto? <br />
+                ¿Está seguro que desea eliminar este empleado? <br />
                 <strong>Esta acción no se puede deshacer.</strong>
             </v-card-text>
 
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
-                <v-btn text="Cerrar" @click="close"></v-btn>
+                <v-btn text="Cerrar" @click="employeeDeleteModal = false"></v-btn>
                 <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>
@@ -406,27 +466,6 @@ const filtroEmpleado = computed(() => {
 
                             <!-- Grid de Información -->
                             <v-row class="informacion">
-                                <!-- Email -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-email</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Correo Electrónico</span>
-                                    </div>
-                                    <v-chip color="primary" variant="tonal" size="default" class="ml-8">
-                                        {{ emp.email }}
-                                    </v-chip>
-                                </v-col>
-
-                                <!-- Teléfono -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-phone</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Teléfono</span>
-                                    </div>
-                                    <v-chip color="teal" variant="tonal" size="default" class="ml-8">
-                                        {{ emp.telefono }}
-                                    </v-chip>
-                                </v-col>
 
                                 <!-- Rol -->
                                 <v-col cols="12" sm="6">
@@ -435,30 +474,8 @@ const filtroEmpleado = computed(() => {
                                         <span class="text-body-2 font-weight-bold">Rol / Cargo</span>
                                     </div>
                                     <v-chip color="indigo" variant="tonal" size="default" class="ml-8">
-                                        {{ emp.rolId.nombre }}
+                                        {{ formatRoleName(emp.rolId.nombre) }}
                                     </v-chip>
-                                </v-col>
-
-                                <!-- Fecha de Nacimiento -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-calendar-account</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Fecha de Nacimiento</span>
-                                    </div>
-                                    <div class="text-body-1 font-weight-medium ml-8">
-                                        {{ emp.fechaNacimiento }}
-                                    </div>
-                                </v-col>
-
-                                <!-- Dirección -->
-                                <v-col cols="12" sm="6">
-                                    <div class="d-flex align-center mb-2">
-                                        <v-icon color="primary" size="22" class="mr-2">mdi-map-marker</v-icon>
-                                        <span class="text-body-2 font-weight-bold">Dirección</span>
-                                    </div>
-                                    <div class="text-body-1 font-weight-medium ml-8">
-                                        {{ emp.direccion }}
-                                    </div>
                                 </v-col>
                                 <!-- dni -->
                                 <v-col cols="12" sm="6">
@@ -470,6 +487,54 @@ const filtroEmpleado = computed(() => {
                                         {{ emp.dni }}
                                     </div>
                                 </v-col>
+                                <!-- Teléfono -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-phone</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Teléfono</span>
+                                    </div>
+                                    <v-chip color="teal" variant="tonal" size="default" class="ml-8">
+                                        {{ emp.telefono }}
+                                    </v-chip>
+                                </v-col>
+
+
+
+                                <!-- Fecha de Nacimiento -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-calendar-account</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Fecha de Nacimiento</span>
+                                    </div>
+
+                                    <div class="text-body-1 font-weight-medium ml-8">
+                                        {{ formatDate(emp.fechaNacimiento) }}
+                                    </div>
+                                </v-col>
+                                <!-- Email -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-email</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Correo Electrónico</span>
+                                    </div>
+                                    <v-chip color="primary" variant="tonal" size="default" class="ml-8">
+                                        {{ emp.email }}
+                                    </v-chip>
+                                </v-col>
+
+
+
+                                <!-- Dirección -->
+                                <v-col cols="12" sm="6">
+                                    <div class="d-flex align-center mb-2">
+                                        <v-icon color="primary" size="22" class="mr-2">mdi-map-marker</v-icon>
+                                        <span class="text-body-2 font-weight-bold">Dirección</span>
+                                    </div>
+                                    <div class="text-body-1 font-weight-medium ml-8">
+                                        {{ emp.direccion }}
+                                    </div>
+                                </v-col>
+
                             </v-row>
                         </v-card>
                     </v-col>
@@ -501,7 +566,13 @@ const filtroEmpleado = computed(() => {
     transform: translateY(-5px);
 }
 
-
+.format {
+    max-width: 70%;
+    /* ajusta según tu diseño */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 @media (max-width:600px) {
 

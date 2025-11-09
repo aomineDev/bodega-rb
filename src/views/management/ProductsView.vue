@@ -11,23 +11,31 @@ import { useProduct } from '@/composables/query/useProduct'
 import { useSupplier } from '@/composables/query/useSupplier'
 import { useCategory } from '@/composables/query/useCategory'
 import { storageService } from '@/services/storage/imageService'
+import { useDateInput } from '@/composables/useDateInput'
+//-----------------------------------------------CONSTANTES---------------------------------------//
 const { showSuccessSnackbar } = useSnackbar()
-
-const ud = ref(['Unidad', 'Kilogramo', 'Litro', 'Caja'])
-
+const ud = ref(['Unidad', 'Kilogramo', 'Litro'])
 const { category } = useCategory()
+const { supplier } = useSupplier()
 
 const productFormModal = ref(false)
+
+const { createProductAsync, product, deleteProductAsync, updateProductAsync, isPending } = useProduct()
+
 const productDetailModal = ref(false)
 const productDeleteModal = ref(false)
 const filterDialog = ref(false)
 const { mdAndUp, smAndDown } = useDisplay()
-// const product = ref(false)
-// const customerEdit = ref(false)
 const modalTitle = computed(() => (productItem.value ? 'Editar Producto' : 'Crear Producto'))
-
 const actionLabel = computed(() => (productItem.value ? 'Actualizar' : 'Crear'))
 const productItem = ref(false)
+//-----------------------------------------------ACCIOENS DEL FAB---------------------------------------//
+const filtros = reactive({
+    categorias: null,
+    proveedores: null,
+})
+//-----------------------------------------------DATA---------------------------------------//
+
 const {
     formRef,
     formData,
@@ -61,19 +69,70 @@ const {
     finPromocion: '',
     unidadMedida: '',
 })
+const {
+    formatDate: formatInicioPromocion,
+    inputDate: inputInicioPromocion,
+    today
+} = useDateInput(inicioPromocion)
 
-const handleActionFabMenu = (type) => {
-    if (type === 'add') {
-        productItem.value = false
-        productFormModal.value = true
+const {
+    formatDate: formatFinPromocion,
+    inputDate: inputFinPromocion
+} = useDateInput(finPromocion)
+
+//-----------------------------------------------SUBIDA DE IMAGEN---------------------------------------//
+
+const previewUrl = ref(null)
+const onImageChange = (file) => {
+    const selectedFile = Array.isArray(file) ? file[0] : file
+
+    if (selectedFile instanceof File) {
+        previewUrl.value = URL.createObjectURL(selectedFile)
+    } else {
+        previewUrl.value = productItem.value?.imagen || null
     }
-    if (type === 'filter') filterDialog.value = true
 }
-const filtros = reactive({
-    categorias: null,
-    proveedores: null,
-})
 
+const getImageUrl = async () => {
+    if (imagen.value instanceof File) {
+        return await storageService.upload('products', imagen.value)
+    }
+    return productItem.value?.imagen || '/img/default.png'
+}
+//-----------------------------------------------ABRIR MODALES---------------------------------------//
+// abrir modal detalles
+const productDetail = ref(false)
+//accion detalle
+const handleView = (item) => {
+    productDetail.value = item
+    productDetailModal.value = true
+}
+
+//abrir modal editar
+const handleEdit = (item) => {
+    productItem.value = item
+    asignForm(productItem.value)
+
+    productFormModal.value = true
+}
+//abir modal
+const operModal = () => {
+    productFormModal.value = true
+}
+
+//abrir modal eliminar
+const deleteModal = (item) => {
+    productDeleteModal.value = true
+    console.log('card eliminada' + item.id)
+}
+
+watch(productFormModal, (isOpen) => {
+    if (!isOpen) {
+        resetForm()
+        productItem.value = null
+    }
+})
+//-----------------------------------------------FILTROS---------------------------------------//
 const selectFilter = computed(() => [
     {
         key: 'categorias',
@@ -94,55 +153,30 @@ const selectFilter = computed(() => [
         itemValue: 'id',
     },
 ])
-const { createProductAsync, product, deleteProductAsync, updateProductAsync } = useProduct()
 
-const { supplier } = useSupplier()
-//cerrar modal
-const closeFormModal = () => {
-    productFormModal.value = false
-    resetForm()
-}
-//accion eliminar
-const deleteModal = (item) => {
-    productDeleteModal.value = true
-    console.log('card eliminada' + item.id)
-}
-const productDetail = ref(false)
-//accion detalle
-const handleView = (item) => {
-    productDetail.value = item
-    productDetailModal.value = true
-}
+const search = ref('')
+const filtroProducto = computed(() => {
+    const productos = product.value
 
-const handleEdit = (item) => {
-    productItem.value = item
-    asignForm(productItem.value)
+    if (!Array.isArray(product.value)) return []
 
-    productFormModal.value = true
-}
-watch(productFormModal, (isOpen) => {
-    if (!isOpen) resetForm()
+    const query = search.value.trim().toLowerCase()
+    const categoriaSeleccionada = filtros.categorias
+    const proveedorSeleccionado = filtros.proveedores
+
+    return productos.filter(p => {
+        const coincidenciaBusqueda = query ?
+            [p.nombre].some(campo => campo?.toLowerCase().includes(query))
+            : true
+
+        const coincidenciaCategoria = categoriaSeleccionada ? p.categoria?.id === categoriaSeleccionada : true
+        const coincidenciaProveedor = proveedorSeleccionado ? p.proveedor?.id === proveedorSeleccionado : true
+
+        return coincidenciaCategoria && coincidenciaBusqueda && coincidenciaProveedor
+    })
 })
-
-const previewUrl = ref(null)
-const onImageChange = (file) => {
-    const selectedFile = Array.isArray(file) ? file[0] : file
-
-    if (selectedFile instanceof File) {
-        previewUrl.value = URL.createObjectURL(selectedFile)
-    } else {
-        previewUrl.value = productItem.value?.imagen || null
-    }
-}
-
-const getImageUrl = async () => {
-    if (imagen.value instanceof File) {
-        return await storageService.upload('products', imagen.value)
-    }
-    return productItem.value?.imagen || '/img/default.png'
-}
-
-// crear y editar
+//-----------------------------------------------ACCIONES---------------------------------------//
+//agregar y editar
 const handleCreateProduct = async () => {
     try {
         const imagenUrl = await getImageUrl()
@@ -167,7 +201,8 @@ const handleCreateProduct = async () => {
         console.error('Error:', error)
     }
 }
-//accion eliminar
+
+//eliminar
 const editingProduct = ref(false)
 const confirmDelete = async () => {
     try {
@@ -179,78 +214,76 @@ const confirmDelete = async () => {
         console.log(error)
     }
 }
+//----validacion precio promo 
+const deshabilitado = ref(true)
 
+const handlePromoChange = () => {
 
-const search = ref('')
-const filtroProducto = computed(() => {
-    if (!Array.isArray(product.value)) return []
+    const hayPromocion = !!precioPromocion.value
 
-    let resultado = product.value
+    deshabilitado.value = !hayPromocion
 
-    // Filtro por búsqueda de texto
-    const query = search.value.toLowerCase().trim()
-    if (query) {
-        resultado = resultado.filter(e => {
-            const nombre = e.nombre?.toLowerCase() || ''
-
-            return (
-                nombre.includes(query)
-            )
-        })
+    if (!hayPromocion) {
+        inputInicioPromocion.value = ''
+        inputFinPromocion.value = ''
     }
-
-    // Filtro por rol
-    if (filtros.categorias) {
-        resultado = resultado.filter(p => p.categoria?.id === filtros.categorias)
-    }
-    if (filtros.proveedores) {
-        resultado = resultado.filter(p => p.proveedor?.id === filtros.proveedores)
-    }
-
-    return resultado
-})
-
+}
 </script>
 
 <template>
-    <h1 class="mb-10">Productos</h1>
+    <h1>Productos</h1>
     <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
         <v-row>
             <base-filter v-model:search="search" :filters="selectFilter"
                 @update:filter="({ key, value }) => (filtros[key] = value)" />
 
             <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
-                <v-btn prepend-icon="mdi-plus" color="primary" @click="handleActionFabMenu('add')">Crear
+                <v-btn prepend-icon="mdi-plus" color="primary" @click="operModal">Crear
                     Producto</v-btn>
             </v-col>
         </v-row>
     </v-card>
+    <v-row v-if="isPending">
 
-    <!-- cartas -->
-    <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" class="mb-4" v-for="(item, index) in filtroProducto" :key="index">
-            <v-hover v-slot="{ isHovering, props }">
-                <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
-                    <v-img height="220px" :src="item.imagen" contain></v-img>
-                    <v-divider :thickness="3"></v-divider>
+        <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4" loading-text="Cargando proveedores...">
+            <v-skeleton-loader type="card" />
+        </v-col>
+        <!-- <v-col cols="12">
+            <div class="text-center">Cargando productos...</div>
+        </v-col> -->
+    </v-row>
+    <!-- Si hay datos, muestra los cards -->
+    <v-row v-else>
+        <v-col v-for="item in filtroProducto" :key="item.id" cols="12" sm="6" md="4" lg="3">
+            <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
+                <v-img height="220px" :src="item.imagen" contain></v-img>
+                <v-divider :thickness="3"></v-divider>
 
-                    <v-card-title class="d-flex justify-space-between align-center">
-                        <span>{{ item.nombre }}</span>
-                        <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)">
-                        </ActionMenu>
-                    </v-card-title>
+                <v-card-title class="d-flex justify-space-between align-center">
+                    <span>{{ item.nombre }}</span>
+                    <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)" />
+                </v-card-title>
 
-                    <v-chip class="position-absolute chip-categoria" color="primary" size="default"
-                        style="top: 12px; right: 12px; z-index: 1">
-                        {{ item.categoria?.nombre }}
-                    </v-chip>
-                    <v-card-text class="text-end">
-                        <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
-                            {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}
-                        </span>
-                    </v-card-text>
-                </v-card>
-            </v-hover>
+                <v-chip class="position-absolute chip-categoria" color="primary" size="default"
+                    style="top: 12px; right: 12px; z-index: 1">
+                    {{ item.categoria?.nombre }}
+                </v-chip>
+
+                <v-card-text class="text-end">
+                    <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
+                        {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}
+                    </span>
+                </v-card-text>
+            </v-card>
+        </v-col>
+    </v-row>
+
+    <!-- Si NO hay datos, muestra mensaje -->
+    <v-row v-if="!isPending && !filtroProducto.length">
+        <v-col cols="12" class="text-center py-16">
+            <v-icon size="64" color="grey-lighten-1">mdi-package-variant-closed</v-icon>
+            <p class="text-h6 text-grey mt-4">No se encontraron productos</p>
+
         </v-col>
     </v-row>
     <!-- modal crear -->
@@ -262,17 +295,17 @@ const filtroProducto = computed(() => {
                         <!-- codigo de barra -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Codigo de barra" variant="underlined" v-model="codigoBarra"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.distinct(product, 'codigoBarra', productItem?.id)]"></v-text-field>
                         </v-col>
                         <!-- nombre -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre" variant="underlined" v-model="nombre"
-                                :rules="[rules.required]"></v-text-field>
+                                :rules="[rules.required, rules.text]"></v-text-field>
                         </v-col>
                         <!-- categoria -->
                         <v-col cols="12" md="6">
                             <v-select label="Categoria" variant="underlined" :items="category" v-model="categoria"
-                                item-title="nombre" return-object item-value="id" :rules="[rules.categoria]"></v-select>
+                                item-title="nombre" return-object item-value="id"></v-select>
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-select label="Proveedor" variant="underlined" :items="supplier" v-model="proveedor"
@@ -281,18 +314,18 @@ const filtroProducto = computed(() => {
                         <!-- descripcion -->
                         <v-col cols="12" md="12">
                             <v-textarea label="Descripcion" variant="underlined" rows="2" auto-grow
-                                v-model="descripcion" :rules="[rules.required]"></v-textarea>
+                                v-model="descripcion"></v-textarea>
                         </v-col>
                         <!-- precio unitario -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Precio unitario" type="number" variant="underlined"
-                                v-model="precioUnitario" step="1" :rules="[rules.required, rules.precio]"
+                            <v-text-field label="Precio unitario" v-model="precioUnitario" type="number"
+                                variant="underlined" step="1" :rules="[rules.required, rules.precio]"
                                 prefix="S/ "></v-text-field>
                         </v-col>
                         <!-- precio promociom -->
                         <v-col cols="12" md="6">
-                            <v-text-field label="Precio promocion" type="number" variant="underlined"
-                                v-model="precioPromocion" step="0.01" prefix="S/ ">
+                            <v-text-field label="Precio promocion" v-model="precioPromocion" type="number"
+                                variant="underlined" step="0.01" prefix="S/ " @input="handlePromoChange">
                             </v-text-field>
                         </v-col>
                         <!-- stock -->
@@ -301,21 +334,26 @@ const filtroProducto = computed(() => {
                                 :rules="[rules.required, rules.stock]">
                             </v-text-field>
                         </v-col>
-                        <!-- inicion promocio -->
-                        <v-col cols="12" md="6">
-                            <v-date-input v-model="inicioPromocion" label="Inicio de promocion"
-                                variant="underlined"></v-date-input>
-                        </v-col>
-                        <!-- fin promocion -->
-                        <v-col cols="12" md="6">
-                            <v-date-input v-model="finPromocion" label="Fin de promocion"
-                                variant="underlined"></v-date-input>
-                        </v-col>
                         <!-- unidad de medida -->
                         <v-col cols="12" md="6">
                             <v-select label="Unidad de medida" variant="underlined" :items="ud" v-model="unidadMedida"
                                 :rules="[rules.unidadMedida]"></v-select></v-col>
+                        <!-- inicion promocio -->
                         <v-col cols="12" md="6">
+                            <v-date-input label="Inicio de promocion" variant="underlined"
+                                v-model="inputInicioPromocion" :min="today" :display-format="formatInicioPromocion"
+                                :disabled="deshabilitado"
+                                :rules="!deshabilitado ? [rules.required] : []"></v-date-input>
+                        </v-col>
+
+                        <!-- fin promocion -->
+                        <v-col cols="12" md="6">
+                            <v-date-input v-model="inputFinPromocion" :min="today" label="Fin de promocion"
+                                variant="underlined" :display-format="formatFinPromocion" :disabled="deshabilitado"
+                                :rules="!deshabilitado ? [rules.required] : []"> </v-date-input>
+                        </v-col>
+
+                        <v-col cols=" 12" md="6">
                             <v-file-input label="Imagen" @update:model-value="onImageChange" variant="underlined"
                                 v-model="imagen"></v-file-input>
                         </v-col>
@@ -330,7 +368,7 @@ const filtroProducto = computed(() => {
             <!-- acciones -->
             <v-card-actions>
                 <v-spacer />
-                <v-btn class="ms-auto" text="Cerrar" @click="closeFormModal()"></v-btn>
+                <v-btn class="ms-auto" text="Cerrar" @click="productFormModal = false"></v-btn>
                 <v-btn class="ms-auto" :text="actionLabel" variant="tonal" color="primary"
                     @click="handleSubmit(handleCreateProduct)"></v-btn>
             </v-card-actions>
@@ -473,7 +511,7 @@ const filtroProducto = computed(() => {
                                     </div>
                                     <div v-if="productDetail.inicioPromocion"
                                         class="text-body-3 font-weight-bold mb-3 text-center">
-                                        {{ productDetail.inicioPromocion }}
+                                        {{ formatInicioPromocion(productDetail.inicioPromocion) }}
                                     </div>
                                     <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>
                                 </v-col>
@@ -486,7 +524,7 @@ const filtroProducto = computed(() => {
 
                                     <div v-if="productDetail.finPromocion"
                                         class="text-body-3 font-weight-bold mb-3 text-center">
-                                        {{ productDetail.finPromocion }}
+                                        {{ formatFinPromocion(productDetail.finPromocion) }}
                                     </div>
 
                                     <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>
@@ -539,7 +577,7 @@ const filtroProducto = computed(() => {
 
             <!-- Botones alineados -->
             <v-card-actions class="justify-end">
-                <v-btn text="Cerrar" @click="close()"></v-btn>
+                <v-btn text="Cerrar" @click="productDeleteModal = false"></v-btn>
                 <v-btn text="Eliminar" color="error" @click="confirmDelete"></v-btn>
             </v-card-actions>
         </v-card>

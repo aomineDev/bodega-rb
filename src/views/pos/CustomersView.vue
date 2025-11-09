@@ -10,9 +10,9 @@ import { useDisplay } from 'vuetify'
 import { useForm } from '@/composables/useForm'
 import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer'
 import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer'
-import { ROLES } from '@/utils/constants/roles'
+import { useIntegration } from '@/composables/query/useIntegration'
 
-const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
+const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 
 const {
   naturalCustomers,
@@ -78,7 +78,6 @@ const error = computed(() =>
 )
 
 /* --------------------------------------------*/
-
 const {
   formData,
   formRef: clienteForm,
@@ -119,6 +118,59 @@ const { mdAndUp, smAndDown } = useDisplay()
 const modalTitle = computed(() => (selectedItem.value ? 'Editar Cliente' : 'Crear Cliente'))
 const actionLabel = computed(() => (selectedItem.value ? 'Actualizar' : 'Crear'))
 const selectedItem = ref(null)
+
+/* ---------------------- BUSQUEDA API -------------------------- */
+const { getCustomerByDni, getCustomerByRuc } = useIntegration()
+
+const isBuscando = ref(false)
+const { refetch: refetchDni } = getCustomerByDni(dni)
+const { refetch: refetchRuc } = getCustomerByRuc(ruc)
+
+const searchCustomer = async (tipo) => {
+  const isDni = tipo === 'DNI'
+  const value = isDni ? dni.value : ruc.value
+  const customers = isDni ? naturalCustomers.value : juridicalCustomers.value
+  const refetchFn = isDni ? refetchDni : refetchRuc
+
+  if (!value || (isDni ? value.length < 8 : value.length < 11)) {
+    showWarningSnackbar(`Ingrese un ${tipo} válido`)
+    return
+  }
+
+  const found = customers?.find((c) => c[isDni ? 'dni' : 'ruc'] === value)
+  if (found) {
+    showWarningSnackbar('El cliente ya existe en la base de datos')
+    return
+  }
+
+  try {
+    isBuscando.value = true
+    const result = await refetchFn()
+
+    if (result?.data) {
+      const data = result.data
+      if (isDni) {
+        nombre.value = data.first_name || ''
+        apellidoPaterno.value = data.first_last_name || ''
+        apellidoMaterno.value = data.second_last_name || ''
+      } else {
+        razonSocial.value = data.razon_social || ''
+        tipoContribuyente.value = data.tipo || ''
+        actividadEconomica.value = data.actividad_economica || ''
+        direccion.value = data.direccion || ''
+      }
+
+      showSuccessSnackbar(`Datos obtenidos`)
+    } else {
+      showErrorSnackbar(`No se encontraron datos`)
+    }
+  } catch (error) {
+    console.error(error)
+    showErrorSnackbar(`Error al consultar`)
+  } finally {
+    isBuscando.value = false
+  }
+}
 
 // Modales
 const clienteFormModal = ref(false)
@@ -206,13 +258,7 @@ const search = ref('') //busqueda
       />
 
       <v-col cols="12" md="2" class="d-flex justify-end align-center">
-        <v-btn
-          prepend-icon="mdi-plus"
-          color="primary"
-          elevation="1"
-          @click="handleAdd"
-          v-role="[ROLES.ADMIN]"
-        >
+        <v-btn prepend-icon="mdi-plus" color="primary" elevation="1" @click="handleAdd">
           Crear Cliente
         </v-btn>
       </v-col>
@@ -277,11 +323,43 @@ const search = ref('') //busqueda
             <v-row dense>
               <template v-if="filtros.tipoCliente === 'Natural'">
                 <v-col cols="12" md="6">
+                  <<<<<<< HEAD
                   <v-text-field
                     v-model="nombre"
                     label="Nombre"
                     :rules="[rules.required, rules.text]"
                   />
+                  =======
+                  <v-mask-input
+                    label="DNI"
+                    v-model="dni"
+                    :counter="8"
+                    mask="########"
+                    variant="underlined"
+                    :rules="[
+                      rules.required,
+                      rules.distinct(naturalCustomers, 'dni', selectedItem?.id),
+                    ]"
+                  >
+                    <template #append-inner>
+                      <v-btn
+                        icon="mdi-magnify"
+                        variant="text"
+                        density="compact"
+                        @click="searchCustomer('DNI')"
+                        :loading="isBuscando"
+                      />
+                    </template>
+                  </v-mask-input>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="nombre"
+                    label="Nombre"
+                    :rules="[rules.required, rules.text]"
+                  />
+                  >>>>>>> 4b776a162585ed7caa32492ce0135ec9bdaaaaa6
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -301,6 +379,7 @@ const search = ref('') //busqueda
                 </v-col>
 
                 <v-col cols="12" md="6">
+                  <<<<<<< HEAD
                   <v-mask-input
                     label="DNI"
                     v-model="dni"
@@ -316,6 +395,7 @@ const search = ref('') //busqueda
                 </v-col>
 
                 <v-col cols="12" md="6">
+                  ======= >>>>>>> 4b776a162585ed7caa32492ce0135ec9bdaaaaa6
                   <v-text-field v-model="direccion" label="Dirección" />
                 </v-col>
 
@@ -356,6 +436,7 @@ const search = ref('') //busqueda
 
               <template v-else>
                 <v-col cols="12" md="6">
+                  <<<<<<< HEAD
                   <v-text-field
                     v-model="razonSocial"
                     label="Razón Social"
@@ -370,6 +451,38 @@ const search = ref('') //busqueda
                     counter="11"
                     :rules="[rules.required, rules.ruc]"
                   />
+                  =======
+                  <v-mask-input
+                    label="RUC"
+                    v-model="ruc"
+                    :counter="11"
+                    mask="###########"
+                    variant="underlined"
+                    :rules="[
+                      rules.required,
+                      rules.ruc,
+                      rules.distinct(juridicalCustomers, 'ruc', selectedItem?.id),
+                    ]"
+                  >
+                    <template #append-inner>
+                      <v-btn
+                        icon="mdi-magnify"
+                        variant="text"
+                        density="compact"
+                        @click="searchCustomer('RUC')"
+                        :loading="isBuscando"
+                      />
+                    </template>
+                  </v-mask-input>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="razonSocial"
+                    label="Razón Social"
+                    :rules="[rules.required]"
+                  />
+                  >>>>>>> 4b776a162585ed7caa32492ce0135ec9bdaaaaa6
                 </v-col>
 
                 <v-col cols="12" md="6">
