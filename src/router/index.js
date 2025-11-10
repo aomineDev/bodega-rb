@@ -76,14 +76,21 @@ const router = createRouter({
             {
               path: 'proveedores',
               component: SuppliersView,
+              meta: {
+                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN]
+              }
             },
             {
               path: 'empleados',
               component: EmployeesView,
+              meta: {
+                roles: [ROLES.ADMIN]
+              }
             },
             {
               path: 'productos',
               component: ProductsView,
+              roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]
             },
             {
               path: 'categorias',
