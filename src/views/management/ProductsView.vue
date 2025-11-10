@@ -160,7 +160,7 @@ const filtroProducto = computed(() => {
 
     if (!Array.isArray(product.value)) return []
 
-    const query = search.value.trim().toLowerCase()
+    const query = search.value?.trim().toLowerCase()
     const categoriaSeleccionada = filtros.categorias
     const proveedorSeleccionado = filtros.proveedores
 
@@ -237,7 +237,7 @@ const handlePromoChange = () => {
             <base-filter v-model:search="search" :filters="selectFilter"
                 @update:filter="({ key, value }) => (filtros[key] = value)" />
 
-            <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
+            <v-col cols="12" md="2" class="d-flex justify-end align-center" hide-details>
                 <v-btn prepend-icon="mdi-plus" color="primary" @click="operModal">Crear
                     Producto</v-btn>
             </v-col>
@@ -266,7 +266,7 @@ const handlePromoChange = () => {
 
                 <v-chip class="position-absolute chip-categoria" color="primary" size="default"
                     style="top: 12px; right: 12px; z-index: 1">
-                    {{ item.categoria?.nombre }}
+                    {{ item.categoria?.nombre ?? 'Sin categoria' }}
                 </v-chip>
 
                 <v-card-text class="text-end">
@@ -453,7 +453,7 @@ const handlePromoChange = () => {
 
                                     <div class="d-flex justify-center">
                                         <v-chip color="primary" variant="tonal" size="default">
-                                            {{ productDetail.categoria.nombre }}
+                                            {{ productDetail.categoria?.nombre ?? 'Sin categoria' }}
                                         </v-chip>
                                     </div>
 
@@ -537,7 +537,7 @@ const handlePromoChange = () => {
                                     </div>
                                     <div class="d-flex justify-center">
                                         <v-chip color="teal" variant="tonal" size="default">
-                                            {{ productDetail.proveedor.razonSocial }}
+                                            {{ productDetail.proveedor?.razonSocial ?? 'Sin proveedor' }}
                                         </v-chip>
                                     </div>
                                 </v-col>

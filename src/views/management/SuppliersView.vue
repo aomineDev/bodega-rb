@@ -213,7 +213,7 @@ const searchSupplier = async () => {
         <v-row>
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
                 filtros[key] = value" />
-            <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
+            <v-col cols="12" md="2" class="d-flex justify-end align-center" hide-details>
                 <v-btn prepend-icon="mdi-plus" color="primary" @click="supplierFormModal = true">Crear
                     Proveedor</v-btn>
             </v-col>
