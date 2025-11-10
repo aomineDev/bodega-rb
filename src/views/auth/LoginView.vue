@@ -74,9 +74,9 @@ async function handleLogin() {
       router.push('/home')
     }, 1500)
   } catch (error) {
-    console.log(error)
+    console.error(error)
+    showErrorSnackbar(error.message, 'top right')
     password.value = null
-    showErrorSnackbar('Credenciales incorrectas', 'top right')
   }
 }
 </script>

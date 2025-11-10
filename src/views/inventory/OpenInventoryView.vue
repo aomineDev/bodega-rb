@@ -11,36 +11,31 @@
     </template>
   </v-data-table>
 
-  <v-dialog v-model="confirmTakeInventoryDialog" max-width="500">
-    <v-card title="Tomar Inventario">
-      <v-card-text class="text-center text-body-2">
-        <div>
-          <v-icon size="100" color="primary" icon="mdi-alert-circle-outline" class="mb-4"></v-icon>
-        </div>
-        ¿Está seguro de tomar el inventario de
-        <strong>{{ selectedIventory.categoria.nombre }}</strong
-        >? <br />
-      </v-card-text>
-
-      <v-card-actions>
-        <v-btn text="Cerrar" @click="confirmTakeInventoryDialog = false"></v-btn>
-        <v-btn
-          text="Confirmar"
-          color="primary"
-          :to="{ name: 'take-inventory', params: { id: selectedIventory.id } }"
-        ></v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <alert-dialog
+    v-model="confirmTakeInventoryDialog"
+    title="Tomar Inventario"
+    prepend-icon="mdi-clipboard-edit-outline"
+    @action="takeInventory"
+  >
+    ¿Está seguro de tomar el inventario de
+    <strong>{{ selectedIventory.categoria.nombre }}</strong
+    >? <br />
+  </alert-dialog>
 </template>
 
 <script setup>
 import { useInventory } from '@/composables/query/useInventory'
-import { shallowRef, toRaw } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useSnackbar } from '@/stores/snackbar'
+import { shallowRef } from 'vue'
+import { useRouter } from 'vue-router'
+import AlertDialog from '@/components/AlertDialog.vue'
 
-const { getOpenInventoryList } = useInventory()
+const { getOpenInventoryList, addAssistantAsync } = useInventory()
 const { data: inventoryList } = getOpenInventoryList()
-
+const { showErrorSnackbar } = useSnackbar()
+const router = useRouter()
+const { user: asistente } = useAuthStore()
 const confirmTakeInventoryDialog = shallowRef(false)
 const selectedIventory = shallowRef(null)
 
@@ -50,9 +45,24 @@ const headers = [
 ]
 
 function openConfirmTakeIventoryDialog(inventory) {
-  console.log(inventory.id)
-  selectedIventory.value = toRaw(inventory)
+  selectedIventory.value = inventory
 
   confirmTakeInventoryDialog.value = true
+}
+
+async function takeInventory() {
+  try {
+    const isAssistantExists = selectedIventory.value.asistenteAlmacenList.some(
+      (item) => item.id === asistente.id,
+    )
+
+    if (!isAssistantExists)
+      await addAssistantAsync({ id: selectedIventory.value.id, asistente: { id: asistente.id } })
+
+    router.push({ name: 'take-inventory', params: { id: selectedIventory.value.id } })
+  } catch (error) {
+    console.log(error)
+    showErrorSnackbar('Error al tomar inventario')
+  }
 }
 </script>

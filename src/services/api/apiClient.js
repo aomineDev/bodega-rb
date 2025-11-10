@@ -17,7 +17,7 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   const response = await fetch(`${API_URL}${endpoint}`, config)
 
-  if (response.status === 403) {
+  if (response.status === 401 || response.status === 403) {
     logout()
     throw new Error('Session expirada, Por favor vuelva a iniciar sesión')
   }

@@ -31,10 +31,11 @@
           to="/home"
         ></v-list-item>
 
-        <v-divider></v-divider>
-        <v-list-subheader>Caja</v-list-subheader>
+        <v-divider v-role="[ROLES.ADMIN, ROLES.CAJERO]"></v-divider>
+        <v-list-subheader v-role="[ROLES.ADMIN, ROLES.CAJERO]">Caja</v-list-subheader>
 
         <v-list-item
+          v-role="[ROLES.ADMIN, ROLES.CAJERO]"
           v-for="item in cajaitems"
           :key="item.value"
           :title="item.title"
@@ -44,11 +45,13 @@
           color="primary"
         ></v-list-item>
 
-        <v-divider></v-divider>
-        <v-list-subheader>Inventario</v-list-subheader>
-
+        <v-divider v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]"></v-divider>
+        <v-list-subheader v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]"
+          >Inventario</v-list-subheader
+        >
         <v-list-item
           v-for="item in inventarioItems"
+          v-role="item.roles"
           :key="item.value"
           :title="item.title"
           :prepend-icon="item.icon"
@@ -58,8 +61,8 @@
           exact
         ></v-list-item>
 
-        <v-divider></v-divider>
-        <v-list-subheader>Almacen</v-list-subheader>
+        <v-divider v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]"></v-divider>
+        <v-list-subheader v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]">Almacen</v-list-subheader>
 
         <v-list-item
           title="Ingreso de productos"
@@ -67,14 +70,15 @@
           value="ingreso"
           color="primary"
           to="/almacen/ingreso-productos"
+          v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]"
         ></v-list-item>
 
         <v-divider></v-divider>
-        <v-list-subheader v-role="ROLES.ADMIN">Gestion</v-list-subheader>
+        <v-list-subheader>Gestion</v-list-subheader>
 
         <v-list-item
-          v-role="ROLES.ADMIN"
           v-for="item in gestionItems"
+          v-role="item.roles"
           :key="item.value"
           :title="item.title"
           :prepend-icon="item.icon"
@@ -180,18 +184,26 @@ const cajaitems = [
   },
 ]
 const inventarioItems = [
-  { title: 'inventario', icon: 'mdi-clipboard-outline', value: 'inventario', to: '/inventario' },
+  {
+    title: 'inventario',
+    icon: 'mdi-clipboard-outline',
+    value: 'inventario',
+    to: '/inventario',
+    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
+  },
   {
     title: 'Toma de inventario',
     icon: 'mdi-clipboard-check-outline',
     value: 'toma-inventario',
     to: '/inventario/abiertos',
+    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
   },
   {
     title: 'Reporte de inventario',
     icon: 'mdi-clipboard-list-outline',
     value: 'reporte-inventario',
     to: '/inventario/reporte',
+    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
   },
 ]
 
@@ -201,15 +213,29 @@ const gestionItems = [
     icon: 'mdi-truck-outline',
     value: 'proveedores',
     to: '/gestion/proveedores',
+    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
   },
-  { title: 'Empleados', icon: 'mdi-account-group ', value: 'empleados', to: '/gestion/empleados' },
+  {
+    title: 'Empleados',
+    icon: 'mdi-account-group ',
+    value: 'empleados',
+    to: '/gestion/empleados',
+    roles: [ROLES.ADMIN],
+  },
   {
     title: 'Productos',
     icon: 'mdi-package-variant-closed',
     value: 'productos',
     to: '/gestion/productos',
+    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE, ROLES.CAJERO],
   },
-  { title: 'Categorias', icon: 'mdi-sitemap', value: 'categorias', to: '/gestion/categorias' },
+  {
+    title: 'Categorias',
+    icon: 'mdi-sitemap',
+    value: 'categorias',
+    to: '/gestion/categorias',
+    roles: [ROLES.ADMIN],
+  },
 ]
 
 const route = useRoute()
