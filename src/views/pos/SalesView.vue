@@ -149,7 +149,7 @@ const customerIdValue = computed(() => {
 
 const cancelSale = () => {
   showClientDialog.value = false
-  router.push('/home')
+  router.push('/caja/clientes')
 }
 
 /* --------------------   Modal Producto   ------------------- */
