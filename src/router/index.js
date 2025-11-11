@@ -18,6 +18,7 @@ import InventoryReportView from '@/views/inventory/InventoryReportView.vue'
 import OpenInventoryView from '@/views/inventory/OpenInventoryView.vue'
 import { authGuard } from './guards'
 import { ROLES } from '@/utils/constants/roles'
+import ProfileView from '@/views/profile/ProfileView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -132,6 +133,10 @@ const router = createRouter({
               component: ProductEntryView,
             },
           ],
+        },
+        {
+          path: '/perfil',
+          component: ProfileView,
         },
       ],
     },

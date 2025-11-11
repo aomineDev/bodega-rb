@@ -85,9 +85,11 @@ const items = computed(() => {
 
   let resultado = data.map(item => ({
     ...item,
-    cliente: filtros.tipoComprobante === 'Boletas'
-      ? `${item.clienteNatural?.nombre || ''} ${item.clienteNatural?.apellidoPaterno || ''}`.trim()
-      : item.clienteJuridico?.razonSocial || '',
+    cliente:
+      filtros.tipoComprobante === 'Boletas'
+        ? `${item.clienteNatural?.nombre || ''} ${item.clienteNatural?.apellidoPaterno || ''}`.trim()
+        : item.clienteJuridico?.razonSocial || '',
+    cajero: `${item.cajero?.nombre || ''} ${item.cajero?.apellidoPaterno || ''}`.trim(),
   }))
 
   if (Array.isArray(filtros.rangoFechas) && filtros.rangoFechas.length > 1) {

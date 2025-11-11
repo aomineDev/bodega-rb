@@ -12,6 +12,11 @@ import { useSupplier } from '@/composables/query/useSupplier'
 import { useCategory } from '@/composables/query/useCategory'
 import { storageService } from '@/services/storage/imageService'
 import { useDateInput } from '@/composables/useDateInput'
+import { ROLES } from '@/utils/constants/roles'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+
 //-----------------------------------------------CONSTANTES---------------------------------------//
 const { showSuccessSnackbar } = useSnackbar()
 const ud = ref(['Unidad', 'Kilogramo', 'Litro'])
@@ -244,19 +249,15 @@ const handlePromoChange = () => {
         @update:filter="({ key, value }) => (filtros[key] = value)" />
 
       <v-col cols="12" md="2" class="d-flex justify-end align-center" hide-details>
-        <v-btn prepend-icon="mdi-plus" color="primary" @click="operModal">Crear
+        <v-btn prepend-icon="mdi-plus" color="primary" @click="operModal" v-role="[ROLES.ADMIN]">Crear
           Producto</v-btn>
       </v-col>
     </v-row>
   </v-card>
   <v-row v-if="isPending">
-
     <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4" loading-text="Cargando proveedores...">
       <v-skeleton-loader type="card" />
     </v-col>
-    <!-- <v-col cols="12">
-            <div class="text-center">Cargando productos...</div>
-        </v-col> -->
   </v-row>
   <!-- Si hay datos, muestra los cards -->
   <v-row v-else>
@@ -273,7 +274,9 @@ const handlePromoChange = () => {
           </v-chip>
         </v-card-text>
         <v-card-text class="d-flex justify-space-between align-center mt-auto">
-          <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)" />
+          <ActionMenu :onView="() => handleView(item)"
+            :onEdit="auth.hasRole(ROLES.ADMIN) ? () => handleEdit(item) : null"
+            :onDelete="auth.hasRole(ROLES.ADMIN) ? () => deleteModal(item) : null" />
 
           <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
             {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}

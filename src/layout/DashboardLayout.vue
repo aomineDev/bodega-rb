@@ -59,8 +59,7 @@
               :title="user.nombre" class="pt-2 pb-2">
             </v-list-item>
             <v-divider></v-divider>
-            <v-list-item title="Perfil" prepend-icon="mdi-account" class="primary"
-              @click="console.log('click')"></v-list-item>
+            <v-list-item title="Perfil" prepend-icon="mdi-account" class="primary" to="/perfil"></v-list-item>
             <v-list-item title="Log out" prepend-icon="mdi-logout" class="text-red" @click="logout"></v-list-item>
           </v-list>
         </v-menu>

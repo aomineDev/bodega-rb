@@ -14,6 +14,9 @@ import { useIntegration } from '@/composables/query/useIntegration';
 import { useDisplay } from 'vuetify'
 import { useForm } from '@/composables/useForm';
 import { watch } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+
+const { user } = useAuthStore()
 
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 
@@ -302,6 +305,10 @@ const createSale = async () => {
     precioTotal: parseFloat(totals.value.total),
     estado: true,
     vuelto: parseFloat(vuelto.value),
+    cajero: {
+      id: user.id,
+    },
+
     detalleVentas,
   }
 
