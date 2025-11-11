@@ -43,24 +43,30 @@ const router = createRouter({
               path: '',
               component: InventoryView,
               meta: {
-                roles: [ROLES.ASISTENTE],
+                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
               },
             },
             {
               path: 'abiertos',
               component: OpenInventoryView,
               meta: {
-                roles: [ROLES.ADMIN],
+                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
               },
             },
             {
               path: 'toma/:id',
               name: 'take-inventory',
               component: TakeInventoryView,
+              meta: {
+                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
+              },
             },
             {
               path: 'reporte',
               component: InventoryReportView,
+              meta: {
+                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
+              },
             },
           ],
         },

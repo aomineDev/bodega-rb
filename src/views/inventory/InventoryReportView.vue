@@ -6,9 +6,11 @@
       {{ adapter.format(value, 'fullDate') }}
     </template>
 
-    <!-- <template #item.asistenteAlmacen="{ value }">
-        {{ value.nombre }} {{ value.apellidoPaterno }}
-      </template> -->
+    <template #item.asistenteAlmacenList="{ value }">
+      <ul>
+        <li v-for="item in value" :key="item.id">{{ item.nombre }} {{ item.apellidoPaterno }}</li>
+      </ul>
+    </template>
 
     <template #item.actions="{ item }">
       <action-menu @view="openInventoryDetailsDialog(item)"></action-menu>
@@ -52,7 +54,7 @@
 <script setup>
 import { useInventory } from '@/composables/query/useInventory'
 import ActionMenu from '@/components/ActionMenu.vue'
-import { shallowRef } from 'vue'
+import { shallowRef, watch } from 'vue'
 import { useDate } from 'vuetify'
 
 const adapter = useDate()
@@ -68,10 +70,14 @@ function openInventoryDetailsDialog(inventory) {
   inventoryDetailsDialog.value = true
 }
 
+watch(inventoryList, (value) => {
+  console.log(value)
+})
+
 const headers = [
   { title: 'Categoria', key: 'categoria.nombre' },
   { title: 'Fecha', key: 'fechaInventario' },
-  { title: 'Asistente de Almacen', key: 'asistenteAlmacen' },
+  { title: 'Asistente de Almacen', key: 'asistenteAlmacenList' },
   { title: 'Acciones', key: 'actions', sortable: false },
 ]
 </script>

@@ -3,6 +3,7 @@
   <div class="d-flex ga-2">
     <v-autocomplete
       v-model="selectedDetail"
+      prepend-inner-icon="mdi-magnify"
       label="Productos"
       :items="inventory?.inventarioDetalles ?? []"
       item-value="id"
