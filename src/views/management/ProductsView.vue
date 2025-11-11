@@ -25,7 +25,8 @@ const { supplier } = useSupplier()
 
 const productFormModal = ref(false)
 
-const { createProductAsync, product, deleteProductAsync, updateProductAsync, isPending } = useProduct()
+const { createProductAsync, product, deleteProductAsync, updateProductAsync, isPending } =
+  useProduct()
 
 const productDetailModal = ref(false)
 const productDeleteModal = ref(false)
@@ -77,13 +78,10 @@ const {
 const {
   formatDate: formatInicioPromocion,
   inputDate: inputInicioPromocion,
-  today
+  today,
 } = useDateInput(inicioPromocion)
 
-const {
-  formatDate: formatFinPromocion,
-  inputDate: inputFinPromocion
-} = useDateInput(finPromocion)
+const { formatDate: formatFinPromocion, inputDate: inputFinPromocion } = useDateInput(finPromocion)
 
 //-----------------------------------------------SUBIDA DE IMAGEN---------------------------------------//
 
@@ -116,6 +114,7 @@ const handleView = (item) => {
 //abrir modal editar
 const handleEdit = (item) => {
   productItem.value = item
+  console.log('card editar' + item.id)
   asignForm(productItem.value)
 
   const hayPromocion = item.precioPromocion
@@ -123,19 +122,19 @@ const handleEdit = (item) => {
   deshabilitado.value = !hayPromocion
 
   productFormModal.value = true
-
 }
 //abir modal
 const operModal = () => {
   productFormModal.value = true
   //siempre desabilitado
   deshabilitado.value = true
-
 }
 
 //abrir modal eliminar
+const confirmarEliminado = ref(null)
 const deleteModal = (item) => {
   productDeleteModal.value = true
+  confirmarEliminado.value = item.id
   console.log('card eliminada' + item.id)
 }
 
@@ -173,19 +172,18 @@ const filtroProducto = computed(() => {
 
   if (!Array.isArray(product.value)) return []
 
-  const query = search.value?.trim().toLowerCase()
   const categoriaSeleccionada = filtros.categorias
   const proveedorSeleccionado = filtros.proveedores
 
-  return productos.filter(p => {
-    const coincidenciaBusqueda = query ?
-      [p.nombre].some(campo => campo?.toLowerCase().includes(query))
+  return productos.filter((p) => {
+    const coincidenciaCategoria = categoriaSeleccionada
+      ? p.categoria?.id === categoriaSeleccionada
+      : true
+    const coincidenciaProveedor = proveedorSeleccionado
+      ? p.proveedor?.id === proveedorSeleccionado
       : true
 
-    const coincidenciaCategoria = categoriaSeleccionada ? p.categoria?.id === categoriaSeleccionada : true
-    const coincidenciaProveedor = proveedorSeleccionado ? p.proveedor?.id === proveedorSeleccionado : true
-
-    return coincidenciaCategoria && coincidenciaBusqueda && coincidenciaProveedor
+    return coincidenciaCategoria && coincidenciaProveedor
   })
 })
 //-----------------------------------------------ACCIONES---------------------------------------//
@@ -215,12 +213,10 @@ const handleCreateProduct = async () => {
   }
 }
 
-//eliminar
-const editingProduct = ref(false)
 const confirmDelete = async () => {
   try {
-    editingProduct.value = product.value[0]
-    await deleteProductAsync(editingProduct.value.id)
+    console.log('id es ', confirmarEliminado.value)
+    await deleteProductAsync(confirmarEliminado.value)
     showSuccessSnackbar('Eliminado correctamente')
     productDeleteModal.value = false
   } catch (error) {
@@ -254,45 +250,67 @@ const handlePromoChange = () => {
       </v-col>
     </v-row>
   </v-card>
+
   <v-row v-if="isPending">
     <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4" loading-text="Cargando proveedores...">
       <v-skeleton-loader type="card" />
     </v-col>
   </v-row>
-  <!-- Si hay datos, muestra los cards -->
-  <v-row v-else>
-    <v-col v-for="item in filtroProducto" :key="item.id" cols="12" sm="6" md="6" lg="3">
-      <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
-        <v-img height="200px" :src="item.imagen" cover></v-img>
-        <v-divider :thickness="3"></v-divider>
-        <v-card-text>
-          <div class="text-center font-weight-medium text-h6 mt-2">
-            {{ item.nombre }}
-          </div>
-          <v-chip class="position-absolute chip-categoria" size="default" style="top: 12px; right: 12px; z-index: 1">
-            {{ item.categoria?.nombre ?? 'Sin categoria' }}
-          </v-chip>
-        </v-card-text>
-        <v-card-text class="d-flex justify-space-between align-center mt-auto">
-          <ActionMenu :onView="() => handleView(item)"
-            :onEdit="auth.hasRole(ROLES.ADMIN) ? () => handleEdit(item) : null"
-            :onDelete="auth.hasRole(ROLES.ADMIN) ? () => deleteModal(item) : null" />
 
-          <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
-            {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}
-          </span>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
-  <!-- Si NO hay datos, muestra mensaje -->
-  <v-row v-if="!isPending && !filtroProducto.length">
-    <v-col cols="12" class="text-center py-16">
-      <v-icon size="64" color="grey-lighten-1">mdi-package-variant-closed</v-icon>
-      <p class="text-h6 text-grey mt-4">No se encontraron productos</p>
+  <v-data-iterator v-else :items="filtroProducto" :items-per-page="8" :search="search">
+    <template v-slot:default="{ items }">
+      <v-row>
+        <v-col v-for="item in items" :key="item.raw.id" cols="12" sm="6" md="6" lg="3">
+          <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
+            <v-img height="200px" :src="item.raw.imagen" cover></v-img>
+            <v-divider :thickness="3"></v-divider>
+            <v-card-text>
+              <div class="text-center font-weight-medium text-h6 mt-2">
+                {{ item.raw.nombre }}
+              </div>
+              <v-chip class="position-absolute chip-categoria" size="default"
+                style="top: 12px; right: 12px; z-index: 1">
+                {{ item.raw.categoria?.nombre ?? 'Sin categoria' }}
+              </v-chip>
+            </v-card-text>
+            <v-card-text class="d-flex justify-space-between align-center mt-auto">
+              <ActionMenu :onView="() => handleView(item)"
+                :onEdit="auth.hasRole(ROLES.ADMIN) ? () => handleEdit(item) : null"
+                :onDelete="auth.hasRole(ROLES.ADMIN) ? () => deleteModal(item) : null" />
 
-    </v-col>
-  </v-row>
+              <span :class="item.raw.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
+                {{ item.raw.stock > 0 ? item.raw.stock + ' Unidades' : 'Sin Stock' }}
+              </span>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </template>
+
+    <template #no-data>
+      <div class="text-center pa-6">
+        <v-icon size="48" color="grey-lighten-1">mdi-cube-outline</v-icon>
+        <div class="text-body-1 mt-2 font-weight-medium text-grey-darken-1">
+          No se encontraron productos
+        </div>
+        <div class="text-caption text-grey">
+        </div>
+      </div>
+    </template>
+
+    <template v-slot:footer="{ page, pageCount, prevPage, nextPage }">
+      <div class="d-flex align-center justify-center pa-4" style="min-height: 60px;">
+        <v-btn :disabled="page === 1" icon="mdi-arrow-left" density="comfortable" variant="tonal" rounded
+          @click="prevPage"></v-btn>
+
+        <div class="mx-2 text-caption">Página {{ page }} de {{ pageCount }}</div>
+
+        <v-btn :disabled="page >= pageCount" icon="mdi-arrow-right" density="comfortable" variant="tonal" rounded
+          @click="nextPage"></v-btn>
+      </div>
+    </template>
+  </v-data-iterator>
+
   <!-- modal crear -->
   <v-dialog v-model="productFormModal" max-width="600">
     <v-card :title="modalTitle">
@@ -354,7 +372,8 @@ const handlePromoChange = () => {
             <v-col cols="12" md="6">
               <v-date-input v-model="inputFinPromocion" :min="today" label="Fin de promocion" variant="underlined"
                 :display-format="formatFinPromocion" :disabled="deshabilitado"
-                :rules="!deshabilitado ? [rules.required] : []"> </v-date-input>
+                :rules="!deshabilitado ? [rules.required] : []">
+              </v-date-input>
             </v-col>
 
             <v-col cols=" 12" md="6">
@@ -398,7 +417,8 @@ const handlePromoChange = () => {
 
           <!-- Columna centro -->
           <v-col cols="12" md="3">
-            <v-card class="d-flex flex-column justify-center align-center pa-5 mt-10 rounded-xl" elevation="3">
+            <v-card class="d-flex flex-column justify-center align-center pa-5 mt-10 rounded-xl product-info-card"
+              elevation="3">
               <h3 class="text-h6 font-weight-bold mb-4 text-primary text-center">
                 Información Producto
               </h3>
@@ -406,7 +426,7 @@ const handlePromoChange = () => {
                 Nombre producto
               </div>
               <!-- Nombre -->
-              <h2 class="text-h5 font-weight-bold mb-1 mt-3 text-primary text-center">
+              <h2 class="text-h6 font-weight-bold mb-1 mt-3 text-primary text-center text-wrap">
                 {{ productDetail.nombre }}
               </h2>
 
@@ -458,7 +478,6 @@ const handlePromoChange = () => {
                       {{ productDetail.categoria?.nombre ?? 'Sin categoria' }}
                     </v-chip>
                   </div>
-
                 </v-col>
 
                 <v-col cols="12" sm="6">
@@ -497,7 +516,6 @@ const handlePromoChange = () => {
                       {{ productDetail.codigoBarra }}
                     </v-chip>
                   </div>
-
                 </v-col>
               </v-row>
             </v-card>
@@ -511,10 +529,12 @@ const handlePromoChange = () => {
                     <v-icon color="primary" size="20" class="mr-2">mdi-calendar-start</v-icon>
                     <span class="text-body-2 font-weight-bold">Inicio Promoción</span>
                   </div>
-                  <div v-if="productDetail.inicioPromocion" class="text-body-3 font-weight-bold mb-3 text-center">
+                  <div v-if="productDetail.inicioPromocion" class="text-body-2 font-weight-bold mb-3 text-center">
                     {{ formatInicioPromocion(productDetail.inicioPromocion) }}
                   </div>
-                  <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>
+
+                  <div v-else class="text-body-3 font-weight-medium mb-3 text-center">Sin fecha</div>
+
                 </v-col>
 
                 <v-col cols="12" sm="6">
@@ -522,21 +542,20 @@ const handlePromoChange = () => {
                     <v-icon color="primary" size="20" class="mr-2">mdi-calendar-end</v-icon>
                     <span class="text-body-2 font-weight-bold">Fin Promoción</span>
                   </div>
-
-                  <div v-if="productDetail.finPromocion" class="text-body-3 font-weight-bold mb-3 text-center">
+                  <div v-if="productDetail.finPromocion" class="text-body-2 font-weight-bold mb-3 text-center">
                     {{ formatFinPromocion(productDetail.finPromocion) }}
                   </div>
+                  <div v-else class="text-body-3 font-weight-medium mb-3 text-center">Sin fecha</div>
 
-                  <div v-else class="text-body-3 font-weight-medium mb-3 text-center">00-00-00</div>
                 </v-col>
 
-                <v-col cols="12" sm="6" class="mt-2">
+                <v-col cols="12" class="mt-2">
                   <div class="d-flex align-center mb-3">
                     <v-icon color="primary" size="20" class="mr-2">mdi-truck-outline</v-icon>
                     <span class="text-body-2 font-weight-bold">Proveedor</span>
                   </div>
                   <div class="d-flex justify-center">
-                    <v-chip color="teal" variant="tonal" size="default">
+                    <v-chip color="teal" variant="tonal" size="default" class="text-no-wrap" style="max-width: 100%;">
                       {{ productDetail.proveedor?.razonSocial ?? 'Sin proveedor' }}
                     </v-chip>
                   </div>
@@ -615,6 +634,19 @@ const handlePromoChange = () => {
 
 .title {
   height: 75px;
+}
+
+.product-info-card h2,
+.product-info-card p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.product-info-card {
+  overflow: hidden;
+  /* Evita que el contenido se salga del card */
 }
 
 @media (max-width: 345px) {
