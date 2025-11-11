@@ -113,11 +113,19 @@ const handleEdit = (item) => {
     productItem.value = item
     asignForm(productItem.value)
 
+    const hayPromocion = item.precioPromocion
+    //si existe precio promocion (true) habilitar las fechas (false para habiltiar true para desabilitar)
+    deshabilitado.value = !hayPromocion
+
     productFormModal.value = true
+
 }
 //abir modal
 const operModal = () => {
     productFormModal.value = true
+    //siempre desabilitado
+    deshabilitado.value = true
+
 }
 
 //abrir modal eliminar
@@ -216,17 +224,15 @@ const confirmDelete = async () => {
 }
 //----validacion precio promo 
 const deshabilitado = ref(true)
-
 const handlePromoChange = () => {
-
-    const hayPromocion = !!precioPromocion.value
-
-    deshabilitado.value = !hayPromocion
-
+    const hayPromocion = precioPromocion.value
+    // si no ay promocion limpiar los campos
     if (!hayPromocion) {
-        inputInicioPromocion.value = ''
-        inputFinPromocion.value = ''
+        inputFinPromocion.value = null
+        inputInicioPromocion.value = null
     }
+    //si se ingresa un precio promocion habilitar los inputs
+    deshabilitado.value = !hayPromocion
 }
 </script>
 
@@ -254,22 +260,22 @@ const handlePromoChange = () => {
     </v-row>
     <!-- Si hay datos, muestra los cards -->
     <v-row v-else>
-        <v-col v-for="item in filtroProducto" :key="item.id" cols="12" sm="6" md="4" lg="3">
+        <v-col v-for="item in filtroProducto" :key="item.id" cols="12" sm="6" md="6" lg="3">
             <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
-                <v-img height="220px" :src="item.imagen" contain></v-img>
+                <v-img height="200px" :src="item.imagen" cover></v-img>
                 <v-divider :thickness="3"></v-divider>
-
-                <v-card-title class="d-flex justify-space-between align-center">
-                    <span>{{ item.nombre }}</span>
+                <v-card-text>
+                    <div class="text-center font-weight-medium text-h6 mt-2">
+                        {{ item.nombre }}
+                    </div>
+                    <v-chip class="position-absolute chip-categoria" size="default"
+                        style="top: 12px; right: 12px; z-index: 1">
+                        {{ item.categoria?.nombre ?? 'Sin categoria' }}
+                    </v-chip>
+                </v-card-text>
+                <v-card-text class="d-flex justify-space-between align-center mt-auto">
                     <ActionMenu @view="handleView(item)" @edit="handleEdit(item)" @delete="deleteModal(item)" />
-                </v-card-title>
 
-                <v-chip class="position-absolute chip-categoria" color="primary" size="default"
-                    style="top: 12px; right: 12px; z-index: 1">
-                    {{ item.categoria?.nombre ?? 'Sin categoria' }}
-                </v-chip>
-
-                <v-card-text class="text-end">
                     <span :class="item.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
                         {{ item.stock > 0 ? item.stock + ' Unidades' : 'Sin Stock' }}
                     </span>
@@ -277,7 +283,6 @@ const handlePromoChange = () => {
             </v-card>
         </v-col>
     </v-row>
-
     <!-- Si NO hay datos, muestra mensaje -->
     <v-row v-if="!isPending && !filtroProducto.length">
         <v-col cols="12" class="text-center py-16">
@@ -305,7 +310,7 @@ const handlePromoChange = () => {
                         <!-- categoria -->
                         <v-col cols="12" md="6">
                             <v-select label="Categoria" variant="underlined" :items="category" v-model="categoria"
-                                item-title="nombre" return-object item-value="id"></v-select>
+                                item-title="nombre" return-object item-value="id" :rules="[rules.required]"></v-select>
                         </v-col>
                         <v-col cols="12" md="6">
                             <v-select label="Proveedor" variant="underlined" :items="supplier" v-model="proveedor"
