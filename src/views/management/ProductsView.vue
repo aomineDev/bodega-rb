@@ -274,9 +274,9 @@ const handlePromoChange = () => {
               </v-chip>
             </v-card-text>
             <v-card-text class="d-flex justify-space-between align-center mt-auto">
-              <ActionMenu :onView="() => handleView(item)"
-                :onEdit="auth.hasRole(ROLES.ADMIN) ? () => handleEdit(item) : null"
-                :onDelete="auth.hasRole(ROLES.ADMIN) ? () => deleteModal(item) : null" />
+              <ActionMenu :onView="() => handleView(item.raw)"
+                :onEdit="auth.hasRole(ROLES.ADMIN) ? () => handleEdit(item.raw) : null"
+                :onDelete="auth.hasRole(ROLES.ADMIN) ? () => deleteModal(item.raw) : null" />
 
               <span :class="item.raw.stock > 0 ? 'text-primary' : 'text-error'" class="font-weight-bold">
                 {{ item.raw.stock > 0 ? item.raw.stock + ' Unidades' : 'Sin Stock' }}
