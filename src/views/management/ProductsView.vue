@@ -400,7 +400,8 @@ const handlePromoChange = () => {
 
                     <!-- Columna centro -->
                     <v-col cols="12" md="3">
-                        <v-card class="d-flex flex-column justify-center align-center pa-5 mt-10 rounded-xl"
+                        <v-card
+                            class="d-flex flex-column justify-center align-center pa-5 mt-10 rounded-xl product-info-card"
                             elevation="3">
                             <h3 class="text-h6 font-weight-bold mb-4 text-primary text-center">
                                 Información Producto
@@ -409,7 +410,7 @@ const handlePromoChange = () => {
                                 Nombre producto
                             </div>
                             <!-- Nombre -->
-                            <h2 class="text-h5 font-weight-bold mb-1 mt-3 text-primary text-center">
+                            <h2 class="text-h6 font-weight-bold mb-1 mt-3 text-primary text-center text-wrap">
                                 {{ productDetail.nombre }}
                             </h2>
 
@@ -620,6 +621,19 @@ const handlePromoChange = () => {
 
 .title {
     height: 75px;
+}
+
+.product-info-card h2,
+.product-info-card p {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    max-width: 100%;
+}
+
+.product-info-card {
+    overflow: hidden;
+    /* Evita que el contenido se salga del card */
 }
 
 @media (max-width: 345px) {
