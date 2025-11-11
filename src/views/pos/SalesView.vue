@@ -13,6 +13,10 @@ import { useTicket } from '@/composables/query/useTicket';
 import { useIntegration } from '@/composables/query/useIntegration';
 import { useDisplay } from 'vuetify'
 import { useForm } from '@/composables/useForm';
+import { watch } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+
+const { user } = useAuthStore()
 
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 
@@ -63,17 +67,28 @@ const {
 /* --------------------   Filtros   ------------------- */
 const filterDialog = ref(false)
 const search = ref('') //busqueda
-
-const { mdAndUp, smAndDown } = useDisplay()
-
-const items = computed(() => product.value || [])
-
 const router = useRouter()
 const showClientDialog = ref(true)
 const showProductDialog = ref(false)
 const customerType = ref('natural')
 const customer = ref(null)
 const selectedProduct = ref(null)
+
+const { mdAndUp, smAndDown } = useDisplay()
+
+const items = computed(() => product.value || [])
+
+watch(search, (newValue) => {
+  if (!newValue) return
+
+  const found = product.value?.find(p => p.codigoBarra === newValue.trim())
+
+  if (found) {
+    search.value = ''
+    viewProduct(found)
+  }
+
+})
 
 const searchCustomer = async () => {
 
@@ -137,7 +152,7 @@ const customerIdValue = computed(() => {
 
 const cancelSale = () => {
   showClientDialog.value = false
-  router.push('/home')
+  router.push('/caja/clientes')
 }
 
 /* --------------------   Modal Producto   ------------------- */
@@ -290,6 +305,10 @@ const createSale = async () => {
     precioTotal: parseFloat(totals.value.total),
     estado: true,
     vuelto: parseFloat(vuelto.value),
+    cajero: {
+      id: user.id,
+    },
+
     detalleVentas,
   }
 
@@ -436,6 +455,19 @@ const imprimirComprobante = async () => {
               </v-col>
             </v-row>
           </template>
+
+          <template #no-data>
+            <div class="text-center pa-6">
+              <v-icon size="48" color="grey-lighten-1">mdi-cube-outline</v-icon>
+              <div class="text-body-1 mt-2 font-weight-medium text-grey-darken-1">
+                No se encontraron productos
+              </div>
+              <div class="text-caption text-grey">
+                Prueba con otro término o verifica el inventario.
+              </div>
+            </div>
+          </template>
+
 
           <template #footer="{ page, pageCount, prevPage, nextPage }">
             <div class="d-flex align-center justify-center pa-4" style="min-height: 60px;">
