@@ -32,7 +32,6 @@ const headers = [
 const modalTitle = computed(() => (supplierItem.value ? 'Editar Proveedor' : 'Crear Proveedor'))
 const actionLabel = computed(() => (supplierItem.value ? 'Actualizar' : 'Crear'))
 const supplierItem = ref(null)
-const editingSupplier = ref(null)
 //modales
 const supplierFormModal = ref(false)
 const filterDialog = ref(false)
@@ -68,9 +67,10 @@ watch(supplierFormModal, (isOpen) => {
     }
 })
 //abrir modal eliminar
+const confirmarEliminar = ref(null)
 const handleDelete = (item) => {
     supplierDeleteModal.value = true
-    console.log("proveedor eliminado con id" + item.nombre)
+    confirmarEliminar.value = item.id
 }
 
 //-----------------------------------------------FILTROS---------------------------------------//
@@ -143,9 +143,7 @@ const handleCreateSupplier = async () => {
 //eliminar
 const confirmDelete = async () => {
     try {
-        editingSupplier.value = supplier.value[0]
-        console.log("id " + editingSupplier.value.id)
-        await deleteSupplierAsync(editingSupplier.value.id)
+        await deleteSupplierAsync(confirmarEliminar.value)
         showSuccessSnackbar('Eliminado correctamente')
         supplierDeleteModal.value = false
     } catch (error) {

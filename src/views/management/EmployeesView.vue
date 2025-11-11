@@ -97,10 +97,10 @@ const handleEdit = (item) => {
 }
 
 //abrir modal eliminar
+const confirmarEliminar = ref(null)
 const deleteModal = (item) => {
     employeeDeleteModal.value = true
-    console.log(item)
-
+    confirmarEliminar.value = item.id
 }
 
 watch(employeeFormModal, (isOpen) => {
@@ -193,9 +193,8 @@ const handleCreateEmployee = async () => {
 //eliminar
 const confirmDelete = async () => {
     try {
-        employeeEdit.value = employee.value[0]
 
-        await deleteEmployeeAsync(employeeEdit.value.id)
+        await deleteEmployeeAsync(confirmarEliminar.value)
         showSuccessSnackbar("Eliminado correctamente")
         employeeDeleteModal.value = false
     } catch (error) {
@@ -263,9 +262,7 @@ const searchEmployee = async () => {
         <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4" loading-text="Cargando proveedores...">
             <v-skeleton-loader type="card" />
         </v-col>
-        <!-- <v-col cols="12">
-            <div class="text-center">Cargando productos...</div>
-        </v-col> -->
+
     </v-row>
 
     <v-row v-else>
@@ -293,9 +290,15 @@ const searchEmployee = async () => {
         </v-col>
     </v-row>
     <v-row v-if="!isPending && !filtroEmpleado.length">
-        <v-col cols="12" class="text-center py-16">
-            <v-icon size="64" color="grey-lighten-1">mdi-account-group</v-icon>
-            <p class="text-h6 text-grey mt-4">No se encontraron empleados</p>
+        <v-col cols="12" class="text-center">
+            <div class="text-center pa-6">
+                <v-icon size="48" color="grey-lighten-1">mdi-account-group</v-icon>
+                <div class="text-body-1 mt-2 font-weight-medium text-grey-darken-1">
+                    No se encontraron empleados
+                </div>
+                <div class="text-caption text-grey">
+                </div>
+            </div>
         </v-col>
     </v-row>
     <!-- modal crear -->
