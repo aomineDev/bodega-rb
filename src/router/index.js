@@ -77,20 +77,20 @@ const router = createRouter({
               path: 'proveedores',
               component: SuppliersView,
               meta: {
-                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN]
-              }
+                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
+              },
             },
             {
               path: 'empleados',
               component: EmployeesView,
               meta: {
-                roles: [ROLES.ADMIN]
-              }
+                roles: [ROLES.ADMIN],
+              },
             },
             {
               path: 'productos',
               component: ProductsView,
-              roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]
+              roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
             },
             {
               path: 'categorias',
@@ -104,14 +104,23 @@ const router = createRouter({
             {
               path: 'ventas',
               component: SalesView,
+              meta: {
+                roles: [ROLES.ADMIN, ROLES.CAJERO],
+              },
             },
             {
               path: 'comprobantes',
               component: VouchersView,
+              meta: {
+                roles: [ROLES.ADMIN, ROLES.CAJERO],
+              },
             },
             {
               path: 'clientes',
               component: CustomersView,
+              meta: {
+                roles: [ROLES.ADMIN, ROLES.CAJERO],
+              },
             },
           ],
         },

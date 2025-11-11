@@ -305,7 +305,7 @@ const handlePromoChange = () => {
                         <!-- nombre -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Nombre" variant="underlined" v-model="nombre"
-                                :rules="[rules.required, rules.text]"></v-text-field>
+                                :rules="[rules.required]"></v-text-field>
                         </v-col>
                         <!-- categoria -->
                         <v-col cols="12" md="6">
