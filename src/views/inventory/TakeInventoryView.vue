@@ -123,13 +123,8 @@
     </v-card>
   </v-dialog>
 
-  <div class="position-fixed bottom-0 right-0 pa-4">
-    <v-btn
-      v-if="!mdAndUp"
-      icon="mdi-barcode-scan"
-      color="success"
-      @click="scannerDialog = true"
-    ></v-btn>
+  <div class="position-fixed bottom-0 right-0 pa-4" v-if="!mdAndUp">
+    <v-btn icon="mdi-barcode-scan" color="green" @click="scannerDialog = true"></v-btn>
   </div>
 </template>
 

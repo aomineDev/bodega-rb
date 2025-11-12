@@ -171,6 +171,7 @@ const selectedInventory = computed(() => {
 })
 
 function handleSwitchInventoryState(categoryInventory) {
+  console.log({ ...categoryInventory.category })
   selectedCategory.value = categoryInventory.category
 
   if (categoryInventory.state) inventoryDetailsDialog.value = true
