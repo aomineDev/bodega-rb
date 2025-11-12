@@ -8,6 +8,10 @@ import { useForm } from '@/composables/useForm';
 import { useDisplay } from 'vuetify';
 import { useSupplier } from '@/composables/query/useSupplier';
 import { useIntegration } from '@/composables/query/useIntegration';
+import { useAuthStore } from '@/stores/auth'
+import { ROLES } from '@/utils/constants/roles';
+
+const auth = useAuthStore()
 //-----------------------------------------------CONSTANTES---------------------------------------//
 const { showSuccessSnackbar, showWarningSnackbar, showErrorSnackbar } = useSnackbar()
 const { mdAndUp, smAndDown } = useDisplay()
@@ -227,7 +231,9 @@ const formatDate = (dateString) => {
             {{ formatDate(value) }}
         </template>
         <template #[`item.actions`]="{ item }">
-            <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
+            <!-- <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" /> -->
+            <ActionMenu :onEdit="() => handleEdit(item)"
+                :onDelete="auth.hasRole(ROLES.ADMIN) ? () => handleDelete(item) : null" />
         </template>
     </v-data-table>
 

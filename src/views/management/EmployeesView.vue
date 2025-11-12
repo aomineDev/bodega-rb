@@ -177,6 +177,8 @@ const handleCreateEmployee = async () => {
             imagen: imagenUrl,
             rol: rol.value
         }
+
+
         if (employeeEdit.value) {
             await updateEmployeeAsync({ ...employeeData, id: employeeEdit.value.id })
             showSuccessSnackbar("Actualizado")
