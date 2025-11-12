@@ -1,6 +1,7 @@
 import { employeeService } from '@/services/api/employeeSevice'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { computed } from 'vue'
 
 export const useEmployee = () => {
   const queryClient = useQueryClient()
@@ -18,7 +19,7 @@ export const useEmployee = () => {
     useQuery({
       queryKey: ['employee', id],
       queryFn: () => employeeService.getById(id.value),
-      enabled: !!id.value,
+      enabled: computed(() => !!id.value),
     })
   const createMutation = useMutation({
     mutationFn: employeeService.create,

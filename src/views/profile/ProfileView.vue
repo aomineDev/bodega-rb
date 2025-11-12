@@ -14,7 +14,10 @@ const { getQuery, updateEmployeeAsync, changePasswordAsync } = useEmployee()
 
 const { data: employee, refetch } = getQuery(computed(() => auth.user?.id))
 
-const rol = computed(() => formatRol(auth.user.rol.nombre))
+const rol = computed(() => {
+  const nombreRol = auth.user?.rol?.nombre
+  return nombreRol ? formatRol(nombreRol) : ''
+})
 
 // Formulario de información personal
 const {

@@ -48,13 +48,13 @@
         <v-divider></v-divider>
         <v-menu location="end">
           <template #activator="{ props }">
-            <v-list-item :prepend-avatar="user.imagen" :subtitle="rol" :title="user.nombre" class="pt-2 pb-2"
+            <v-list-item :prepend-avatar="user?.imagen" :subtitle="rol" :title="user?.nombre" class="pt-2 pb-2"
               v-bind="props" append-icon="mdi-chevron-right">
             </v-list-item>
           </template>
 
           <v-list min-width="200" density="compact" class="rounded-lg" elevation="2">
-            <v-list-item :prepend-avatar="user.imagen" :subtitle="rol" :title="user.nombre" class="pt-2 pb-2">
+            <v-list-item :prepend-avatar="user?.imagen" :subtitle="rol" :title="user?.nombre" class="pt-2 pb-2">
             </v-list-item>
             <v-divider></v-divider>
             <v-list-item title="Perfil" prepend-icon="mdi-account" class="primary" to="/perfil"></v-list-item>
