@@ -36,3 +36,17 @@ const { closeSnackbar } = snackbarRef
     </v-snackbar>
   </v-app>
 </template>
+
+<style>
+.v-navigation-drawer__content,
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s ease;
+}
+
+.v-navigation-drawer__content:hover,
+.custom-scroll:hover {
+  scrollbar-color: rgba(0 0 0 / 0.2) transparent;
+}
+</style>
