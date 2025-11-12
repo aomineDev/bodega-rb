@@ -5,7 +5,7 @@ import { useSnackbar } from '@/stores/snackbar'
 import { useEmployee } from '@/composables/query/useEmployee'
 import { storageService } from '@/services/storage/imageService'
 import { useForm } from '@/composables/useForm'
-import { roleFormat } from '@/utils/roleFormat'
+import { formatRol } from '@/utils/formatRol'
 
 const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 
@@ -13,12 +13,9 @@ const auth = useAuthStore()
 const { user } = auth
 const { getQuery, updateEmployeeAsync, changePasswordAsync } = useEmployee()
 
-const {
-  data: employee,
-  refetch
-} = getQuery(computed(() => user?.id))
+const { data: employee, refetch } = getQuery(computed(() => user?.id))
 
-const rol = computed(() => roleFormat(user.rol.nombre))
+const rol = computed(() => formatRol(user.rol.nombre))
 
 // Formulario de información personal
 const {
@@ -158,11 +155,8 @@ const handleChangePassword = async () => {
               <v-file-input ref="fileInput" accept="image/*" class="d-none" @update:modelValue="onImageChange" />
             </div>
 
-            <h3 class="mt-5 mb-1">
-              {{ employee?.nombre }} {{ employee?.apellidoPaterno }}
-            </h3>
+            <h3 class="mt-5 mb-1">{{ employee?.nombre }} {{ employee?.apellidoPaterno }}</h3>
             <p class="text-medium-emphasis mb-6">{{ rol }}</p>
-
 
             <v-divider class="my-5" />
 
@@ -188,35 +182,29 @@ const handleChangePassword = async () => {
             <v-form ref="empleadoForm">
               <v-row>
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-text-field v-model="nombre" label="Nombre" :rules="[
-                    rules.required,
-                    rules.text]" :disabled="!editMode" clearable />
+                  <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]"
+                    :disabled="!editMode" clearable />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-text-field v-model="apellidoPaterno" label="Apellido Paterno" :rules="[
-                    rules.required,
-                    rules.text]" :disabled="!editMode" clearable />
+                  <v-text-field v-model="apellidoPaterno" label="Apellido Paterno" :rules="[rules.required, rules.text]"
+                    :disabled="!editMode" clearable />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-text-field v-model="apellidoMaterno" label="Apellido Materno" :rules="[
-                    rules.required,
-                    rules.text]" :disabled="!editMode" clearable />
+                  <v-text-field v-model="apellidoMaterno" label="Apellido Materno" :rules="[rules.required, rules.text]"
+                    :disabled="!editMode" clearable />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
                   <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########" :disabled="!editMode"
-                    clearable variant="underlined" :rules="[
-                      rules.phone, rules.required
-                    ]">
+                    clearable variant="underlined" :rules="[rules.phone, rules.required]">
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" class="pb-4">
-                  <v-text-field v-model="email" label="Correo electrónico" :disabled="!editMode" :rules="[
-                    rules.email,
-                  ]" clearable />
+                  <v-text-field v-model="email" label="Correo electrónico" :disabled="!editMode" :rules="[rules.email]"
+                    clearable />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
