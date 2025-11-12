@@ -10,12 +10,11 @@ import { formatRol } from '@/utils/formatRol'
 const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 
 const auth = useAuthStore()
-const { user } = auth
 const { getQuery, updateEmployeeAsync, changePasswordAsync } = useEmployee()
 
-const { data: employee, refetch } = getQuery(computed(() => user?.id))
+const { data: employee, refetch } = getQuery(computed(() => auth.user?.id))
 
-const rol = computed(() => formatRol(user.rol.nombre))
+const rol = computed(() => formatRol(auth.user.rol.nombre))
 
 // Formulario de información personal
 const {
