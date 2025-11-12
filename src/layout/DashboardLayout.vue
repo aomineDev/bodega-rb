@@ -93,7 +93,7 @@
         <v-menu location="end">
           <template #activator="{ props }">
             <v-list-item
-              prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
+              :prepend-avatar="user.imagen"
               :subtitle="rol"
               :title="user.nombre"
               class="pt-2 pb-2"
@@ -105,7 +105,7 @@
 
           <v-list min-width="200" density="compact" class="rounded-lg" elevation="2">
             <v-list-item
-              prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
+              :prepend-avatar="user.imagen"
               :subtitle="rol"
               :title="user.nombre"
               class="pt-2 pb-2"
@@ -163,7 +163,7 @@ import { computed, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { capitalize } from '@/utils/capitalize'
 import { useAuthStore } from '@/stores/auth'
-import { roleFormat } from '@/utils/roleFormat'
+import { formatRol } from '@/utils/formatRol'
 import { ROLES } from '@/utils/constants/roles'
 
 const { user, logout } = useAuthStore()
@@ -252,7 +252,7 @@ const gestionItems = [
 
 const route = useRoute()
 
-const rol = computed(() => roleFormat(user.rol.nombre))
+const rol = computed(() => formatRol(user.rol.nombre))
 
 const breandcrumbs = computed(() => [
   'Dashboard',

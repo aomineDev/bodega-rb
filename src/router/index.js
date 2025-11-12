@@ -91,7 +91,6 @@ const router = createRouter({
             {
               path: 'productos',
               component: ProductsView,
-              roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
             },
             {
               path: 'categorias',
