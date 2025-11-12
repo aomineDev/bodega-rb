@@ -41,7 +41,9 @@ const {
   email: '',
   fechaNacimiento: '',
   imagen: '',
-})
+},
+  undefined,
+  { resetForm: false })
 
 // Formulario de contraseña
 const {
@@ -61,7 +63,6 @@ const editMode = ref(false)
 const previewUrl = ref('/img/default-avatar.png')
 const activeSection = ref('info')
 
-// ---------------------------------------------
 // Cuando cambia el empleado, se actualiza el form
 watchEffect(() => {
   if (employee.value) {
@@ -96,6 +97,8 @@ const handleUpdateEmployee = async () => {
     const updated = await updateEmployeeAsync({ ...payload, id: parseInt(employee.value.id) })
     await refetch()
 
+    asignForm(updated)
+
     // Actualiza el auth.store
     auth.user = { ...auth.user, nombre: updated.nombre, imagen: updated.imagen }
 
@@ -120,13 +123,12 @@ const discardChanges = () => {
 // ---- Formulario de contraseña ----
 const handleChangePassword = async () => {
   try {
-    const res = await changePasswordAsync({
+    await changePasswordAsync({
       id: employee.value.id,
       currentPassword: currentPassword.value,
       newPassword: newPassword.value,
     })
     showSuccessSnackbar("Contraseña actualizada correctamente")
-    console.log(res)
     currentPassword.value = ''
     newPassword.value = ''
   } catch (e) {
