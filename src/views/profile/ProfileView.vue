@@ -11,7 +11,7 @@ const { showSuccessSnackbar, showErrorSnackbar } = useSnackbar()
 
 const auth = useAuthStore()
 const { user } = auth
-const { getQuery, updateEmployeeAsync } = useEmployee()
+const { getQuery, updateEmployeeAsync, changePasswordAsync } = useEmployee()
 
 const {
   data: employee,
@@ -20,10 +20,11 @@ const {
 
 const rol = computed(() => roleFormat(user.rol.nombre))
 
+// Formulario de información personal
 const {
-  formData,
+  formData: empleadoData,
   formRef: empleadoForm,
-  handleSubmit,
+  handleSubmit: handleEmpleadoSubmit,
   asignForm,
   rules,
   nombre,
@@ -45,11 +46,26 @@ const {
   imagen: '',
 })
 
+// Formulario de contraseña
+const {
+  formRef: passwordForm,
+  handleSubmit: handlePasswordSubmit,
+  rules: passwordRules,
+  resetForm,
+  currentPassword,
+  newPassword,
+} = useForm({
+  currentPassword: '',
+  newPassword: '',
+})
+
 // ---- Otros estados ----
 const editMode = ref(false)
 const previewUrl = ref('/img/default-avatar.png')
+const activeSection = ref('info')
 
 // ---------------------------------------------
+// Cuando cambia el empleado, se actualiza el form
 watchEffect(() => {
   if (employee.value) {
     asignForm(employee.value)
@@ -77,7 +93,7 @@ const getImageUrl = async () => {
 const handleUpdateEmployee = async () => {
   try {
     const imagenUrl = await getImageUrl()
-    const payload = { ...formData.value, imagen: imagenUrl }
+    const payload = { ...empleadoData.value, imagen: imagenUrl }
     delete payload.clave
 
     const updated = await updateEmployeeAsync({ ...payload, id: parseInt(employee.value.id) })
@@ -102,6 +118,25 @@ const toggleEdit = () => {
 const discardChanges = () => {
   if (employee.value) asignForm(employee.value)
   editMode.value = false
+}
+
+// ---- Formulario de contraseña ----
+const handleChangePassword = async () => {
+  try {
+    const res = await changePasswordAsync({
+      id: employee.value.id,
+      currentPassword: currentPassword.value,
+      newPassword: newPassword.value,
+    })
+    showSuccessSnackbar("Contraseña actualizada correctamente")
+    console.log(res)
+    currentPassword.value = ''
+    newPassword.value = ''
+  } catch (e) {
+    console.log(e)
+    showErrorSnackbar("Contraseña actual incorrecta")
+  }
+  resetForm()
 }
 </script>
 
@@ -132,8 +167,10 @@ const discardChanges = () => {
             <v-divider class="my-5" />
 
             <v-list density="comfortable" nav>
-              <v-list-item prepend-icon="mdi-account" title="Información Personal" active />
-              <v-list-item prepend-icon="mdi-lock" title="Login & Password" />
+              <v-list-item prepend-icon="mdi-account" title="Información Personal" :active="activeSection === 'info'"
+                @click="activeSection = 'info'" />
+              <v-list-item prepend-icon="mdi-lock" title="Login & Password" :active="activeSection === 'password'"
+                @click="activeSection = 'password'" />
               <v-list-item prepend-icon="mdi-logout" title="Cerrar Sesión" @click="auth.logout()" />
             </v-list>
           </div>
@@ -143,7 +180,9 @@ const discardChanges = () => {
       <!-- Formulario -->
       <v-col cols="12" md="8" lg="9" class="d-flex ps-md-6">
         <v-card rounded="xl" class="pa-10 flex-grow-1 d-flex flex-column justify-space-between">
-          <div>
+
+          <!-- FORMULARIO INFO PERSONAL-->
+          <div v-if="activeSection === 'info'">
             <h2 class="text-h5 mb-8">Información Personal</h2>
 
             <v-form ref="empleadoForm">
@@ -190,20 +229,48 @@ const discardChanges = () => {
                 </v-col>
               </v-row>
             </v-form>
+
+            <!-- Botones centrados -->
+            <v-row class="mt-10 justify-center" dense>
+              <v-col cols="12" md="5" class="text-center">
+                <v-btn v-if="editMode" variant="outlined" color="secondary" class="w-100 py-3" text="Descartar cambios"
+                  @click="discardChanges" />
+              </v-col>
+
+              <v-col cols="12" md="5" class="text-center">
+                <v-btn color="primary" class="w-100 py-3" :text="editMode ? 'Guardar cambios' : 'Editar'"
+                  @click="editMode ? handleEmpleadoSubmit(handleUpdateEmployee) : toggleEdit()" />
+              </v-col>
+            </v-row>
           </div>
 
-          <!-- Botones centrados -->
-          <v-row class="mt-10 justify-center" dense>
-            <v-col cols="12" md="5" class="text-center">
-              <v-btn v-if="editMode" variant="outlined" color="secondary" class="w-100 py-3" text="Descartar cambios"
-                @click="discardChanges" />
-            </v-col>
+          <!-- FORMULARIO LOGIN & PASSWORD -->
+          <div v-else-if="activeSection === 'password'">
+            <h2 class="text-h5 mb-8">Login & Password</h2>
 
-            <v-col cols="12" md="5" class="text-center">
-              <v-btn color="primary" class="w-100 py-3" :text="editMode ? 'Guardar cambios' : 'Editar'"
-                @click="editMode ? handleSubmit(handleUpdateEmployee) : toggleEdit()" />
-            </v-col>
-          </v-row>
+            <v-form ref="passwordForm">
+              <v-row>
+                <v-col cols="12" class="pb-4">
+                  <v-text-field v-model="currentPassword" label="Contraseña actual" type="password"
+                    :rules="[passwordRules.required]" clearable />
+                </v-col>
+
+                <v-col cols="12" class="pb-4">
+                  <v-text-field v-model="newPassword" label="Nueva contraseña" type="password"
+                    :rules="[passwordRules.required, passwordRules.min6]" clearable />
+                </v-col>
+
+              </v-row>
+
+              <v-row class="justify-center mt-6">
+                <v-col cols="12" md="5" class="text-center">
+                  <v-btn color="primary" class="w-100 py-3" text="Actualizar contraseña"
+                    @click="handlePasswordSubmit(handleChangePassword)" />
+                </v-col>
+              </v-row>
+            </v-form>
+          </div>
+
         </v-card>
       </v-col>
     </v-row>
