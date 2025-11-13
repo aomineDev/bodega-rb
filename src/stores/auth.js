@@ -7,7 +7,7 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(null)
 
   const isAuthenticated = computed(() => !!token.value)
-  const userRol = computed(() => user.value?.rol.nombre || '')
+  const role = computed(() => user.value?.rol?.nombre || '')
 
   function initAuth() {
     const savedToken = localStorage.getItem('token')
@@ -36,9 +36,9 @@ export const useAuthStore = defineStore('auth', () => {
     router.push({ name: 'login' })
   }
 
-  const hasRole = (role) => userRol.value === role
+  const hasRole = (r) => role.value === r
 
-  const hasAnyRole = (roles) => roles.includes(userRol.value)
+  const hasAnyRole = (roles) => roles.includes(role.value)
 
-  return { user, token, userRol, isAuthenticated, initAuth, setAuth, logout, hasRole, hasAnyRole }
+  return { user, token, role, isAuthenticated, initAuth, setAuth, logout, hasRole, hasAnyRole }
 })

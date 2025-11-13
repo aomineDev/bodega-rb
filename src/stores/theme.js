@@ -8,9 +8,8 @@ export const useThemeStore = defineStore('theme', () => {
     theme.value = 'dark'
   }
 
-  const toggleTheme = () => {
+  function toggleTheme() {
     theme.value = theme.value === 'light' ? 'dark' : 'light'
-    console.log(theme.value)
   }
 
   return { theme, toggleTheme }
