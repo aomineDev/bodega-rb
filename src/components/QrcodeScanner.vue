@@ -7,7 +7,7 @@ import { Html5QrcodeScanner } from 'html5-qrcode'
 import { onMounted, onUnmounted } from 'vue'
 
 const { qrbox, fps } = defineProps({
-  qrbox: {
+  qrbox: {  
     type: Number,
     default: 250,
   },
