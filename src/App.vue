@@ -1,16 +1,5 @@
-<script setup>
-import { useSnackbar } from './stores/snackbar'
-import { storeToRefs } from 'pinia'
-
-const snackbarRef = useSnackbar()
-
-const { snackbar, snackbarMessage, snackbarColor, snackBarLocaltion } = storeToRefs(snackbarRef)
-
-const { closeSnackbar } = snackbarRef
-</script>
-
 <template>
-  <v-app>
+  <v-app :theme>
     <router-view v-slot="{ Component }">
       <v-fade-transition>
         <component :is="Component" />
@@ -36,3 +25,29 @@ const { closeSnackbar } = snackbarRef
     </v-snackbar>
   </v-app>
 </template>
+
+<script setup>
+import { useSnackbar, useThemeStore } from './stores'
+import { storeToRefs } from 'pinia'
+
+const { theme } = storeToRefs(useThemeStore())
+const snackbarRef = useSnackbar()
+
+const { snackbar, snackbarMessage, snackbarColor, snackBarLocaltion } = storeToRefs(snackbarRef)
+
+const { closeSnackbar } = snackbarRef
+</script>
+
+<style>
+.v-navigation-drawer__content,
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s ease;
+}
+
+.v-navigation-drawer__content:hover,
+.custom-scroll:hover {
+  scrollbar-color: rgba(0 0 0 / 0.2) transparent;
+}
+</style>

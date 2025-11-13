@@ -19,7 +19,7 @@ export const useInventoryDetails = (inventoryId) => {
   const updateObservationsMutation = useMutation({
     mutationFn: inventoryDetailsService.updateObservationsById,
     onSuccess: () => {
-      queryClient.invalidateQueries(['openInventoryList'])
+      queryClient.invalidateQueries(['inventoryList', 'openInventoryList', 'closeInventoryList'])
     },
     onError: (error) => console.log('Error: ' + error),
   })

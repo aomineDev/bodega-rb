@@ -6,7 +6,7 @@ export const useInventory = () => {
 
   const getInventoryList = () =>
     useQuery({
-      queryKey: ['inventories'],
+      queryKey: ['inventoryList'],
       queryFn: inventoryService.getAll,
     })
 
@@ -25,34 +25,44 @@ export const useInventory = () => {
 
   const getCloseInventoryList = () =>
     useQuery({
-      queryKey: ['closeInventories'],
+      queryKey: ['closeInventoryList'],
       queryFn: () => inventoryService.getAllByState(false),
     })
 
   const createMutation = useMutation({
     mutationFn: inventoryService.create,
-    onSuccess: () => queryClient.invalidateQueries(['inventories', 'openInventoryList']),
+    onSuccess: () =>
+      queryClient.invalidateQueries(['inventoryList', 'openInventoryList', 'closeInventoryList']),
     onError: (error) => console.log('Error: ' + error),
   })
 
   const updateMutation = useMutation({
     mutationFn: inventoryService.updateById,
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries(['inventories'])
+      queryClient.invalidateQueries(['inventoryList', 'openInventoryList', 'closeInventoryList'])
       queryClient.invalidateQueries(['inventory', variables.id])
     },
     onError: (error) => console.log('Error: ' + error),
   })
 
+  const addAssistantMutation = useMutation({
+    mutationFn: inventoryService.addAssistantById,
+    onSuccess: () =>
+      queryClient.invalidateQueries(['inventoryList', 'openInventoryList', 'closeInventoryList']),
+    onError: (error) => console.log('Error: ' + error),
+  })
+
   const closeInventoryMutation = useMutation({
     mutationFn: inventoryService.closeInventoryById,
-    onSuccess: () => queryClient.invalidateQueries(['openInventoryList']),
+    onSuccess: () =>
+      queryClient.invalidateQueries(['inventoryList', 'openInventoryList', 'closeInventoryList']),
     onError: (error) => console.log('Error: ' + error),
   })
 
   const deleteMutation = useMutation({
     mutationFn: inventoryService.deleteById,
-    onSuccess: () => queryClient.invalidateQueries(['inventories']),
+    onSuccess: () =>
+      queryClient.invalidateQueries(['inventoryList', 'openInventoryList', 'closeInventoryList']),
     onError: (error) => console.log('Error: ' + error),
   })
 
@@ -70,6 +80,9 @@ export const useInventory = () => {
     updateInventoryAsync: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
     updateError: updateMutation.error,
+
+    addAssistant: addAssistantMutation.mutate,
+    addAssistantAsync: addAssistantMutation.mutateAsync,
 
     closeInventory: closeInventoryMutation.mutate,
     closeInventoryAsync: closeInventoryMutation.mutateAsync,

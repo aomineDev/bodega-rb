@@ -1,6 +1,7 @@
 import { employeeService } from '@/services/api/employeeSevice'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { computed } from 'vue'
 
 export const useEmployee = () => {
   const queryClient = useQueryClient()
@@ -18,7 +19,7 @@ export const useEmployee = () => {
     useQuery({
       queryKey: ['employee', id],
       queryFn: () => employeeService.getById(id.value),
-      enabled: !!id.value,
+      enabled: computed(() => !!id.value),
     })
   const createMutation = useMutation({
     mutationFn: employeeService.create,
@@ -34,6 +35,15 @@ export const useEmployee = () => {
     },
     onError: (error) => console.log('Erorr' + error),
   })
+
+  const changePasswordMutation = useMutation({
+    mutationFn: employeeService.changePassword,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(['employees'])
+      queryClient.invalidateQueries(['employees', variables.id])
+    },
+  })
+
   const deleteMutation = useMutation({
     mutationFn: employeeService.delete,
     onSuccess: () => queryClient.invalidateQueries(['employees']),
@@ -60,6 +70,11 @@ export const useEmployee = () => {
     deleteEmployeeAsync: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
     deleteError: deleteMutation.error,
+
+    changePassword: changePasswordMutation.mutate,
+    changePasswordAsync: changePasswordMutation.mutateAsync,
+    isChangingPassword: changePasswordMutation.isPending,
+    changePasswordError: changePasswordMutation.error,
   }
 }
 

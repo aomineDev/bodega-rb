@@ -17,4 +17,10 @@ export const employeeService = {
   delete: (id) => apiFetch(`${service}/${id}`, { method: 'DELETE' }),
 
   getCustomerByDni: (dni) => apiFetch(`${service}/reniec/${dni}`),
+
+  changePassword: ({ id, currentPassword, newPassword }) =>
+    apiFetch(`${service}/${id}/password`, {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
 }

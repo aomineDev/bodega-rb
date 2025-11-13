@@ -38,7 +38,7 @@ const employeeEdit = ref(null)
 const {
     formData, handleSubmit, formRef, asignForm,
     resetForm, nombre, apellidoMaterno, apellidoPaterno, email, dni,
-    telefono, direccion, clave, imagen, fechaNacimiento, rolId, rules
+    telefono, direccion, clave, imagen, fechaNacimiento, rol, rules
 } = useForm({
     nombre: '',
     apellidoMaterno: '',
@@ -50,7 +50,7 @@ const {
     clave: '',
     imagen: '',
     fechaNacimiento: null,
-    rolId: '',
+    rol: '',
 
 })
 const { formatDate, inputDate, today } = useDateInput(fechaNacimiento)
@@ -88,19 +88,19 @@ const handleEdit = (item) => {
     employeeEdit.value = item
     asignForm({
         ...item,
-        rolId: item.rolId ? {
-            ...item.rolId,
-            nombre: formatRoleName(item.rolId.nombre)
+        rol: item.rol ? {
+            ...item.rol,
+            nombre: formatRoleName(item.rol.nombre)
         } : null
     })
     employeeFormModal.value = true
 }
 
 //abrir modal eliminar
+const confirmarEliminar = ref(null)
 const deleteModal = (item) => {
     employeeDeleteModal.value = true
-    console.log(item)
-
+    confirmarEliminar.value = item.id
 }
 
 watch(employeeFormModal, (isOpen) => {
@@ -117,6 +117,8 @@ const {
     role
 } = useRole()
 const formatRoleName = (roleName) => {
+    if (!roleName) return ''
+
     return roleName
         .replace('ROLE_', '')
         .split('_')
@@ -149,7 +151,7 @@ const filtroEmpleado = computed(() => {
     const empleados = employee.value
     if (!Array.isArray(empleados)) return []
 
-    const query = search.value.trim().toLowerCase()
+    const query = search.value?.trim().toLowerCase()
     const rolSeleccionado = filtros.rol
 
     return empleados.filter(e => {
@@ -159,7 +161,7 @@ const filtroEmpleado = computed(() => {
             : true
 
         const coincideRol = rolSeleccionado
-            ? e.rolId?.id === rolSeleccionado
+            ? e.rol?.id === rolSeleccionado
             : true
         return coincideBusqueda && coincideRol
     })
@@ -173,8 +175,10 @@ const handleCreateEmployee = async () => {
         const employeeData = {
             ...formData.value,
             imagen: imagenUrl,
-            rolId: rolId.value
+            rol: rol.value
         }
+
+
         if (employeeEdit.value) {
             await updateEmployeeAsync({ ...employeeData, id: employeeEdit.value.id })
             showSuccessSnackbar("Actualizado")
@@ -191,9 +195,8 @@ const handleCreateEmployee = async () => {
 //eliminar
 const confirmDelete = async () => {
     try {
-        employeeEdit.value = employee.value[0]
 
-        await deleteEmployeeAsync(employeeEdit.value.id)
+        await deleteEmployeeAsync(confirmarEliminar.value)
         showSuccessSnackbar("Eliminado correctamente")
         employeeDeleteModal.value = false
     } catch (error) {
@@ -248,7 +251,7 @@ const searchEmployee = async () => {
         <v-row>
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
                 filtros[key] = value" />
-            <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
+            <v-col cols="12" md="2" class="d-flex justify-end align-center" hide-details>
                 <v-btn prepend-icon="mdi-plus" color="primary" @click="employeeFormModal = true">Crear
                     Empleado</v-btn>
             </v-col>
@@ -261,9 +264,7 @@ const searchEmployee = async () => {
         <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="6" lg="4" loading-text="Cargando proveedores...">
             <v-skeleton-loader type="card" />
         </v-col>
-        <!-- <v-col cols="12">
-            <div class="text-center">Cargando productos...</div>
-        </v-col> -->
+
     </v-row>
 
     <v-row v-else>
@@ -284,16 +285,22 @@ const searchEmployee = async () => {
                     </v-card-title>
 
                     <v-chip class="chip-categoria mb-3 mx-3" color="primary" size="large">
-                        {{ formatRoleName(item.rolId?.nombre) }}
+                        {{ formatRoleName(item.rol?.nombre ?? "Sin rol") }}
                     </v-chip>
                 </v-card>
             </v-hover>
         </v-col>
     </v-row>
     <v-row v-if="!isPending && !filtroEmpleado.length">
-        <v-col cols="12" class="text-center py-16">
-            <v-icon size="64" color="grey-lighten-1">mdi-account-group</v-icon>
-            <p class="text-h6 text-grey mt-4">No se encontraron empleados</p>
+        <v-col cols="12" class="text-center">
+            <div class="text-center pa-6">
+                <v-icon size="48" color="grey-lighten-1">mdi-account-group</v-icon>
+                <div class="text-body-1 mt-2 font-weight-medium text-grey-darken-1">
+                    No se encontraron empleados
+                </div>
+                <div class="text-caption text-grey">
+                </div>
+            </div>
         </v-col>
     </v-row>
     <!-- modal crear -->
@@ -346,7 +353,7 @@ const searchEmployee = async () => {
                         </v-col>
                         <!-- roles -->
                         <v-col cols="12" md="6">
-                            <v-select label="Rol" variant="underlined" :items="rolesFormateados" v-model="rolId"
+                            <v-select label="Rol" variant="underlined" :items="rolesFormateados" v-model="rol"
                                 item-title="nombre" item-value="id" :rules=[rules.rol] return-object></v-select>
                         </v-col>
                         <v-col cols="12" md="6">
@@ -474,7 +481,7 @@ const searchEmployee = async () => {
                                         <span class="text-body-2 font-weight-bold">Rol / Cargo</span>
                                     </div>
                                     <v-chip color="indigo" variant="tonal" size="default" class="ml-8">
-                                        {{ formatRoleName(emp.rolId.nombre) }}
+                                        {{ formatRoleName(emp.rol?.nombre ?? 'Sin rol') }}
                                     </v-chip>
                                 </v-col>
                                 <!-- dni -->

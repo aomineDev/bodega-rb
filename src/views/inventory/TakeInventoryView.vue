@@ -3,6 +3,7 @@
   <div class="d-flex ga-2">
     <v-autocomplete
       v-model="selectedDetail"
+      prepend-inner-icon="mdi-magnify"
       label="Productos"
       :items="inventory?.inventarioDetalles ?? []"
       item-value="id"
@@ -122,13 +123,8 @@
     </v-card>
   </v-dialog>
 
-  <div class="position-fixed bottom-0 right-0 pa-4">
-    <v-btn
-      v-if="!mdAndUp"
-      icon="mdi-barcode-scan"
-      color="success"
-      @click="scannerDialog = true"
-    ></v-btn>
+  <div class="position-fixed bottom-0 right-0 pa-4" v-if="!mdAndUp">
+    <v-btn icon="mdi-barcode" color="green" @click="scannerDialog = true"></v-btn>
   </div>
 </template>
 

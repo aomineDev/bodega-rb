@@ -14,6 +14,9 @@ export const inventoryService = {
   updateById: ({ id, ...data }) =>
     apiFetch(`${service}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
+  addAssistantById: ({ id, asistente }) =>
+    apiFetch(`${service}/asistente/${id}`, { method: 'PATCH', body: JSON.stringify(asistente) }),
+
   closeInventoryById: (id) => apiFetch(`${service}/cerrar/${id}`, { method: 'PATCH' }),
 
   deleteById: (id) => apiFetch(`${service}/${id}`, { method: 'DELETE' }),

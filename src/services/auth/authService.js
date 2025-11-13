@@ -13,7 +13,11 @@ export const authService = {
       body: JSON.stringify(credentials),
     })
 
-    if (!response.ok) throw new Error('Error al iniciar sesión')
+    if (!response.ok) {
+      const error = await response.json()
+
+      throw new Error(error.message || 'Error al iniciar sesión')
+    }
 
     const data = await response.json()
 

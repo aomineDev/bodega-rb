@@ -2,14 +2,16 @@
 import ActionMenu from '@/components/ActionMenu.vue';
 import BaseFilter from '@/components/BaseFilter.vue';
 import FabMenu from '@/components/FabMenu.vue';
-import { VDateInput } from 'vuetify/labs/VDateInput'
 import { computed, reactive, ref, watch } from 'vue'
 import { useSnackbar } from '@/stores/snackbar';
 import { useForm } from '@/composables/useForm';
 import { useDisplay } from 'vuetify';
 import { useSupplier } from '@/composables/query/useSupplier';
-import { useDateInput } from '@/composables/useDateInput';
 import { useIntegration } from '@/composables/query/useIntegration';
+import { useAuthStore } from '@/stores/auth'
+import { ROLES } from '@/utils/constants/roles';
+
+const auth = useAuthStore()
 //-----------------------------------------------CONSTANTES---------------------------------------//
 const { showSuccessSnackbar, showWarningSnackbar, showErrorSnackbar } = useSnackbar()
 const { mdAndUp, smAndDown } = useDisplay()
@@ -34,7 +36,6 @@ const headers = [
 const modalTitle = computed(() => (supplierItem.value ? 'Editar Proveedor' : 'Crear Proveedor'))
 const actionLabel = computed(() => (supplierItem.value ? 'Actualizar' : 'Crear'))
 const supplierItem = ref(null)
-const editingSupplier = ref(null)
 //modales
 const supplierFormModal = ref(false)
 const filterDialog = ref(false)
@@ -44,19 +45,16 @@ const supplierDeleteModal = ref(false)
 const {
     formRef, formData, asignForm, resetForm, rules, handleSubmit
     , tipoContribuyente, actividadEconomica, razonSocial,
-    fechaRegistro, ruc, direccion, telefono, email
+    ruc, direccion, telefono, email
 } = useForm({
     tipoContribuyente: '',
     actividadEconomica: '',
     razonSocial: '',
-    fechaRegistro: '',
     ruc: '',
     direccion: '',
     telefono: '',
     email: ''
 })
-const { formatDate, inputDate, today
-} = useDateInput(fechaRegistro)
 //-----------------------------------------------ABRIR MODALES---------------------------------------//
 //abrir modal editar
 const handleEdit = (item) => {
@@ -73,9 +71,10 @@ watch(supplierFormModal, (isOpen) => {
     }
 })
 //abrir modal eliminar
+const confirmarEliminar = ref(null)
 const handleDelete = (item) => {
     supplierDeleteModal.value = true
-    console.log("proveedor eliminado con id" + item.nombre)
+    confirmarEliminar.value = item.id
 }
 
 //-----------------------------------------------FILTROS---------------------------------------//
@@ -148,9 +147,7 @@ const handleCreateSupplier = async () => {
 //eliminar
 const confirmDelete = async () => {
     try {
-        editingSupplier.value = supplier.value[0]
-        console.log("id " + editingSupplier.value.id)
-        await deleteSupplierAsync(editingSupplier.value.id)
+        await deleteSupplierAsync(confirmarEliminar.value)
         showSuccessSnackbar('Eliminado correctamente')
         supplierDeleteModal.value = false
     } catch (error) {
@@ -198,10 +195,16 @@ const searchSupplier = async () => {
         isBuscando.value = false
     }
 }
-
-
-
-
+//convertir fecha 
+const formatDate = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-PE', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    })
+}
 </script>
 
 <template>
@@ -213,7 +216,7 @@ const searchSupplier = async () => {
         <v-row>
             <base-filter v-model:search="search" :filters="selectFilter" @update:filter="({ key, value }) =>
                 filtros[key] = value" />
-            <v-col cols="12" md="2" class="d-flex justify-md-end align-center" hide-details>
+            <v-col cols="12" md="2" class="d-flex justify-end align-center" hide-details>
                 <v-btn prepend-icon="mdi-plus" color="primary" @click="supplierFormModal = true">Crear
                     Proveedor</v-btn>
             </v-col>
@@ -228,7 +231,9 @@ const searchSupplier = async () => {
             {{ formatDate(value) }}
         </template>
         <template #[`item.actions`]="{ item }">
-            <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" />
+            <!-- <action-menu @edit="handleEdit(item)" @delete="handleDelete(item)" /> -->
+            <ActionMenu :onEdit="() => handleEdit(item)"
+                :onDelete="auth.hasRole(ROLES.ADMIN) ? () => handleDelete(item) : null" />
         </template>
     </v-data-table>
 
@@ -272,11 +277,10 @@ const searchSupplier = async () => {
                             </v-mask-input>
                         </v-col>
 
-
-                        <v-col cols="12" md="6">
+                        <!-- <v-col cols="12" md="6">
                             <v-date-input v-model="inputDate" :min="today" :display-format="formatDate"
                                 label="Fecha de registro" :rules="[rules.fecha]" variant="underlined"></v-date-input>
-                        </v-col>
+                        </v-col> -->
                         <v-col cols="12" md="6">
                             <v-text-field label="Email" variant="underlined" v-model="email"
                                 :rules="[rules.email, rules.distinct(supplier, 'email', supplierItem?.id)]"></v-text-field>

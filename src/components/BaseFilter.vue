@@ -25,8 +25,8 @@ defineEmits(['update:search', 'update:filter'])
         <!-- Select -->
         <v-select color="primary" v-if="filter.type === 'select'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :items="filter.items"
-          :label="filter.label" variant="underlined" :item-title="filter.itemTitle" :item-value="filter.itemValue"
-          hide-details />
+          clearable :label="filter.label" variant="underlined" :item-title="filter.itemTitle"
+          :item-value="filter.itemValue" hide-details />
         <!-- Date simple -->
         <v-date-input color="primary" clearable v-else-if="filter.type === 'date'" :model-value="filter.model"
           @update:model-value="$emit('update:filter', { key: filter.key, value: $event })" :label="filter.label"
