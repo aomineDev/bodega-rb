@@ -18,7 +18,7 @@
     @action="takeInventory"
   >
     ¿Está seguro de tomar el inventario de
-    <strong>{{ selectedIventory.categoria.nombre }}</strong
+    <strong>{{ selectedIventory?.categoria?.nombre }}</strong
     >? <br />
   </alert-dialog>
 </template>

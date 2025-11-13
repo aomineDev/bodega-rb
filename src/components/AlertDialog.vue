@@ -5,7 +5,8 @@
         <div>
           <v-icon size="100" :color :icon class="mb-4"></v-icon>
         </div>
-        <slot></slot>
+        <p v-if="message">{{ message }}</p>
+        <slot v-else></slot>
       </v-card-text>
 
       <v-card-actions>
