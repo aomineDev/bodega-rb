@@ -16,7 +16,7 @@
         <v-divider></v-divider>
       </template>
 
-      <v-list density="compact" nav class="test">
+      <v-list density="compact" nav>
         <v-list-item title="Dashboard" prepend-icon="mdi-view-dashboard" value="dashboard" color="primary"
           to="/home"></v-list-item>
 
@@ -96,13 +96,14 @@ import { capitalize } from '@/utils/capitalize'
 import { useAuthStore, useThemeStore } from '@/stores'
 import { formatRol } from '@/utils/formatRol'
 import { ROLES } from '@/utils/constants/roles'
+import { storeToRefs } from 'pinia'
 
 const { logout } = useAuthStore()
-const { theme, toggleTheme } = useThemeStore()
-const auth = useAuthStore()
+const { user, role } = storeToRefs(useAuthStore())
+const { theme } = storeToRefs(useThemeStore())
+const { toggleTheme } = useThemeStore()
 
-const user = computed(() => auth.user)
-const rol = computed(() => (auth.user?.rol ? formatRol(auth.user.rol.nombre) : ''))
+const rol = computed(() => formatRol(role.value))
 
 const { mdAndUp } = useDisplay()
 const drawer = ref(true)

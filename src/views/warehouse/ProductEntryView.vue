@@ -49,22 +49,22 @@ const filtros = reactive({
 
 const selectFilter = computed(() => [
   {
-    key: 'fechaInicio',
-    label: 'Fecha inicio',
-    type: 'date',
-    model: filtros.fechaInicio,
-  },
-  {
-    key: 'fechaFin',
-    label: 'Fecha fin',
-    type: 'date',
-    model: filtros.fechaFin,
-  },
+        key: 'rangoFechas',
+        label: 'Rango de fechas',
+        type: 'range',
+        model: filtros.rangoFechas
+    },
   // {
-  //   key:'rangoFechas',
-  //   label:'Rango de Fechas',
-  //   type:'range',
-  //   model: filtros.rangoFechas
+  //   key: 'fechaInicio',
+  //   label: 'Fecha inicio',
+  //   type: 'date',
+  //   model: filtros.fechaInicio,
+  // },
+  // {
+  //   key: 'fechaFin',
+  //   label: 'Fecha fin',
+  //   type: 'date',
+  //   model: filtros.fechaFin,
   // },
   {
     key: 'estado',
@@ -88,7 +88,7 @@ const productos = computed(() => product.value || [])
 
 // Headers de tablas
 const headers = [
-  { title: '# Ingreso', key: 'id' },
+  { title: '#id', key: 'id'},
   { title: 'Proveedor', key: 'proveedor' },
   { title: 'Asistente', key: 'asistente' },
   // { title: 'Observación', key: 'observacion' },
@@ -167,8 +167,9 @@ const aplicarFiltros = () => {
 }
 
 const limpiarFiltros = () => {
-  filtros.fechaInicio = null
-  filtros.fechaFin = null
+  // filtros.fechaInicio = null
+  // filtros.fechaFin = null
+  filtros.rangoFechas = ''
   filtros.estado = null
   search.value = ''
   showWarningSnackbar('Filtros restablecidos')
@@ -182,14 +183,14 @@ const items = computed(() => {
   if (filtros.estado) {
     entries = entries.filter(entry => entry.estado === filtros.estado)
   }
-
-  // Filtrar por rango de fechas
-  if (filtros.fechaInicio && filtros.fechaFin) {
-    const inicio = new Date(filtros.fechaInicio)
-    const fin = new Date(filtros.fechaFin)
+  // Filtrar rango fechas
+  if (Array.isArray(filtros.rangoFechas) && filtros.rangoFechas.length > 1) {
+    const fechaInicio = filtros.rangoFechas[0]
+    const fechaFin = filtros.rangoFechas[filtros.rangoFechas.length - 1]
+    console.log('filtros rango fechas', fechaInicio, fechaFin)
     entries = entries.filter(entry => {
       const fecha = new Date(entry.fechaIngreso)
-      return fecha >= inicio && fecha <= fin
+      return fecha >= fechaInicio && fecha <= fechaFin
     })
   }
 
@@ -470,52 +471,17 @@ const cerrarModal = () => {
   observacionesJefe.value = ''
 }
 
-// Función para aprobar el ingreso
-const aprobarIngreso = async () => {
+// Actualizar estado de ingreso Aprobar/Rechazar
+const actualizarIngreso = async (nuevoEstado) => {
   if (!selectedIngreso.value) return
 
-  try {
-    const now = new Date()
-
-    await updateProductEntryAsync({
-      id: selectedIngreso.value.id,
-      proveedor: { id: selectedIngreso.value.proveedor?.id },
-      observaciones: observacionesJefe.value,
-      fechaIngreso: selectedIngreso.value.fechaIngreso,
-      horaIngreso: selectedIngreso.value.horaIngreso,
-      estado: 'Aprobado',
-      fechaAprobacion: now.toISOString().split('T')[0],
-      // observacionesJefe: observacionesJefe.value,
-      asistenteAlmacen: { id: selectedIngreso.value.asistenteAlmacen?.id },
-      jefeAlmacen: { id: selectedIngreso.value.jefeAlmacen?.id },
-      detalleIngresos: selectedIngreso.value.detalleIngresos.map(item => ({
-        id: item.id,
-        producto: { id: item.producto?.id },
-        cantidad: item.cantidad,
-        precioCompra: item.precioCompra,
-        lote: item.lote,
-        fechaProduccion: item.fechaProduccion,
-        fechaVencimiento: item.fechaVencimiento
-      }))
-    })
-
-    showSuccessSnackbar('Ingreso aprobado correctamente')
-    cerrarModal()
-  } catch (error) {
-    console.error('Error al aprobar ingreso:', error)
-    showErrorSnackbar('Error al aprobar el ingreso')
-  }
-}
-
-// Funcion para rechazar el ingreso
-const rechazarIngreso = async () => {
-  if (!selectedIngreso.value) return
-
-  if (!observacionesJefe.value.trim()) {
+  if (nuevoEstado === 'Rechazado' && !observacionesJefe.value.trim()) {
     showErrorSnackbar('Debes agregar observaciones para rechazar el ingreso')
     return
   }
+
   const now = new Date()
+
   try {
     await updateProductEntryAsync({
       id: selectedIngreso.value.id,
@@ -523,7 +489,7 @@ const rechazarIngreso = async () => {
       observaciones: observacionesJefe.value,
       fechaIngreso: selectedIngreso.value.fechaIngreso,
       horaIngreso: selectedIngreso.value.horaIngreso,
-      estado: 'Rechazado',
+      estado: nuevoEstado,
       fechaAprobacion: now.toISOString().split('T')[0],
       asistenteAlmacen: { id: selectedIngreso.value.asistenteAlmacen?.id },
       jefeAlmacen: { id: selectedIngreso.value.jefeAlmacen?.id },
@@ -538,13 +504,21 @@ const rechazarIngreso = async () => {
       }))
     })
 
-    showSuccessSnackbar('Ingreso rechazado')
+    const mensaje =
+      nuevoEstado === 'Aprobado'
+        ? 'Ingreso aprobado correctamente'
+        : 'Ingreso rechazado'
+
+    showSuccessSnackbar(mensaje)
     cerrarModal()
   } catch (error) {
-    console.error('Error al rechazar ingreso:', error)
-    showErrorSnackbar('Error al rechazar el ingreso')
+    console.error(`Error al ${nuevoEstado.toLowerCase()} ingreso:`, error)
+    showErrorSnackbar(`Error al ${nuevoEstado.toLowerCase()} el ingreso`)
   }
 }
+
+const aprobarIngreso = () => actualizarIngreso('Aprobado')
+const rechazarIngreso = () => actualizarIngreso('Rechazado')
 
 /////////
 // watch(selectedIngreso, async (nuevo) => {
@@ -555,11 +529,6 @@ const rechazarIngreso = async () => {
 /////////
 
 
-
-
-
-
-
 // Watch para limpiar al cerrar modal
 watch(productFormModal, (isOpen) => {
   if (!isOpen) {
@@ -567,24 +536,57 @@ watch(productFormModal, (isOpen) => {
   }
 })
 
-// Cuando se selecciona un ingreso (abrir modal)
-watch(selectedIngreso, (nuevo) => {
-  if (nuevo) {
-    if (nuevo.estado === 'Rechazado') {
-      observacionesJefe.value = nuevo.observacion || nuevo.observaciones || ''
-    }
-    else if (nuevo.estado === 'Pendiente') {
-      observacionesJefe.value = ''
-    }
-    else if (nuevo.estado === 'Aprobado') {
-      observacionesJefe.value = nuevo.observacion || nuevo.observaciones || ''
+watch([fechaProduccion, fechaVencimiento], ([prod, venc], [oldProd, oldVenc]) => {
+  if (prod && venc) {
+    const prodDate = new Date(prod)
+    const vencDate = new Date(venc)
+
+    if (vencDate < prodDate) {
+      if (oldProd === prod && oldVenc !== venc) {
+        fechaVencimiento.value = null
+        showWarningSnackbar('La fecha de vencimiento debe ser mayor o igual a la de produccion')
+      }
+
+      else if (oldProd !== prod && oldVenc === venc) {
+        fechaProduccion.value = null
+        showWarningSnackbar('La fecha de produccion no puede ser mayor que la de vencimiento')
+      }
     }
   }
 })
+
+
+watch(selectedIngreso, (nuevo) => {
+  if(nuevo){
+    switch(nuevo.estado){
+      case "Rechazado":
+        return observacionesJefe.value = nuevo.observacion || nuevo.observaciones || ''
+      case "Pendiente":
+        return observacionesJefe.value = ''
+      case "Aprobado":
+        return observacionesJefe.value = nuevo.observacion || nuevo.observaciones || ''
+    }
+  }
+})
+
+// asignacion destaco en estado
+const estadoColor = (estado) => {
+  switch (estado?.toLowerCase()) {
+    case 'pendiente':
+      return 'warning'
+    case 'aprobado':
+      return 'success'
+    case 'rechazado':
+      return 'error'
+    default:
+      return 'secondary'
+  }
+}
 </script>
 
+
 <template>
-  <h1 class="mb-5">Ingreso de Productos</h1>
+  <!-- <h1 class="mb-5">Ingreso de Productos</h1> -->
 
   <!-- Filtros desktop -->
   <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
@@ -595,7 +597,7 @@ watch(selectedIngreso, (nuevo) => {
         @update:filter="({ key, value }) => filtros[key] = value"
       />
 
-      <v-col cols="12" md="2" class="d-flex justify-md-end align-center">
+      <v-col cols="12" md="3" class="d-flex justify-md-end align-center">
         <v-btn
           block
           prepend-icon="mdi-plus"
@@ -609,7 +611,18 @@ watch(selectedIngreso, (nuevo) => {
   </v-card>
 
   <!-- Tabla principal -->
-  <v-data-table :headers="headers" :items="items">
+  <v-data-table :headers="headers" :items="items" :items-per-page="7" hover >
+    <!-- Slot para columna Estado aprobado, rechazao, pendiente -->
+    <template #[`item.estado`]="{ item }">
+      <v-chip
+        :color="estadoColor(item.estado)"
+        variant="outlined"
+        rounded
+      >
+        {{ item.estado }}
+      </v-chip>
+    </template>
+
     <template #[`item.actions`]="{ item }">
       <action-menu
         @view="() => abrirDetalles(item)"
@@ -651,6 +664,7 @@ watch(selectedIngreso, (nuevo) => {
 
                 <v-divider class="my-3" />
 
+                <!-- Form Agregar productos -->
                 <v-col cols="12" class="text-subtitle-2 font-weight-bold">
                   Agregar Producto
                 </v-col>
@@ -667,7 +681,7 @@ watch(selectedIngreso, (nuevo) => {
                   />
                 </v-col>
 
-                <v-col cols="12" md="6">
+                <v-col cols="12" md="4">
                   <v-text-field
                     v-model="cantidad"
                     label="Cantidad"
@@ -677,7 +691,7 @@ watch(selectedIngreso, (nuevo) => {
                   />
                 </v-col>
 
-                <v-col cols="12" md="6">
+                <v-col cols="12" md="4">
                   <v-text-field
                     v-model="precioCompra"
                     label="Precio Compra"
@@ -688,7 +702,7 @@ watch(selectedIngreso, (nuevo) => {
                   />
                 </v-col>
 
-                <v-col cols="12" md="6">
+                <v-col cols="12" md="4">
                   <v-text-field
                     v-model="lote"
                     label="Lote"
@@ -697,25 +711,28 @@ watch(selectedIngreso, (nuevo) => {
                   />
                 </v-col>
 
-                <v-col cols="12" md="6">
-                  <v-text-field
+                <v-col cols="12">
+                  <v-date-input
                     v-model="fechaProduccion"
                     label="Fecha Producción"
-                    type="date"
+                    color="primary"
+                    clearable
                     variant="underlined"
                     :rules="[rules.required, rules.fecha]"
                   />
                 </v-col>
 
-                <v-col cols="12" md="6">
-                  <v-text-field
+                <v-col cols="12">
+                  <v-date-input
                     v-model="fechaVencimiento"
                     label="Fecha Vencimiento"
-                    type="date"
+                    color="primary"
+                    clearable
                     variant="underlined"
                     :rules="[rules.required, rules.fecha]"
                   />
                 </v-col>
+
 
                 <v-col cols="12" class="d-flex justify-end gap-2">
                   <v-btn
@@ -723,6 +740,7 @@ watch(selectedIngreso, (nuevo) => {
                     variant="flat"
                     @click="agregarProducto"
                     prepend-icon="mdi-plus"
+                    class="w-100"
                   >
                     Agregar
                   </v-btn>
@@ -921,7 +939,7 @@ watch(selectedIngreso, (nuevo) => {
             v-model="observacionesJefe"
             label="Escribe las observaciones aqui"
             variant="outlined"
-            rows="3"
+            rows="2"
             :readonly="selectedIngreso.estado !== 'Pendiente'"
             :placeholder="selectedIngreso.estado !== 'Pendiente'
               ? 'Este ingreso ya fue procesado'
@@ -957,4 +975,6 @@ watch(selectedIngreso, (nuevo) => {
 .gap-2 {
   gap: 0.5rem;
 }
+
+
 </style>

@@ -1,33 +1,41 @@
 <template>
   <div class="login d-flex justify-center align-center" :class="{ active: successLogin }">
-    <v-card min-width="400" class="pa-8 form">
-      <v-form ref="formRef" @submit.prevent="handleSubmit">
-        <h2 class="text-center text-h5 text-capitalize">embutidos RB</h2>
-        <v-mask-input
-          label="dni"
-          v-model="dni"
-          color="primary"
-          prepend-inner-icon="mdi-account"
-          clearable
-          :rules="[rules.required, rules.dni]"
-          mask="########"
-          variant="underlined"
-          autocomplete="off"
-        ></v-mask-input>
-        <v-text-field
-          label="password"
-          v-model="password"
-          color="primary"
-          :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-          prepend-inner-icon="mdi-lock"
-          @click:append="show = !show"
-          :type="show ? 'text' : 'password'"
-          clearable
-          :rules="[rules.required]"
-          class="mt-2"
-        ></v-text-field>
-        <v-btn color="primary" type="submit" block class="mt-4">ingresar</v-btn>
-      </v-form>
+    <v-card class="form pa-4 w-100">
+      <v-card-item>
+        <v-card-title>
+          <h2 class="text-center text-h5 text-capitalize mb-4">embutidos RB</h2>
+        </v-card-title>
+      </v-card-item>
+      <v-card-text>
+        <v-form ref="formRef" @submit.prevent="handleSubmit">
+          <v-mask-input
+            label="dni"
+            v-model="dni"
+            color="primary"
+            prepend-inner-icon="mdi-account"
+            clearable
+            :rules="[rules.required, rules.dni]"
+            mask="########"
+            variant="underlined"
+            autocomplete="off"
+          ></v-mask-input>
+          <v-text-field
+            label="password"
+            v-model="password"
+            color="primary"
+            :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+            prepend-inner-icon="mdi-lock"
+            @click:append="show = !show"
+            :type="show ? 'text' : 'password'"
+            clearable
+            :rules="[rules.required]"
+            class="mt-2"
+          ></v-text-field>
+          <v-btn color="primary" type="submit" block class="mt-5" prepend-icon="mdi-login"
+            >ingresar</v-btn
+          >
+        </v-form>
+      </v-card-text>
     </v-card>
 
     <div class="wave-container">
@@ -95,10 +103,18 @@ async function handleLogin() {
 }
 
 .form {
+  max-width: 400px;
   position: relative;
   border-radius: 16px;
   box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
   z-index: 1;
+}
+
+@media only screen and (max-width: 425px) {
+  .form {
+    background-color: transparent;
+    box-shadow: rgba(17, 12, 46, 0) 0px 48px 100px 0px;
+  }
 }
 
 .sky {
@@ -155,7 +171,7 @@ async function handleLogin() {
   background-size: contain;
   background-position: left bottom;
   background-repeat: repeat-x;
-  filter: drop-shadow(0 -20px 32px rgb(33, 33, 33, 0.2));
+  filter: drop-shadow(0 -20px 32px rgb(33, 33, 33, 0.05));
   animation: wave 3s linear infinite;
 }
 
