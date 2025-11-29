@@ -19,6 +19,7 @@ import OpenInventoryView from '@/views/inventory/OpenInventoryView.vue'
 import { authGuard } from './guards'
 import { ROLES } from '@/utils/constants/roles'
 import ProfileView from '@/views/profile/ProfileView.vue'
+import CashClosureView from '@/views/pos/CashClosureView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -101,6 +102,13 @@ const router = createRouter({
         {
           path: 'caja',
           children: [
+            {
+              path: 'cierre-de-caja',
+              component: CashClosureView,
+              meta: {
+                roles: [ROLES.ADMIN, ROLES.CAJERO],
+              },
+            },
             {
               path: 'ventas',
               component: SalesView,

@@ -418,7 +418,7 @@ const imprimirComprobante = async () => {
     <v-row>
       <!-- COLUMNA IZQUIERDA: Productos -->
       <v-col cols="12" md="8" class="pa-4">
-        <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
+        <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-6">
           <v-row>
             <base-filter v-model:search="search" />
           </v-row>

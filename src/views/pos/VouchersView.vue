@@ -154,7 +154,7 @@ watch(comprobanteDetailModal, (val) => {
   <h1>Comprobantes</h1>
 
   <!-- Filtros -->
-  <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-4">
+  <v-card v-if="mdAndUp" elevation="0" class="mb-4 pa-6">
     <v-row>
       <base-filter v-model:search="search" :filters="selectFilter"
         @update:filter="({ key, value }) => filtros[key] = value" />

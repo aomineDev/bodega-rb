@@ -6,21 +6,10 @@
       </v-fade-transition>
     </router-view>
 
-    <v-snackbar
-      v-model="snackbar"
-      timeout="2000"
-      :color="snackbarColor"
-      variant="flat"
-      :location="snackBarLocaltion"
-      :text="snackbarMessage"
-    >
+    <v-snackbar v-model="snackbar" timeout="2000" :color="snackbarColor" variant="flat" :location="snackBarLocaltion"
+      :text="snackbarMessage">
       <template v-slot:actions>
-        <v-btn
-          :color="snackbarColor"
-          variant="text"
-          @click="closeSnackbar"
-          icon="mdi-close"
-        ></v-btn>
+        <v-btn :color="snackbarColor" variant="text" @click="closeSnackbar" icon="mdi-close"></v-btn>
       </template>
     </v-snackbar>
   </v-app>
@@ -29,6 +18,14 @@
 <script setup>
 import { useSnackbar, useThemeStore } from './stores'
 import { storeToRefs } from 'pinia'
+import { useCajaStore } from './stores/checkout'
+
+const cajaStore = useCajaStore()
+
+  ; (async () => {
+    await cajaStore.fetchCajaAbierta()
+    console.log("DESPUÉS DEL FETCH →", cajaStore.cajaAbierta)
+  })()
 
 const { theme } = storeToRefs(useThemeStore())
 const snackbarRef = useSnackbar()

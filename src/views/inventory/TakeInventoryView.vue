@@ -1,28 +1,12 @@
 <template>
   <h1 class="text-h5 mb-4 font-weight-medium">Toma de inventarios</h1>
   <div class="d-flex ga-2">
-    <v-autocomplete
-      v-model="selectedDetail"
-      prepend-inner-icon="mdi-magnify"
-      label="Productos"
-      :items="inventory?.inventarioDetalles ?? []"
-      item-value="id"
-      item-title="producto.nombre"
-      autocomplete="off"
-      :loading="isPending"
-      return-object
-      clearable
-      color="primary"
-    >
+    <v-autocomplete v-model="selectedDetail" prepend-inner-icon="mdi-magnify" label="Productos"
+      :items="inventory?.inventarioDetalles ?? []" item-value="id" item-title="producto.nombre" autocomplete="off"
+      :loading="isPending" return-object clearable color="primary">
     </v-autocomplete>
 
-    <v-btn
-      v-if="mdAndUp"
-      icon="mdi-barcode-scan"
-      color="primary"
-      variant="text"
-      @click="scannerDialog = true"
-    ></v-btn>
+    <v-btn v-if="mdAndUp" icon="mdi-barcode-scan" color="primary" variant="text" @click="scannerDialog = true"></v-btn>
   </div>
 
   <div v-if="!selectedDetail">
@@ -54,32 +38,15 @@
             <v-btn icon="mdi-pen" variant="text" color="primary" @click="openStockDialog"></v-btn>
           </div>
           <v-form class="mt-5" ref="formRef">
-            <v-number-input
-              label="Agregar stock"
-              autocomplete="off"
-              color="primary"
-              control-variant="stacked"
-              inset
-              :precision="3"
-              :min="0.001"
-              decimal-separator="."
-              v-model="stock"
-              :rules="[rules.required]"
-            ></v-number-input>
+            <v-number-input label="Agregar stock" autocomplete="off" color="primary" control-variant="stacked" inset
+              :precision="3" :min="0.001" decimal-separator="." v-model="stock"
+              :rules="[rules.required]"></v-number-input>
           </v-form>
         </v-card-text>
 
         <v-card-actions>
-          <v-btn
-            type="submit"
-            color="primary"
-            prepend-icon="mdi-plus"
-            block
-            class="text-none"
-            variant="flat"
-            @click="handleSubmit"
-            >Agregar</v-btn
-          >
+          <v-btn type="submit" color="primary" prepend-icon="mdi-plus" block class="text-none" variant="flat"
+            @click="handleSubmit">Agregar</v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
@@ -89,18 +56,9 @@
     <v-card title="Editar Stock" prepend-icon="mdi-pen">
       <v-card-text>
         <v-form ref="updateFormRef">
-          <v-number-input
-            label="Stock"
-            autocomplete="off"
-            color="primary"
-            control-variant="stacked"
-            inset
-            :precision="3"
-            :min="0.001"
-            decimal-separator="."
-            v-model="selectedStock"
-            :rules="[rules.required]"
-          ></v-number-input>
+          <v-number-input label="Stock" autocomplete="off" color="primary" control-variant="stacked" inset
+            :precision="3" :min="0.001" decimal-separator="." v-model="selectedStock"
+            :rules="[rules.required]"></v-number-input>
         </v-form>
       </v-card-text>
 
