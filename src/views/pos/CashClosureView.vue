@@ -4,7 +4,7 @@ import { useDisplay } from 'vuetify/lib/composables/display';
 import BaseFilter from '@/components/BaseFilter.vue';
 import FabMenu from '@/components/FabMenu.vue';
 import ActionMenu from '@/components/ActionMenu.vue';
-import { useCheckout } from '@/composables/query/usecheckout';
+import { useCheckout } from '@/composables/query/useCheckout';
 import { useForm } from '@/composables/useForm';
 import { useAuthStore, useSnackbar } from '@/stores';
 import { useCajaStore } from '@/stores/checkout';
@@ -31,16 +31,25 @@ const {
   isError: isErrorCheckout,
   error: errorCheckout,
 
+  generatePdf,
   getResumenCajaQuery,
   createCheckoutAsync,
   cerrarCajaAsync,
 } = useCheckout()
 
+const resumenCajaId = ref(null)
 const { data: resumenCaja, refetch: refetchResumenCaja } = getResumenCajaQuery(resumenCajaId)
 
-const resumenCajaId = computed(() => cajaStore.cajaAbierta?.id ?? null)
-watch(resumenCajaId, () => refetchResumenCaja(), { immediate: true })
-
+watch(
+  () => cajaStore.cajaAbierta,
+  (caja) => {
+    if (caja?.id) {
+      resumenCajaId.value = caja.id
+      refetchResumenCaja()
+    }
+  },
+  { immediate: true }
+)
 
 const {
   formData: formDataOpening,
@@ -142,6 +151,8 @@ const filterDialog = ref(false)
 const checkoutFormModal = ref(false)
 const movimientosModal = ref(false)
 const cierreCajaModal = ref(false)
+const comprobanteDetailModal = ref(false)
+const pdfUrl = ref(null)
 
 /* --------------- Metodos ---------------*/
 function handleOpenCheckout() {
@@ -191,6 +202,8 @@ const saveMovimiento = async () => {
     caja: { id: cajaStore.cajaAbierta.id },
     empleado: { id: user.id }
   }
+
+  console.log(payload)
 
   try {
     await createMovementAsync(payload)
@@ -246,10 +259,12 @@ async function closeCheckout(totalFisico) {
   }
 
   try {
-    await cerrarCajaAsync({
+    const CheckoutObject = await cerrarCajaAsync({
       id: cajaStore.cajaAbierta.id,
       ...closeCheckoutObject
     });
+
+    console.log(CheckoutObject)
 
     showSuccessSnackbar('Caja cerrada correctamente');
     cajaStore.setCajaAbierta(null);
@@ -261,6 +276,23 @@ async function closeCheckout(totalFisico) {
   }
 
 }
+
+const handleView = async (item) => {
+  pdfUrl.value = await generatePdf(item.id)
+  comprobanteDetailModal.value = true
+}
+
+const printPdf = () => {
+  const iframe = document.getElementById('pdfPreviewFrame')
+  iframe.contentWindow.print()
+}
+
+watch(comprobanteDetailModal, (val) => {
+  if (!val && pdfUrl.value) {
+    URL.revokeObjectURL(pdfUrl.value)
+    pdfUrl.value = null
+  }
+})
 
 </script>
 
@@ -288,9 +320,11 @@ async function closeCheckout(totalFisico) {
   <!-- Tabla -->
   <v-data-table :headers="headers" :items="items" :search="search" :loading="isPendingCheckout"
     loading-text="Cargando caja..." no-data-text="No se encontraron cajas">
-    <template #item.actions="{ }">
-      <action-menu @movement="handleMovement()"></action-menu>
+    <template #item.actions="{ item }">
+      <action-menu v-if="item.estado" @movement="handleMovement(item)" />
+      <action-menu v-else @view="handleView(item)" />
     </template>
+
   </v-data-table>
 
   <v-alert v-if="isErrorCheckout" type="error" class="mt-2">
@@ -299,7 +333,7 @@ async function closeCheckout(totalFisico) {
 
   <!-- modal apertura y cierre -->
   <v-dialog v-model="checkoutFormModal" max-width="600">
-    <v-card title="Hola">
+    <v-card title="Apertura de caja">
       <v-card-text>
         <v-form ref="openingForm">
           <v-row dense>
@@ -540,6 +574,21 @@ async function closeCheckout(totalFisico) {
     </v-card>
   </v-dialog>
 
+  <!-- Modal: Detalles -->
+  <v-dialog v-model="comprobanteDetailModal" max-width="900">
+    <v-card>
+      <v-card-title>Vista previa del cierre de caja</v-card-title>
+      <v-card-text>
+        <iframe v-if="pdfUrl" :src="pdfUrl" id="pdfPreviewFrame" width="100%" height="600px"
+          style="border:none;"></iframe>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn text="Cerrar" @click="comprobanteDetailModal = false" />
+        <v-btn color="primary" variant="tonal" text="Imprimir" @click="printPdf" />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <!-- Filtro móvil -->
   <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
@@ -557,6 +606,7 @@ async function closeCheckout(totalFisico) {
     </v-card>
   </v-dialog>
 
-  <fab-menu v-model:FormModal="checkoutFormModal" v-model:filterDialog="filterDialog" />
+  <fab-menu v-model:filterDialog="filterDialog" />
+
 
 </template>

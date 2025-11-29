@@ -23,4 +23,6 @@ export const checkoutService = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+
+  getGeneratePdfById: async (id) => apiFetch(`${service}/${id}/pdf`),
 }

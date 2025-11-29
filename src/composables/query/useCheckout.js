@@ -60,6 +60,17 @@ export const useCheckout = () => {
     onError: (error) => console.error('Error al cerrar caja', error),
   })
 
+  const generatePdf = async (id) => {
+    try {
+      const response = await checkoutService.getGeneratePdfById(id)
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      return url
+    } catch (error) {
+      console.error('Error al generar PDF:', error)
+    }
+  }
+
   return {
     checkouts,
     isPending,
@@ -67,6 +78,7 @@ export const useCheckout = () => {
     error,
     getQuery,
     getResumenCajaQuery,
+    generatePdf,
 
     createCheckout: createMutation.mutate,
     createCheckoutAsync: createMutation.mutateAsync,
