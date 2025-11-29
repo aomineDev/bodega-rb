@@ -1,6 +1,6 @@
 import { apiFetch } from './apiClient'
 
-const service = '/movimentos'
+const service = '/movimientos'
 
 export const movementService = {
   getAll: () => apiFetch(service),
@@ -13,4 +13,6 @@ export const movementService = {
     apiFetch(`${service}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   delete: (id) => apiFetch(`${service}/${id}`, { method: 'DELETE' }),
+
+  getByCaja: (cajaId) => apiFetch(`${service}/caja/${cajaId}`),
 }

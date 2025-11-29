@@ -18,8 +18,6 @@ const { smAndDown } = useDisplay()
 const filterDialog = defineModel('filterDialog')
 const FormModal = defineModel('FormModal')
 
-console.log(filterDialog.value)
-
 const openFilterModal = () => {
   filterDialog.value = true
 }

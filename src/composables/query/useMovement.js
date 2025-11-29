@@ -22,6 +22,13 @@ export const useMovement = () => {
       enabled: computed(() => !!id.value),
     })
 
+  const getByCajaQuery = (cajaId) =>
+    useQuery({
+      queryKey: ['movements', cajaId],
+      queryFn: () => movementService.getByCaja(cajaId.value),
+      enabled: computed(() => !!cajaId.value),
+    })
+
   const createMutation = useMutation({
     mutationFn: movementService.create,
     onSuccess: () => queryClient.invalidateQueries(['movements']),
@@ -49,19 +56,20 @@ export const useMovement = () => {
     isError,
     error,
     getQuery,
+    getByCajaQuery,
 
-    createPrueba: createMutation.mutate,
-    createPruebaAsync: createMutation.mutateAsync,
+    createMovement: createMutation.mutate,
+    createMovementAsync: createMutation.mutateAsync,
     isCreating: createMutation.isPending,
     createError: createMutation.error,
 
-    updatePrueba: updateMutation.mutate,
-    updatePruebaAsync: updateMutation.mutateAsync,
+    updateMovement: updateMutation.mutate,
+    updateMovementAsync: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
     updateError: updateMutation.error,
 
-    deletePrueba: deleteMutation.mutate,
-    deletePruebaAsync: deleteMutation.mutateAsync,
+    deleteMovement: deleteMutation.mutate,
+    deleteMovementAsync: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
     deleteError: deleteMutation.error,
   }

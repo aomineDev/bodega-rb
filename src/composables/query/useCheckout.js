@@ -22,6 +22,14 @@ export const useCheckout = () => {
       enabled: computed(() => !!id.value),
     })
 
+  const getResumenCajaQuery = (cajaId) =>
+    useQuery({
+      queryKey: ['resumenCaja', cajaId],
+      queryFn: () => checkoutService.getResumenCaja(cajaId.value),
+      enabled: computed(() => !!cajaId.value),
+      staleTime: 1000 * 60, // 1 min, opcional
+    })
+
   const createMutation = useMutation({
     mutationFn: checkoutService.create,
     onSuccess: () => queryClient.invalidateQueries(['checkouts']),
@@ -43,12 +51,22 @@ export const useCheckout = () => {
     onError: (error) => console.log('Error: ' + error),
   })
 
+  const cerrarCajaMutation = useMutation({
+    mutationFn: checkoutService.cerrarCaja,
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries(['checkouts'])
+      queryClient.invalidateQueries(['checkout', variables.id])
+    },
+    onError: (error) => console.error('Error al cerrar caja', error),
+  })
+
   return {
     checkouts,
     isPending,
     isError,
     error,
     getQuery,
+    getResumenCajaQuery,
 
     createCheckout: createMutation.mutate,
     createCheckoutAsync: createMutation.mutateAsync,
@@ -64,5 +82,10 @@ export const useCheckout = () => {
     deleteCheckoutAsync: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
     deleteError: deleteMutation.error,
+
+    cerrarCaja: cerrarCajaMutation.mutate,
+    cerrarCajaAsync: cerrarCajaMutation.mutateAsync,
+    isClosing: cerrarCajaMutation.isPending,
+    closeError: cerrarCajaMutation.error,
   }
 }

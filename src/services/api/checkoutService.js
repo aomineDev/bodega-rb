@@ -15,4 +15,12 @@ export const checkoutService = {
   delete: (id) => apiFetch(`${service}/${id}`, { method: 'DELETE' }),
 
   getCajaAbierta: () => apiFetch(`${service}/abierta`),
+
+  getResumenCaja: (id) => apiFetch(`${service}/${id}/resumen`),
+
+  cerrarCaja: ({ id, ...data }) =>
+    apiFetch(`${service}/${id}/cerrar`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
 }

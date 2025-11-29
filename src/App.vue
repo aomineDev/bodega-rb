@@ -24,7 +24,6 @@ const cajaStore = useCajaStore()
 
   ; (async () => {
     await cajaStore.fetchCajaAbierta()
-    console.log("DESPUÉS DEL FETCH →", cajaStore.cajaAbierta)
   })()
 
 const { theme } = storeToRefs(useThemeStore())

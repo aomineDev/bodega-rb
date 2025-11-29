@@ -31,6 +31,19 @@ export const rules = {
     if (v < total) return `El efectivo no cubre el total (S/ ${total})`
     return true
   },
+  montoMaximo: (saldoActual) => (v) => {
+    const montoNum = parseFloat(v) || 0
+    if (montoNum > saldoActual) return `No se puede retirar más de S/ ${saldoActual}`
+    return true
+  },
+  saldoDisponible: (saldoActual) => (vuelto) => {
+    const vueltoNum = parseFloat(vuelto) || 0
+    if (vueltoNum > saldoActual) {
+      return `No hay suficiente saldo en caja para dar S/ ${vueltoNum.toFixed(2)} de vuelto`
+    }
+    return true
+  },
+
   //empleado
   distinct:
     (arr, key, currentId = null) =>

@@ -3,6 +3,7 @@ defineProps({
   onView: Function,
   onEdit: Function,
   onDelete: Function,
+  onMovement: Function,
 })
 </script>
 
@@ -16,6 +17,9 @@ defineProps({
       <v-list-item v-if="onView" @click="onView" class="cursor-pointer" prepend-icon="mdi-eye" title="Ver detalles">
       </v-list-item>
       <v-list-item v-if="onEdit" @click="onEdit" class="cursor-pointer" prepend-icon="mdi-pencil" title="Editar">
+      </v-list-item>
+      <v-list-item v-if="onMovement" @click="onMovement" class="cursor-pointer" prepend-icon="mdi-swap-horizontal-bold"
+        title="Movimientos">
       </v-list-item>
       <v-list-item v-if="onDelete" @click="onDelete" class="cursor-pointer text-red" prepend-icon="mdi-delete"
         title="Eliminar">

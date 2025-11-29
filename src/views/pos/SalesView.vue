@@ -2,7 +2,7 @@
 
 import FabMenu from '@/components/FabMenu.vue';
 import BaseFilter from '@/components/BaseFilter.vue';
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useSnackbar } from '@/stores/snackbar'
 import { useRouter } from 'vue-router'
 import { useProduct } from '@/composables/query/useProduct';
@@ -15,10 +15,33 @@ import { useDisplay } from 'vuetify'
 import { useForm } from '@/composables/useForm';
 import { watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useCajaStore } from '@/stores/checkout';
+import { useMovement } from '@/composables/query/useMovement';
 
+/* --------------- Variables ---------------*/
+const router = useRouter()
+const customerType = ref('natural')
+const customer = ref(null)
+const selectedProduct = ref(null)
+
+const cartItems = ref([])
+
+const cantidad = ref('1')
+const litro = ref('0.1')
+const peso = ref('0.1')
+
+const montoEfectivo = ref(1)
+const tipoPago = ref('Efectivo')
+
+const lastComprobante = ref(null)
+
+/* --------------- Uses ---------------*/
 const { user } = useAuthStore()
-
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
+
+const {
+  createMovementAsync,
+} = useMovement()
 
 const {
   formRef: asignacionForm,
@@ -64,18 +87,31 @@ const {
   generatePdfTicket,
 } = useTicket()
 
-/* --------------------   Filtros   ------------------- */
-const filterDialog = ref(false)
-const search = ref('') //busqueda
-const router = useRouter()
-const showClientDialog = ref(true)
-const showProductDialog = ref(false)
-const customerType = ref('natural')
-const customer = ref(null)
-const selectedProduct = ref(null)
+const cajaStore = useCajaStore()
+onMounted(async () => {
+  await cajaStore.fetchCajaAbierta()
 
+  if (!cajaStore.cajaAbierta) {
+    showClientDialog.value = false
+    showCajaCerradaModal.value = true
+  }
+})
+
+/* --------------- Responsive ---------------*/
 const { mdAndUp, smAndDown } = useDisplay()
 
+/* --------------- Modales ---------------*/
+const filterDialog = ref(false)
+const showClientDialog = ref(true)
+const showCajaCerradaModal = ref(false)
+const showProductDialog = ref(false)
+
+const confirmSaleModal = ref(false)
+const ventaCompletadaModal = ref(false)
+const ventaProcesando = ref(false)
+
+/* --------------------   Filtros   ------------------- */
+const search = ref('') //busqueda
 const items = computed(() => product.value || [])
 
 watch(search, (newValue) => {
@@ -89,6 +125,16 @@ watch(search, (newValue) => {
   }
 
 })
+
+/* --------------- Metodos ---------------*/
+const cancelSale = () => {
+  showClientDialog.value = false
+  router.push('/caja/clientes')
+}
+
+function irAperturarCaja() {
+  router.push('/caja/cierre-de-caja')
+}
 
 const searchCustomer = async () => {
 
@@ -150,20 +196,11 @@ const customerIdValue = computed(() => {
     : customer.value.ruc
 })
 
-const cancelSale = () => {
-  showClientDialog.value = false
-  router.push('/caja/clientes')
-}
-
 /* --------------------   Modal Producto   ------------------- */
 const viewProduct = (item) => {
   selectedProduct.value = item
   showProductDialog.value = true
 }
-
-const cantidad = ref('1')
-const litro = ref('0.1')
-const peso = ref('0.1')
 
 const previewTotalPrice = computed(() => {
   const product = selectedProduct.value
@@ -191,8 +228,6 @@ const closeProduct = () => {
 }
 
 /* --------------------   Detalle venta  ------------------- */
-const cartItems = ref([])
-
 const addProduct = () => {
   const product = selectedProduct.value
   if (!product) return
@@ -250,9 +285,6 @@ const removeProduct = (id) => {
 }
 
 /* --------------------   Tipo de Pago  ------------------- */
-const montoEfectivo = ref(1)
-const tipoPago = ref('Efectivo')
-
 const vuelto = computed(() => {
   if (tipoPago.value !== 'Efectivo') return 0
 
@@ -263,11 +295,6 @@ const vuelto = computed(() => {
 })
 
 /* --------------------   Finalizar venta  ------------------- */
-const confirmSaleModal = ref(false)
-const ventaCompletadaModal = ref(false)
-const ventaProcesando = ref(false)
-const lastComprobante = ref(null)
-
 const validForm = () => {
   confirmSaleModal.value = true
 }
@@ -297,7 +324,10 @@ const createSale = async () => {
 
   const now = new Date()
 
+  const cajaId = cajaStore.cajaAbierta.id
+
   const comprobante = {
+    tipoPago: tipoPago.value,
     fecha: now.toISOString().split('T')[0],
     hora: now.toTimeString().split(' ')[0],
     grabado: parseFloat(totals.value.gravado),
@@ -308,6 +338,9 @@ const createSale = async () => {
     cajero: {
       id: user.id,
     },
+    caja: {
+      id: cajaId,
+    },
 
     detalleVentas,
   }
@@ -317,6 +350,7 @@ const createSale = async () => {
   if (customerType.value === 'natural') {
     dataToSend = {
       ...comprobante,
+      tipo: "BOLETA",
       clienteNatural: { id: customer.value.id },
     }
 
@@ -325,11 +359,53 @@ const createSale = async () => {
   } else {
     dataToSend = {
       ...comprobante,
+      tipo: "FACTURA",
       clienteJuridico: { id: customer.value.id },
     }
 
     lastComprobante.value = await createBillAsync(dataToSend)
   }
+
+  if (lastComprobante.value && tipoPago.value === 'Efectivo') {
+    const cajaId = cajaStore.cajaAbierta.id
+
+    // Movimiento VENTA
+    await createMovementAsync({
+      caja: { id: cajaId },
+      tipo: 'VENTA',
+      monto: parseFloat(totals.value.total),
+      comprobante: {
+        id: lastComprobante.value.id,
+        tipo: lastComprobante.value.tipo  // <<-- Esto es clave
+      },
+      empleado: { id: user.id },
+      detalle: 'Venta en efectivo'
+    })
+
+
+    // Movimiento VUELTO (solo si hay vuelto)
+    if (vuelto.value > 0) {
+      await createMovementAsync({
+        caja: { id: cajaId },
+        tipo: 'VUELTO',
+        monto: parseFloat(vuelto.value),
+        comprobante: {
+          id: lastComprobante.value.id,
+          tipo: lastComprobante.value.tipo
+        },
+        empleado: { id: user.id },
+        detalle: 'Vuelto al cliente'
+      })
+    }
+
+
+    // Actualizar saldo local de forma reactiva
+    cajaStore.actualizarSaldo(parseFloat(totals.value.total), 'VENTA')
+    if (vuelto.value > 0) {
+      cajaStore.actualizarSaldo(parseFloat(vuelto.value), 'VUELTO')
+    }
+  }
+
 
   cartItems.value = []
   montoEfectivo.value = 1
@@ -365,9 +441,29 @@ const imprimirComprobante = async () => {
 
   <h1>Ventas</h1>
 
+  <!-- Modal Cierre Caja -->
+  <v-dialog v-model="showCajaCerradaModal" persistent max-width="420">
+    <v-card class="pa-4" elevation="1" rounded="lg">
+      <div class="text-center">
+        <v-icon size="60" color="red">mdi-lock-alert</v-icon>
+        <h2 class="mt-3 mb-1">Caja Cerrada</h2>
+        <p class="text-body-2 text-grey-darken-1">
+          Para continuar con las ventas es necesario <strong>aperturar una caja</strong>.
+        </p>
+      </div>
+
+      <v-card-actions class="mt-4">
+        <v-btn block color="primary" size="large" @click="irAperturarCaja">
+          Ir a Apertura de Caja
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+
   <!-- Modal Asignacion -->
   <v-dialog v-model="showClientDialog" persistent max-width="480">
-    <v-card elevation="0" rounded="lg">
+    <v-card elevation="1" rounded="lg">
       <v-card-title class="text-h6 d-flex align-center justify-space-between">
         <span>Asignar Cliente</span>
         <v-btn icon variant="text" @click="cancelSale">
@@ -484,7 +580,7 @@ const imprimirComprobante = async () => {
       </v-col>
 
       <!-- COLUMNA DERECHA: Resumen de Venta -->
-      <v-col cols="12" md="4" class="bg-grey-lighten-5 pa-4">
+      <v-col cols="12" md="4" class="pa-4">
         <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px;">
           <!-- Cliente -->
           <div class="d-flex justify-space-between align-center mb-3">
@@ -549,7 +645,8 @@ const imprimirComprobante = async () => {
 
               <template v-if="tipoPago === 'Efectivo'">
                 <v-text-field v-model.number="montoEfectivo" label="Efectivo" prefix="S/" variant="underlined"
-                  type="number" min="0" :rules="[rules.precio, rules.montoSuficiente(totals.total)]" />
+                  type="number" min="0"
+                  :rules="[rules.precio, rules.montoSuficiente(totals.total), rules.saldoDisponible(cajaStore.saldo)]" />
 
                 <div class="d-flex justify-space-between mt-2 text-subtitle-2">
                   <span>Vuelto</span>
