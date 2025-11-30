@@ -97,6 +97,8 @@ onMounted(async () => {
   }
 })
 
+const saldoActual = computed(() => cajaStore.saldoActual)
+
 /* --------------- Responsive ---------------*/
 const { mdAndUp, smAndDown } = useDisplay()
 
@@ -235,13 +237,13 @@ const addProduct = () => {
   let cantidadSeleccionada = 0
   switch (product.unidadMedida) {
     case 'Unidad':
-      cantidadSeleccionada = cantidad.value
+      cantidadSeleccionada = Number(cantidad.value)
       break
     case 'Kilogramo':
-      cantidadSeleccionada = peso.value
+      cantidadSeleccionada = Number(peso.value)
       break
     case 'Litro':
-      cantidadSeleccionada = litro.value
+      cantidadSeleccionada = Number(litro.value)
       break
   }
 
@@ -397,7 +399,6 @@ const createSale = async () => {
         detalle: 'Vuelto al cliente'
       })
     }
-
 
     // Actualizar saldo local de forma reactiva
     cajaStore.actualizarSaldo(parseFloat(totals.value.total), 'VENTA')
@@ -582,6 +583,9 @@ const imprimirComprobante = async () => {
       <!-- COLUMNA DERECHA: Resumen de Venta -->
       <v-col cols="12" md="4" class="pa-4">
         <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px;">
+          <v-alert type="info" class="mb-4" border="start" colored-border>
+            Saldo actual en caja: <strong>S/ {{ saldoActual }}</strong>
+          </v-alert>
           <!-- Cliente -->
           <div class="d-flex justify-space-between align-center mb-3">
             <v-btn elevation="0" color="primary" prepend-icon="mdi-account-plus-outline" @click="cambiarCliente">
@@ -646,7 +650,7 @@ const imprimirComprobante = async () => {
               <template v-if="tipoPago === 'Efectivo'">
                 <v-text-field v-model.number="montoEfectivo" label="Efectivo" prefix="S/" variant="underlined"
                   type="number" min="0"
-                  :rules="[rules.precio, rules.montoSuficiente(totals.total), rules.saldoDisponible(cajaStore.saldo)]" />
+                  :rules="[rules.precio, rules.montoSuficiente(totals.total), rules.saldoDisponible(cajaStore.saldoActual)]" />
 
                 <div class="d-flex justify-space-between mt-2 text-subtitle-2">
                   <span>Vuelto</span>
