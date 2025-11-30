@@ -391,7 +391,7 @@ const createSale = async () => {
       await createMovementAsync({
         caja: { id: cajaId },
         tipo: 'VUELTO',
-        monto: parseFloat(vuelto.value),
+        monto: parseFloat(vuelto.value.toFixed(2)),
         comprobante: {
           id: lastComprobante.value.id,
           tipo: lastComprobante.value.tipo

@@ -403,7 +403,7 @@ watch(comprobanteDetailModal, (val) => {
                 <v-row dense>
                   <!-- Monto -->
                   <v-col cols="12" md="6">
-                    <v-text-field v-model="monto" label="Monto (S/)" prepend-inner-icon="mdi-cash" :rules="[
+                    <v-text-field v-model="monto" type="number" label="Monto (S/)" prepend-inner-icon="mdi-cash" :rules="[
                       rules.required,
                       rules.precio,
                       tipo === 'RETIRO' ? rules.montoMaximo(cajaStore.saldoActual) : () => true
@@ -471,7 +471,7 @@ watch(comprobanteDetailModal, (val) => {
                 <v-divider class="my-2" />
                 <div class="d-flex justify-space-between py-1 fw-bold">
                   <div>Total</div>
-                  <div>S/ {{ resumenCaja?.ventasDelDia ?? 0 }}</div>
+                  <div>S/ {{ resumenCaja?.ventasDelDia.toFixed(2) ?? 0 }}</div>
                 </div>
               </div>
             </v-card>
@@ -498,7 +498,7 @@ watch(comprobanteDetailModal, (val) => {
                 <v-divider class="my-2" />
                 <div class="d-flex justify-space-between py-1 fw-bold">
                   <div>Total</div>
-                  <div>S/ {{ resumenCaja?.ventasElectronicas ?? 0 }}</div>
+                  <div>S/ {{ resumenCaja?.ventasElectronicas.toFixed(2) ?? 0 }}</div>
                 </div>
               </div>
             </v-card>
@@ -517,32 +517,32 @@ watch(comprobanteDetailModal, (val) => {
             </div>
             <div class="d-flex justify-space-between py-1">
               <div>Ventas en efectivo</div>
-              <div>S/ {{ resumenCaja?.ventasEfectivo ?? 0 }}</div>
+              <div>S/ {{ resumenCaja?.ventasEfectivo.toFixed(2) ?? 0 }}</div>
             </div>
             <div class="d-flex justify-space-between py-1">
               <div>Ingresos</div>
-              <div>S/ {{ resumenCaja?.ingresos ?? 0 }}</div>
+              <div>S/ {{ resumenCaja?.ingresos.toFixed(2) ?? 0 }}</div>
             </div>
             <div class="d-flex justify-space-between py-1">
               <div>Vuelto</div>
-              <div>S/ {{ resumenCaja?.egresosVuelto ?? 0 }}</div>
+              <div>S/ {{ resumenCaja?.egresosVuelto.toFixed(2) ?? 0 }}</div>
             </div>
             <div class="d-flex justify-space-between py-1">
               <div>Retiros</div>
-              <div>S/ {{ resumenCaja?.egresosRetiro ?? 0 }}</div>
+              <div>S/ {{ resumenCaja?.egresosRetiro.toFixed(2) ?? 0 }}</div>
             </div>
             <v-divider class="my-2" />
             <div class="d-flex justify-space-between py-1 fw-bold">
               <div>Ingresos totales</div>
-              <div>S/ {{ resumenCaja?.ingresosTotales ?? 0 }}</div>
+              <div>S/ {{ resumenCaja?.ingresosTotales.toFixed(2) ?? 0 }}</div>
             </div>
             <div class="d-flex justify-space-between py-1 fw-bold">
               <div>Egresos totales</div>
-              <div>S/ {{ resumenCaja?.egresosTotales ?? 0 }}</div>
+              <div>S/ {{ resumenCaja?.egresosTotales.toFixed(2) ?? 0 }}</div>
             </div>
             <div class="d-flex justify-space-between py-1 fw-bold">
               <div>Saldo calculado</div>
-              <div>S/ {{ resumenCaja?.saldoCalculado ?? 0 }}</div>
+              <div>S/ {{ resumenCaja?.saldoCalculado.toFixed(2) ?? 0 }}</div>
             </div>
           </div>
         </v-card>
@@ -556,7 +556,7 @@ watch(comprobanteDetailModal, (val) => {
             <div class="d-flex flex-column">
               <div class="d-flex justify-space-between py-1">
                 <div>Saldo según sistema</div>
-                <div>S/ {{ resumenCaja?.saldoCalculado ?? 0 }}</div>
+                <div>S/ {{ resumenCaja?.saldoCalculado.toFixed(2) ?? 0 }}</div>
               </div>
               <div class="d-flex justify-space-between py-1">
                 <div>Total físico</div>

@@ -4,8 +4,8 @@
       <template #prepend>
         <v-list-item title="Embutidos RB" class="pt-2 pb-2">
           <template #prepend>
-            <v-avatar color="grey-darken-4">
-              <v-icon color="white" icon="mdi-store"></v-icon>
+            <v-avatar>
+              <v-img :src="logoRB" alt="Logo" />
             </v-avatar>
           </template>
 
@@ -98,6 +98,7 @@ import { formatRol } from '@/utils/formatRol'
 import { ROLES } from '@/utils/constants/roles'
 import { storeToRefs } from 'pinia'
 
+import logoRB from '@/assets/img/embutidosRB/embutidos-rb.png'
 const { logout } = useAuthStore()
 const { user, role } = storeToRefs(useAuthStore())
 const { theme } = storeToRefs(useThemeStore())
