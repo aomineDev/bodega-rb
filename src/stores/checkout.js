@@ -6,9 +6,11 @@ export const useCajaStore = defineStore('caja', {
     cajaAbierta: null,
     loading: false,
   }),
+
   getters: {
     saldoActual: (state) => state.cajaAbierta?.saldoActual ?? 0,
   },
+
   actions: {
     async fetchCajaAbierta() {
       this.loading = true
@@ -18,14 +20,27 @@ export const useCajaStore = defineStore('caja', {
         this.loading = false
       }
     },
+
     setCajaAbierta(caja) {
       this.cajaAbierta = caja
     },
+
     actualizarSaldo(monto, tipo) {
       if (!this.cajaAbierta) return
-      const montoNum = Number(monto)
-      if (tipo === 'INGRESO') this.cajaAbierta.saldoActual += montoNum
-      else if (tipo === 'RETIRO') this.cajaAbierta.saldoActual -= montoNum
+
+      const cantidad = Number(monto)
+
+      switch (tipo) {
+        case 'VENTA':
+        case 'INGRESO':
+          this.cajaAbierta.saldoActual += cantidad
+          break
+
+        case 'VUELTO':
+        case 'RETIRO':
+          this.cajaAbierta.saldoActual -= cantidad
+          break
+      }
     },
   },
 })

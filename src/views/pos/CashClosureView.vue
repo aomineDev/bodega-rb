@@ -7,9 +7,12 @@ import ActionMenu from '@/components/ActionMenu.vue';
 import { useCheckout } from '@/composables/query/useCheckout';
 import { useForm } from '@/composables/useForm';
 import { useAuthStore, useSnackbar } from '@/stores';
+import { ROLES } from '@/utils/constants/roles'
 import { useCajaStore } from '@/stores/checkout';
 import { useMovement } from '@/composables/query/useMovement';
 import { useReconciliation } from '@/composables/query/useReconciliation';
+
+
 
 /* --------------- Variables ---------------*/
 const formVisible = ref(false)
@@ -125,7 +128,9 @@ const headers = computed(() => {
 const items = computed(() => {
   const data = checkouts.value ?? []
 
-  return data.map(item => ({
+  const sorted = [...data].sort((a, b) => b.id - a.id)
+
+  return sorted.map(item => ({
     ...item,
     empleadoApertura: `${item.empleadoApertura?.nombre || ''} ${item.empleadoApertura?.apellidoPaterno || ''}`.trim(),
     empleadoCierre: `${item.empleadoCierre?.nombre || ''} ${item.empleadoCierre?.apellidoPaterno || ''}`.trim(),
@@ -305,7 +310,7 @@ watch(comprobanteDetailModal, (val) => {
       <base-filter v-model:search="search" />
       <v-col cols="12" md="2" class="d-flex justify-end align-center">
         <v-btn prepend-icon="mdi-cash-plus" color="primary" elevation="1" @click="handleOpenCheckout"
-          v-if="!cajaStore.cajaAbierta">
+          v-if="!cajaStore.cajaAbierta" v-role="[ROLES.ADMIN]">
           Aperturar
         </v-btn>
 
@@ -320,11 +325,20 @@ watch(comprobanteDetailModal, (val) => {
   <!-- Tabla -->
   <v-data-table :headers="headers" :items="items" :search="search" :loading="isPendingCheckout"
     loading-text="Cargando caja..." no-data-text="No se encontraron cajas">
+
+    <template #item.estado="{ item }">
+      <v-chip size="small" :color="item.estado ? 'green' : 'red'" text-color="white">
+        <v-icon start>
+          {{ item.estado ? 'mdi-check-circle' : 'mdi-close-circle' }}
+        </v-icon>
+        {{ item.estado ? 'Abierto' : 'Cerrado' }}
+      </v-chip>
+    </template>
+
     <template #item.actions="{ item }">
       <action-menu v-if="item.estado" @movement="handleMovement(item)" />
       <action-menu v-else @view="handleView(item)" />
     </template>
-
   </v-data-table>
 
   <v-alert v-if="isErrorCheckout" type="error" class="mt-2">
@@ -368,45 +382,47 @@ watch(comprobanteDetailModal, (val) => {
           Saldo actual en caja: <strong>S/ {{ saldoActual }}</strong>
         </v-alert>
 
-        <!-- Botones para acciones -->
-        <div class="d-flex justify-center mb-4 ga-4">
-          <v-btn color="primary" prepend-icon="mdi-cash-plus" @click="openIngreso">
-            Ingreso
-          </v-btn>
+        <div v-role="[ROLES.ADMIN]">
+          <!-- Botones para acciones -->
+          <div class="d-flex justify-center mb-4 ga-4">
+            <v-btn color="primary" prepend-icon="mdi-cash-plus" @click="openIngreso">
+              Ingreso
+            </v-btn>
 
-          <v-btn color="red" prepend-icon="mdi-cash-minus" @click="openRetiro">
-            Retiro
-          </v-btn>
+            <v-btn color="red" prepend-icon="mdi-cash-minus" @click="openRetiro">
+              Retiro
+            </v-btn>
+          </div>
+
+          <!-- Formulario Ingreso/Retiro -->
+          <v-expand-transition>
+            <v-card v-if="formVisible" class="pa-4 mb-6" elevation="1">
+              <h4 class="mb-4">{{ formTitle }}</h4>
+
+              <v-form ref="movementForm">
+                <v-row dense>
+                  <!-- Monto -->
+                  <v-col cols="12" md="6">
+                    <v-text-field v-model="monto" label="Monto (S/)" prepend-inner-icon="mdi-cash" :rules="[
+                      rules.required,
+                      rules.precio,
+                      tipo === 'RETIRO' ? rules.montoMaximo(cajaStore.saldoActual) : () => true
+                    ]" inputmode="decimal" />
+                  </v-col>
+
+                  <!-- Detalle -->
+                  <v-col cols="12" md="6">
+                    <v-text-field v-model="detalle" label="Detalle" />
+                  </v-col>
+                </v-row>
+
+                <v-btn color="primary" class="mt-2" @click="handleSubmitMovement(saveMovimiento)">
+                  Guardar
+                </v-btn>
+              </v-form>
+            </v-card>
+          </v-expand-transition>
         </div>
-
-        <!-- Formulario Ingreso/Retiro -->
-        <v-expand-transition>
-          <v-card v-if="formVisible" class="pa-4 mb-6" elevation="1">
-            <h4 class="mb-4">{{ formTitle }}</h4>
-
-            <v-form ref="movementForm">
-              <v-row dense>
-                <!-- Monto -->
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="monto" label="Monto (S/)" prepend-inner-icon="mdi-cash" :rules="[
-                    rules.required,
-                    rules.precio,
-                    tipo === 'RETIRO' ? rules.montoMaximo(cajaStore.saldoActual) : () => true
-                  ]" inputmode="decimal" />
-                </v-col>
-
-                <!-- Detalle -->
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="detalle" label="Detalle" />
-                </v-col>
-              </v-row>
-
-              <v-btn color="primary" class="mt-2" @click="handleSubmitMovement(saveMovimiento)">
-                Guardar
-              </v-btn>
-            </v-form>
-          </v-card>
-        </v-expand-transition>
 
         <!-- Tabla de Movimientos -->
         <v-data-table :headers="headersMovement" :items="movementsCheckout" class="mt-4"
