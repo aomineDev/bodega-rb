@@ -62,6 +62,7 @@ const {
 
 const {
   product,
+  discountStockAsync
 } = useProduct()
 
 const {
@@ -404,6 +405,13 @@ const createSale = async () => {
     cajaStore.actualizarSaldo(parseFloat(totals.value.total), 'VENTA')
     if (vuelto.value > 0) {
       cajaStore.actualizarSaldo(parseFloat(vuelto.value), 'VUELTO')
+    }
+
+    for (const item of cartItems.value) {
+      await discountStockAsync({
+        id: item.producto.id,
+        cantidad: item.cantidad,
+      })
     }
   }
 
