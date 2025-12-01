@@ -35,7 +35,8 @@
         <v-list-subheader v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]">Almacen</v-list-subheader>
 
         <v-list-item title="Ingreso de productos" prepend-icon="mdi-package-variant-plus" value="ingreso"
-          color="primary" to="/almacen/ingreso-productos" v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]"></v-list-item>
+          color="primary" to="/almacen/ingreso-productos"
+          v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]"></v-list-item>
 
         <v-divider></v-divider>
         <v-list-subheader>Gestion</v-list-subheader>
@@ -153,7 +154,7 @@ const inventarioItems = [
     icon: 'mdi-clipboard-check-outline',
     value: 'toma-inventario',
     to: '/inventario/abiertos',
-    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
+    roles: [ROLES.ADMIN, ROLES.ASISTENTE],
   },
   {
     title: 'Reporte de inventario',
@@ -170,7 +171,7 @@ const gestionItems = [
     icon: 'mdi-truck-outline',
     value: 'proveedores',
     to: '/gestion/proveedores',
-    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
+    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
   },
   {
     title: 'Empleados',
