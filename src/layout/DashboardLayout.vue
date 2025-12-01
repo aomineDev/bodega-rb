@@ -24,8 +24,8 @@
 
       <v-list density="compact" nav>
         <v-list-item
-          title="Dashboard"
-          prepend-icon="mdi-view-dashboard"
+          :title="role === ROLES.ADMIN ? 'Dashboard' : 'Perfil'"
+          :prepend-icon="role === ROLES.ADMIN ? 'mdi-view-dashboard' : 'mdi-account'"
           value="dashboard"
           color="primary"
           to="/home"

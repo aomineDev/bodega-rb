@@ -1,4 +1,4 @@
-import { employeeService } from '@/services/api/employeeSevice'
+import { employeeService } from '@/services/api/employeeService'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
