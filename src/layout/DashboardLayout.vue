@@ -10,8 +10,8 @@
       <template #prepend>
         <v-list-item title="Embutidos RB" class="pt-2 pb-2">
           <template #prepend>
-            <v-avatar color="grey-darken-4">
-              <v-icon color="white" icon="mdi-store"></v-icon>
+            <v-avatar>
+              <v-img :src="logoRB" alt="Logo" />
             </v-avatar>
           </template>
 
@@ -70,7 +70,7 @@
           value="ingreso"
           color="primary"
           to="/almacen/ingreso-productos"
-          v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]"
+          v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]"
         ></v-list-item>
 
         <v-divider></v-divider>
@@ -163,6 +163,8 @@ import { formatRol } from '@/utils/formatRol'
 import { ROLES } from '@/utils/constants/roles'
 import { storeToRefs } from 'pinia'
 import { useTheme } from 'vuetify'
+import logoRB from '@/assets/img/embutidosRB/embutidos-rb.png'
+
 const { logout } = useAuthStore()
 const { user, role } = storeToRefs(useAuthStore())
 
@@ -220,7 +222,7 @@ const inventarioItems = [
     icon: 'mdi-clipboard-check-outline',
     value: 'toma-inventario',
     to: '/inventario/abiertos',
-    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
+    roles: [ROLES.ADMIN, ROLES.ASISTENTE],
   },
   {
     title: 'Reporte de inventario',
@@ -237,7 +239,7 @@ const gestionItems = [
     icon: 'mdi-truck-outline',
     value: 'proveedores',
     to: '/gestion/proveedores',
-    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
+    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
   },
   {
     title: 'Empleados',
