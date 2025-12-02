@@ -55,18 +55,6 @@ const selectFilter = computed(() => [
     type: 'range',
     model: filtros.rangoFechas
   },
-  // {
-  //   key: 'fechaInicio',
-  //   label: 'Fecha inicio',
-  //   type: 'date',
-  //   model: filtros.fechaInicio,
-  // },
-  // {
-  //   key: 'fechaFin',
-  //   label: 'Fecha fin',
-  //   type: 'date',
-  //   model: filtros.fechaFin,
-  // },
   {
     key: 'estado',
     label: 'Estado',
@@ -78,12 +66,10 @@ const selectFilter = computed(() => [
 
 // Servicios
 const { productEntries, createProductEntryAsync, updateProductEntryAsync, deleteProductEntryAsync } = useProductEntry()
-// const { category } = useCategory()
 const { supplier } = useSupplier()
 const { product } = useProduct()
 
 // Datos para selects
-// const categorias = computed(() => category.value || [])
 const proveedores = computed(() => supplier.value || [])
 const productos = computed(() => product.value || [])
 
@@ -128,6 +114,7 @@ const {
   formRef: productForm,
   resetForm,
   rules,
+  handleSubmit,
 } = useForm({
   proveedorId: '',
   observaciones: '',
@@ -221,14 +208,6 @@ const items = computed(() => {
   }))
 })
 
-
-
-// CRUD - Ver detalles
-// const handleView = (item) => {
-//   console.log('Ver detalles de', item)
-//   showSuccessSnackbar(`Viendo detalles del ingreso #${item.id}`)
-// }
-
 // crud - editar
 const handleEdit = (item) => {
   selectedEntry.value = item.rawData
@@ -276,10 +255,6 @@ const confirmDelete = async () => {
 
 // Agregar producto a la lista temporal
 const agregarProducto = async () => {
-  if (!productoId.value || !cantidad.value || !precioCompra.value || !lote.value || !fechaProduccion.value || !fechaVencimiento.value) {
-    showWarningSnackbar('Completa todos los campos del producto')
-    return
-  }
 
   const productoSeleccionado = productos.value.find(p => p.id === productoId.value)
 
@@ -521,15 +496,6 @@ const actualizarIngreso = async (nuevoEstado) => {
 const aprobarIngreso = () => actualizarIngreso('Aprobado')
 const rechazarIngreso = () => actualizarIngreso('Rechazado')
 
-/////////
-// watch(selectedIngreso, async (nuevo) => {
-//   if (nuevo) {
-//     await nextTick()
-//   }
-// })
-/////////
-
-
 // Watch para limpiar al cerrar modal
 watch(productFormModal, (isOpen) => {
   if (!isOpen) {
@@ -583,6 +549,12 @@ const estadoColor = (estado) => {
       return 'secondary'
   }
 }
+
+const productosFiltrados = computed(() => {
+  if (!proveedorId.value) return []
+  return productos.value.filter(p => p.proveedor?.id === proveedorId.value)
+})
+
 </script>
 
 
@@ -634,15 +606,6 @@ const estadoColor = (estado) => {
                     label="Proveedor" variant="underlined" :rules="[rules.required]" />
                 </v-col>
 
-                <!-- <v-col cols="12">
-                  <v-textarea
-                    v-model="observaciones"
-                    label="Observaciones"
-                    variant="underlined"
-                    rows="2"
-                  />
-                </v-col> -->
-
                 <v-divider class="my-3" />
 
                 <!-- Form Agregar productos -->
@@ -651,8 +614,8 @@ const estadoColor = (estado) => {
                 </v-col>
 
                 <v-col cols="12">
-                  <v-select v-model="productoId" :items="productos" item-title="nombre" item-value="id" label="Producto"
-                    variant="underlined" :rules="[rules.required]" />
+                  <v-select v-model="productoId" :items="productosFiltrados" item-title="nombre" item-value="id"
+                    label="Producto" variant="underlined" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="4">
@@ -681,7 +644,8 @@ const estadoColor = (estado) => {
 
 
                 <v-col cols="12" class="d-flex justify-end gap-2">
-                  <v-btn color="primary" variant="flat" @click="agregarProducto" prepend-icon="mdi-plus" class="w-100">
+                  <v-btn color="primary" variant="flat" @click="handleSubmit(agregarProducto)" prepend-icon="mdi-plus"
+                    class="w-100">
                     Agregar
                   </v-btn>
                 </v-col>
@@ -825,13 +789,6 @@ const estadoColor = (estado) => {
               </span>
             </div>
           </v-col>
-
-          <!-- <v-col cols="12" v-if="selectedIngreso.observaciones">
-            <div class="mb-3">
-              <span class="font-weight-bold">Observaciones del asistente:</span>
-              <p class="ml-2 mt-1">{{ selectedIngreso.observaciones }}</p>
-            </div>
-          </v-col> -->
         </v-row>
 
         <v-divider class="my-4" />
@@ -850,7 +807,7 @@ const estadoColor = (estado) => {
 
         <div class="mb-4">
           <h3 class="text-h6 mb-3">Observaciones del Jefe de Almacén</h3>
-          <v-textarea v-model="observacionesJefe" label="Escribe las observaciones aqui" variant="outlined" rows="2"
+          <v-textarea v-model="observacionesJefe" label="Escribe las observaciones aqui" variant="underlined" rows="2"
             :readonly="selectedIngreso.estado !== 'Pendiente'" :placeholder="selectedIngreso.estado !== 'Pendiente'
               ? 'Este ingreso ya fue procesado'
               : 'Agrega observaciones si es necesario (requerido para rechazar)'" />
@@ -861,7 +818,7 @@ const estadoColor = (estado) => {
       <!-- Acciones -->
       <v-card-actions class="pa-4 bg-grey-lighten-4">
         <v-spacer />
-        <v-btn v-if="selectedIngreso.estado === 'Pendiente'" text="Rechazar" color="error" variant="outlined"
+        <v-btn v-if="selectedIngreso.estado === 'Pendiente'" text="Rechazar" color="error" variant="underlined"
           @click="rechazarIngreso" />
         <v-btn v-if="selectedIngreso.estado === 'Pendiente'" text="Aprobar" color="success" variant="flat"
           @click="aprobarIngreso" />
