@@ -587,7 +587,7 @@ const estadoColor = (estado) => {
 
 
 <template>
-  <!-- <h1 class="mb-5">Ingreso de Productos</h1> -->
+  <h1>Ingreso de Productos</h1>
 
   <!-- Filtros desktop -->
   <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
@@ -805,7 +805,7 @@ const estadoColor = (estado) => {
             <div class="mb-3">
               <span class="font-weight-bold">Fecha / Hora:</span>
               <span class="ml-2">{{ selectedIngreso.fechaIngreso || '-' }} / {{ selectedIngreso.horaIngreso || '-'
-              }}</span>
+                }}</span>
             </div>
             <div class="mb-3">
               <span class="font-weight-bold">Estado:</span>
