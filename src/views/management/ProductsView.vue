@@ -262,7 +262,7 @@ const handlePromoChange = () => {
       <v-row>
         <v-col v-for="item in items" :key="item.raw.id" cols="12" sm="6" md="6" lg="3">
           <v-card v-bind="props" :elevation="isHovering ? 2 : 1" rounded="xl" class="card-hover">
-            <v-img height="200px" :src="item.raw.imagen" cover></v-img>
+            <v-img height="200px" :src="item.raw.imagen"></v-img>
             <v-divider :thickness="3"></v-divider>
             <v-card-text>
               <div class="text-center font-weight-medium text-h6 mt-2">

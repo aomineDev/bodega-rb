@@ -49,11 +49,11 @@ const filtros = reactive({
 
 const selectFilter = computed(() => [
   {
-        key: 'rangoFechas',
-        label: 'Rango de fechas',
-        type: 'range',
-        model: filtros.rangoFechas
-    },
+    key: 'rangoFechas',
+    label: 'Rango de fechas',
+    type: 'range',
+    model: filtros.rangoFechas
+  },
   // {
   //   key: 'fechaInicio',
   //   label: 'Fecha inicio',
@@ -88,7 +88,7 @@ const productos = computed(() => product.value || [])
 
 // Headers de tablas
 const headers = [
-  { title: '#id', key: 'id'},
+  { title: '#id', key: 'id' },
   { title: 'Proveedor', key: 'proveedor' },
   { title: 'Asistente', key: 'asistente' },
   // { title: 'Observación', key: 'observacion' },
@@ -557,8 +557,8 @@ watch([fechaProduccion, fechaVencimiento], ([prod, venc], [oldProd, oldVenc]) =>
 
 
 watch(selectedIngreso, (nuevo) => {
-  if(nuevo){
-    switch(nuevo.estado){
+  if (nuevo) {
+    switch (nuevo.estado) {
       case "Rechazado":
         return observacionesJefe.value = nuevo.observacion || nuevo.observaciones || ''
       case "Pendiente":
@@ -586,24 +586,16 @@ const estadoColor = (estado) => {
 
 
 <template>
-  <!-- <h1 class="mb-5">Ingreso de Productos</h1> -->
+  <h1>Ingreso de Productos</h1>
 
   <!-- Filtros desktop -->
   <v-card v-if="mdAndUp" elevation="0" class="mb-10 pa-4">
     <v-row class="align-center">
-      <base-filter
-        v-model:search="search"
-        :filters="selectFilter"
-        @update:filter="({ key, value }) => filtros[key] = value"
-      />
+      <base-filter v-model:search="search" :filters="selectFilter"
+        @update:filter="({ key, value }) => filtros[key] = value" />
 
       <v-col cols="12" md="3" class="d-flex justify-md-end align-center">
-        <v-btn
-          block
-          prepend-icon="mdi-plus"
-          color="primary"
-          @click="handleActionFabMenu('add')"
-        >
+        <v-btn block prepend-icon="mdi-plus" color="primary" @click="handleActionFabMenu('add')">
           Nuevo Ingreso
         </v-btn>
       </v-col>
@@ -611,24 +603,17 @@ const estadoColor = (estado) => {
   </v-card>
 
   <!-- Tabla principal -->
-  <v-data-table :headers="headers" :items="items" :items-per-page="7" hover >
+  <v-data-table :headers="headers" :items="items" :items-per-page="7" hover>
     <!-- Slot para columna Estado aprobado, rechazao, pendiente -->
     <template #[`item.estado`]="{ item }">
-      <v-chip
-        :color="estadoColor(item.estado)"
-        variant="outlined"
-        rounded
-      >
+      <v-chip :color="estadoColor(item.estado)" variant="outlined" rounded>
         {{ item.estado }}
       </v-chip>
     </template>
 
     <template #[`item.actions`]="{ item }">
-      <action-menu
-        @view="() => abrirDetalles(item)"
-        @edit="() => handleEdit(item)"
-        @delete="() => handleDelete(item)"
-      />
+      <action-menu @view="() => abrirDetalles(item)" @edit="() => handleEdit(item)"
+        @delete="() => handleDelete(item)" />
     </template>
   </v-data-table>
 
@@ -642,15 +627,8 @@ const estadoColor = (estado) => {
             <v-form ref="productForm">
               <v-row dense>
                 <v-col cols="12">
-                  <v-select
-                    v-model="proveedorId"
-                    :items="proveedores"
-                    item-title="razonSocial"
-                    item-value="id"
-                    label="Proveedor"
-                    variant="underlined"
-                    :rules="[rules.required]"
-                  />
+                  <v-select v-model="proveedorId" :items="proveedores" item-title="razonSocial" item-value="id"
+                    label="Proveedor" variant="underlined" :rules="[rules.required]" />
                 </v-col>
 
                 <!-- <v-col cols="12">
@@ -670,78 +648,37 @@ const estadoColor = (estado) => {
                 </v-col>
 
                 <v-col cols="12">
-                  <v-select
-                    v-model="productoId"
-                    :items="productos"
-                    item-title="nombre"
-                    item-value="id"
-                    label="Producto"
-                    variant="underlined"
-                    :rules="[rules.required]"
-                  />
+                  <v-select v-model="productoId" :items="productos" item-title="nombre" item-value="id" label="Producto"
+                    variant="underlined" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="cantidad"
-                    label="Cantidad"
-                    type="number"
-                    variant="underlined"
-                    :rules="[rules.required, rules.cantidad]"
-                  />
+                  <v-text-field v-model="cantidad" label="Cantidad" type="number" variant="underlined"
+                    :rules="[rules.required, rules.cantidad]" />
                 </v-col>
 
                 <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="precioCompra"
-                    label="Precio Compra"
-                    type="number"
-                    prefix="S/"
-                    variant="underlined"
-                    :rules="[rules.required, rules.precio]"
-                  />
+                  <v-text-field v-model="precioCompra" label="Precio Compra" type="number" prefix="S/"
+                    variant="underlined" :rules="[rules.required, rules.precio]" />
                 </v-col>
 
                 <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="lote"
-                    label="Lote"
-                    variant="underlined"
-                    :rules="[rules.required]"
-                  />
+                  <v-text-field v-model="lote" label="Lote" variant="underlined" :rules="[rules.required]" />
                 </v-col>
 
                 <v-col cols="12">
-                  <v-date-input
-                    v-model="fechaProduccion"
-                    label="Fecha Producción"
-                    color="primary"
-                    clearable
-                    variant="underlined"
-                    :rules="[rules.required, rules.fecha]"
-                  />
+                  <v-date-input v-model="fechaProduccion" label="Fecha Producción" color="primary" clearable
+                    variant="underlined" :rules="[rules.required, rules.fecha]" />
                 </v-col>
 
                 <v-col cols="12">
-                  <v-date-input
-                    v-model="fechaVencimiento"
-                    label="Fecha Vencimiento"
-                    color="primary"
-                    clearable
-                    variant="underlined"
-                    :rules="[rules.required, rules.fecha]"
-                  />
+                  <v-date-input v-model="fechaVencimiento" label="Fecha Vencimiento" color="primary" clearable
+                    variant="underlined" :rules="[rules.required, rules.fecha]" />
                 </v-col>
 
 
                 <v-col cols="12" class="d-flex justify-end gap-2">
-                  <v-btn
-                    color="primary"
-                    variant="flat"
-                    @click="agregarProducto"
-                    prepend-icon="mdi-plus"
-                    class="w-100"
-                  >
+                  <v-btn color="primary" variant="flat" @click="agregarProducto" prepend-icon="mdi-plus" class="w-100">
                     Agregar
                   </v-btn>
                 </v-col>
@@ -752,13 +689,8 @@ const estadoColor = (estado) => {
           <!-- Tabla de productos agregados -->
           <v-col cols="12" md="9">
             <v-sheet max-height="500" class="overflow-y-auto">
-              <v-data-table
-                :headers="headersProductos"
-                :items="itemsProductos"
-                class="elevation-1"
-                density="compact"
-                :items-per-page="10"
-              >
+              <v-data-table :headers="headersProductos" :items="itemsProductos" class="elevation-1" density="compact"
+                :items-per-page="10">
                 <template #[`item.precioCompra`]="{ item }">
                   S/ {{ item.precioCompra.toFixed(2) }}
                 </template>
@@ -766,10 +698,7 @@ const estadoColor = (estado) => {
                   S/ {{ item.subtotal.toFixed(2) }}
                 </template>
                 <template #[`item.actions`]="{ item }">
-                  <action-menu
-                    @edit="() => handleEditProduct(item)"
-                    @delete="() => handleDeleteProduct(item)"
-                  />
+                  <action-menu @edit="() => handleEditProduct(item)" @delete="() => handleDeleteProduct(item)" />
                 </template>
               </v-data-table>
             </v-sheet>
@@ -789,12 +718,7 @@ const estadoColor = (estado) => {
       <v-card-actions>
         <v-spacer />
         <v-btn text="Cancelar" @click="closeFormModal" />
-        <v-btn
-          color="primary"
-          variant="flat"
-          @click="finishEntryProduct"
-          :text="actionLabel"
-        />
+        <v-btn color="primary" variant="flat" @click="finishEntryProduct" :text="actionLabel" />
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -826,11 +750,8 @@ const estadoColor = (estado) => {
   <v-dialog v-model="filterDialog" max-width="500" v-if="smAndDown">
     <v-card title="Filtrar Ingresos">
       <v-card-text>
-        <base-filter
-          v-model:search="search"
-          :filters="selectFilter"
-          @update:filter="({ key, value }) => filtros[key] = value"
-        />
+        <base-filter v-model:search="search" :filters="selectFilter"
+          @update:filter="({ key, value }) => filtros[key] = value" />
       </v-card-text>
 
       <v-card-actions>
@@ -842,11 +763,7 @@ const estadoColor = (estado) => {
   </v-dialog>
 
   <!-- FAB Menu movil -->
-  <fab-menu
-    v-if="smAndDown"
-    v-model:FormModal="productFormModal"
-    v-model:filterDialog="filterDialog"
-  />
+  <fab-menu v-if="smAndDown" v-model:FormModal="productFormModal" v-model:filterDialog="filterDialog" />
 
   <!-- Modal de detalles del ingreso -->
   <v-dialog v-model="detallesModal" max-width="900" persistent>
@@ -872,8 +789,10 @@ const estadoColor = (estado) => {
               <span class="font-weight-bold">Asistente:</span>
               <span class="ml-2">
                 {{ selectedIngreso.asistenteAlmacen
-                  ? `${selectedIngreso.asistenteAlmacen.nombre || ''} ${selectedIngreso.asistenteAlmacen.apellidoPaterno || ''}`.trim()
-                  : '-'
+                  ? `${selectedIngreso.asistenteAlmacen.nombre || ''} ${selectedIngreso.asistenteAlmacen.apellidoPaterno
+                    ||
+                    ''}`.trim()
+                : '-'
                 }}
               </span>
             </div>
@@ -882,15 +801,14 @@ const estadoColor = (estado) => {
           <v-col cols="12" md="6">
             <div class="mb-3">
               <span class="font-weight-bold">Fecha / Hora:</span>
-              <span class="ml-2">{{ selectedIngreso.fechaIngreso || '-' }} / {{ selectedIngreso.horaIngreso || '-' }}</span>
+              <span class="ml-2">{{ selectedIngreso.fechaIngreso || '-' }} / {{ selectedIngreso.horaIngreso || '-'
+                }}</span>
             </div>
             <div class="mb-3">
               <span class="font-weight-bold">Estado:</span>
               <v-chip
                 :color="selectedIngreso.estado === 'Aprobado' ? 'success' : selectedIngreso.estado === 'Rechazado' ? 'error' : 'warning'"
-                size="small"
-                class="ml-2"
-              >
+                size="small" class="ml-2">
                 {{ selectedIngreso.estado || 'Pendiente' }}
               </v-chip>
             </div>
@@ -919,14 +837,8 @@ const estadoColor = (estado) => {
         <div class="mb-4">
           <h3 class="text-h6 mb-3">Detalle de Productos</h3>
           <v-sheet max-height="300" class="overflow-y-auto">
-            <v-data-table
-              :headers="headersDetalles"
-              :items="productosDetalle"
-              density="compact"
-              class="elevation-1"
-              :items-per-page="-1"
-              hide-default-footer
-            >
+            <v-data-table :headers="headersDetalles" :items="productosDetalle" density="compact" class="elevation-1"
+              :items-per-page="-1" hide-default-footer>
             </v-data-table>
           </v-sheet>
         </div>
@@ -935,16 +847,10 @@ const estadoColor = (estado) => {
 
         <div class="mb-4">
           <h3 class="text-h6 mb-3">Observaciones del Jefe de Almacén</h3>
-          <v-textarea
-            v-model="observacionesJefe"
-            label="Escribe las observaciones aqui"
-            variant="outlined"
-            rows="2"
-            :readonly="selectedIngreso.estado !== 'Pendiente'"
-            :placeholder="selectedIngreso.estado !== 'Pendiente'
+          <v-textarea v-model="observacionesJefe" label="Escribe las observaciones aqui" variant="outlined" rows="2"
+            :readonly="selectedIngreso.estado !== 'Pendiente'" :placeholder="selectedIngreso.estado !== 'Pendiente'
               ? 'Este ingreso ya fue procesado'
-              : 'Agrega observaciones si es necesario (requerido para rechazar)'"
-          />
+              : 'Agrega observaciones si es necesario (requerido para rechazar)'" />
 
         </div>
       </v-card-text>
@@ -952,20 +858,10 @@ const estadoColor = (estado) => {
       <!-- Acciones -->
       <v-card-actions class="pa-4 bg-grey-lighten-4">
         <v-spacer />
-        <v-btn
-          v-if="selectedIngreso.estado === 'Pendiente'"
-          text="Rechazar"
-          color="error"
-          variant="outlined"
-          @click="rechazarIngreso"
-        />
-        <v-btn
-          v-if="selectedIngreso.estado === 'Pendiente'"
-          text="Aprobar"
-          color="success"
-          variant="flat"
-          @click="aprobarIngreso"
-        />
+        <v-btn v-if="selectedIngreso.estado === 'Pendiente'" text="Rechazar" color="error" variant="outlined"
+          @click="rechazarIngreso" />
+        <v-btn v-if="selectedIngreso.estado === 'Pendiente'" text="Aprobar" color="success" variant="flat"
+          @click="aprobarIngreso" />
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -975,6 +871,4 @@ const estadoColor = (estado) => {
 .gap-2 {
   gap: 0.5rem;
 }
-
-
 </style>
