@@ -1,11 +1,17 @@
 <template>
   <v-layout>
-    <v-navigation-drawer v-model="drawer" :rail="rail" @click="rail = false" :temporary="!mdAndUp" :permanent="mdAndUp">
+    <v-navigation-drawer
+      v-model="drawer"
+      :rail="rail"
+      @click="rail = false"
+      :temporary="!mdAndUp"
+      :permanent="mdAndUp"
+    >
       <template #prepend>
         <v-list-item title="Embutidos RB" class="pt-2 pb-2">
           <template #prepend>
-            <v-avatar color="grey-darken-4">
-              <v-icon color="white" icon="mdi-store"></v-icon>
+            <v-avatar>
+              <v-img :src="logoRB" alt="Logo" />
             </v-avatar>
           </template>
 
@@ -17,48 +23,107 @@
       </template>
 
       <v-list density="compact" nav>
-        <v-list-item title="Dashboard" prepend-icon="mdi-view-dashboard" value="dashboard" color="primary"
-          to="/home"></v-list-item>
+        <v-list-item
+          :title="role === ROLES.ADMIN ? 'Dashboard' : 'Perfil'"
+          :prepend-icon="role === ROLES.ADMIN ? 'mdi-view-dashboard' : 'mdi-account'"
+          value="dashboard"
+          color="primary"
+          to="/home"
+        ></v-list-item>
 
         <v-divider v-role="[ROLES.ADMIN, ROLES.CAJERO]"></v-divider>
         <v-list-subheader v-role="[ROLES.ADMIN, ROLES.CAJERO]">Caja</v-list-subheader>
 
-        <v-list-item v-role="[ROLES.ADMIN, ROLES.CAJERO]" v-for="item in cajaitems" :key="item.value"
-          :title="item.title" :prepend-icon="item.icon" :value="item.value" :to="item.to" color="primary"></v-list-item>
+        <v-list-item
+          v-role="[ROLES.ADMIN, ROLES.CAJERO]"
+          v-for="item in cajaitems"
+          :key="item.value"
+          :title="item.title"
+          :prepend-icon="item.icon"
+          :value="item.value"
+          :to="item.to"
+          color="primary"
+        ></v-list-item>
 
         <v-divider v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]"></v-divider>
-        <v-list-subheader v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]">Inventario</v-list-subheader>
-        <v-list-item v-for="item in inventarioItems" v-role="item.roles" :key="item.value" :title="item.title"
-          :prepend-icon="item.icon" :value="item.value" :to="item.to" color="primary" exact></v-list-item>
+        <v-list-subheader v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]"
+          >Inventario</v-list-subheader
+        >
+        <v-list-item
+          v-for="item in inventarioItems"
+          v-role="item.roles"
+          :key="item.value"
+          :title="item.title"
+          :prepend-icon="item.icon"
+          :value="item.value"
+          :to="item.to"
+          color="primary"
+          exact
+        ></v-list-item>
 
         <v-divider v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]"></v-divider>
         <v-list-subheader v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]">Almacen</v-list-subheader>
 
-        <v-list-item title="Ingreso de productos" prepend-icon="mdi-package-variant-plus" value="ingreso"
-          color="primary" to="/almacen/ingreso-productos" v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]"></v-list-item>
+        <v-list-item
+          title="Ingreso de productos"
+          prepend-icon="mdi-package-variant-plus"
+          value="ingreso"
+          color="primary"
+          to="/almacen/ingreso-productos"
+          v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]"
+        ></v-list-item>
 
         <v-divider></v-divider>
         <v-list-subheader>Gestion</v-list-subheader>
 
-        <v-list-item v-for="item in gestionItems" v-role="item.roles" :key="item.value" :title="item.title"
-          :prepend-icon="item.icon" :value="item.value" :to="item.to" color="primary"></v-list-item>
+        <v-list-item
+          v-for="item in gestionItems"
+          v-role="item.roles"
+          :key="item.value"
+          :title="item.title"
+          :prepend-icon="item.icon"
+          :value="item.value"
+          :to="item.to"
+          color="primary"
+        ></v-list-item>
       </v-list>
 
       <template #append>
         <v-divider></v-divider>
         <v-menu location="end">
           <template #activator="{ props }">
-            <v-list-item :prepend-avatar="user?.imagen" :subtitle="rol" :title="user?.nombre" class="pt-2 pb-2"
-              v-bind="props" append-icon="mdi-chevron-right">
+            <v-list-item
+              :prepend-avatar="user?.imagen"
+              :subtitle="rol"
+              :title="user?.nombre"
+              class="pt-2 pb-2"
+              v-bind="props"
+              append-icon="mdi-chevron-right"
+            >
             </v-list-item>
           </template>
 
           <v-list min-width="200" density="compact" class="rounded-lg" elevation="2">
-            <v-list-item :prepend-avatar="user?.imagen" :subtitle="rol" :title="user?.nombre" class="pt-2 pb-2">
+            <v-list-item
+              :prepend-avatar="user?.imagen"
+              :subtitle="rol"
+              :title="user?.nombre"
+              class="pt-2 pb-2"
+            >
             </v-list-item>
             <v-divider></v-divider>
-            <v-list-item title="Perfil" prepend-icon="mdi-account" class="primary" to="/perfil"></v-list-item>
-            <v-list-item title="Log out" prepend-icon="mdi-logout" class="text-red" @click="logout"></v-list-item>
+            <v-list-item
+              title="Perfil"
+              prepend-icon="mdi-account"
+              class="primary"
+              to="/perfil"
+            ></v-list-item>
+            <v-list-item
+              title="Log out"
+              prepend-icon="mdi-logout"
+              class="text-red"
+              @click="logout"
+            ></v-list-item>
           </v-list>
         </v-menu>
       </template>
@@ -76,12 +141,12 @@
       </v-breadcrumbs>
 
       <template #append>
-        <v-btn :icon="theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'" @click="toggleTheme"></v-btn>
+        <v-btn :icon @click="theme.toggle()"></v-btn>
       </template>
     </v-app-bar>
 
-    <v-main>
-      <v-container class="container custom-scroll">
+    <v-main class="container custom-scroll">
+      <v-container>
         <router-view />
       </v-container>
     </v-main>
@@ -93,21 +158,26 @@ import { useRoute } from 'vue-router'
 import { computed, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { capitalize } from '@/utils/capitalize'
-import { useAuthStore, useThemeStore } from '@/stores'
+import { useAuthStore } from '@/stores'
 import { formatRol } from '@/utils/formatRol'
 import { ROLES } from '@/utils/constants/roles'
 import { storeToRefs } from 'pinia'
+import { useTheme } from 'vuetify'
+import logoRB from '@/assets/img/embutidosRB/embutidos-rb.png'
 
 const { logout } = useAuthStore()
 const { user, role } = storeToRefs(useAuthStore())
-const { theme } = storeToRefs(useThemeStore())
-const { toggleTheme } = useThemeStore()
 
 const rol = computed(() => formatRol(role.value))
 
 const { mdAndUp } = useDisplay()
 const drawer = ref(true)
 const rail = ref(false)
+const theme = useTheme()
+
+const icon = computed(() =>
+  theme.name.value === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night',
+)
 
 const cajaitems = [
   {
@@ -152,7 +222,7 @@ const inventarioItems = [
     icon: 'mdi-clipboard-check-outline',
     value: 'toma-inventario',
     to: '/inventario/abiertos',
-    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
+    roles: [ROLES.ADMIN, ROLES.ASISTENTE],
   },
   {
     title: 'Reporte de inventario',
@@ -169,7 +239,7 @@ const gestionItems = [
     icon: 'mdi-truck-outline',
     value: 'proveedores',
     to: '/gestion/proveedores',
-    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
+    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
   },
   {
     title: 'Empleados',
@@ -213,7 +283,7 @@ watch(
 
 <style scoped>
 .container {
-  max-height: calc(100vh - var(--v-layout-top));
+  max-height: 100vh;
   overflow: auto;
 }
 </style>

@@ -8,7 +8,10 @@ export const useCajaStore = defineStore('caja', {
   }),
 
   getters: {
-    saldoActual: (state) => state.cajaAbierta?.saldoActual ?? 0,
+    saldoActual: (state) => {
+      const saldo = state.cajaAbierta?.saldoActual ?? 0
+      return Number(saldo.toFixed(2))
+    },
   },
 
   actions: {

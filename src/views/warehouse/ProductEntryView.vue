@@ -11,11 +11,12 @@ import { useProductEntry } from '@/composables/query/useProductEntry'
 // import { useCategory } from '@/composables/query/useCategory'
 import { useSupplier } from '@/composables/query/useSupplier'
 import { useProduct } from '@/composables/query/useProduct'
+import { useAuthStore } from '@/stores/auth'
+import { ROLES } from '@/utils/constants/roles'
 
-
+const auth = useAuthStore()
 const { smAndDown, mdAndUp } = useDisplay()
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
-
 
 defineOptions({
   components: {
@@ -365,8 +366,8 @@ const finishEntryProduct = async () => {
     fechaIngreso: now.toISOString().split('T')[0],
     horaIngreso: now.toTimeString().split(' ')[0],
     estado: 'Pendiente',
-    asistenteAlmacen: { id: 1 },
-    jefeAlmacen: { id: 1 },
+    asistenteAlmacen: { id: auth.user.id },
+    jefeAlmacen: { id: auth.user.id },
     detalleIngresos: itemsProductos.value.map(item => ({
       producto: { id: item.productoId },
       cantidad: item.cantidad,
@@ -612,9 +613,11 @@ const estadoColor = (estado) => {
     </template>
 
     <template #[`item.actions`]="{ item }">
-      <action-menu @view="() => abrirDetalles(item)" @edit="() => handleEdit(item)"
-        @delete="() => handleDelete(item)" />
+      <ActionMenu :onView="auth.hasAnyRole([ROLES.ADMIN, ROLES.JEFE_ALMACEN]) ? () => abrirDetalles(item) : null"
+        :onEdit="auth.hasAnyRole([ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]) ? () => handleEdit(item) : null"
+        :onDelete="auth.hasAnyRole([ROLES.ADMIN, ROLES.JEFE_ALMACEN]) ? () => handleDelete(item) : null" />
     </template>
+
   </v-data-table>
 
   <!-- Modal crear/editar ingreso -->
@@ -792,7 +795,7 @@ const estadoColor = (estado) => {
                   ? `${selectedIngreso.asistenteAlmacen.nombre || ''} ${selectedIngreso.asistenteAlmacen.apellidoPaterno
                     ||
                     ''}`.trim()
-                : '-'
+                  : '-'
                 }}
               </span>
             </div>

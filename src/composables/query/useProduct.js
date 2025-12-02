@@ -37,6 +37,16 @@ export const useProduct = () => {
     onSuccess: () => queryClient.invalidateQueries(['product']),
     onError: (error) => console.log('Eerror' + error),
   })
+
+  const discountStockMutation = useMutation({
+    mutationFn: ({ id, cantidad }) => productService.discountStock(id, cantidad),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries(['product'])
+      queryClient.invalidateQueries(['product', variables.id])
+    },
+    onError: (err) => console.log('Error descontando stock', err),
+  })
+
   return {
     product,
     isPending,
@@ -58,5 +68,10 @@ export const useProduct = () => {
     deleteProductAsync: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
     deleteError: deleteMutation.error,
+
+    discountStock: discountStockMutation.mutate,
+    discountStockAsync: discountStockMutation.mutateAsync,
+    isDescontando: discountStockMutation.isPending,
+    discountError: discountStockMutation.error,
   }
 }

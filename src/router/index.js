@@ -20,6 +20,7 @@ import { authGuard } from './guards'
 import { ROLES } from '@/utils/constants/roles'
 import ProfileView from '@/views/profile/ProfileView.vue'
 import CashClosureView from '@/views/pos/CashClosureView.vue'
+import { useAuthStore } from '@/stores'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,13 +31,17 @@ const router = createRouter({
       children: [
         {
           path: '',
-
           redirect: '/home',
         },
         {
           path: 'home',
           name: 'home',
           component: HomeView,
+          beforeEnter: () => {
+            const { role } = useAuthStore()
+
+            if (role !== ROLES.ADMIN) return { name: 'profile' }
+          },
         },
         {
           path: 'inventario',
@@ -52,7 +57,7 @@ const router = createRouter({
               path: 'abiertos',
               component: OpenInventoryView,
               meta: {
-                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
+                roles: [ROLES.ADMIN, ROLES.ASISTENTE],
               },
             },
             {
@@ -60,7 +65,7 @@ const router = createRouter({
               name: 'take-inventory',
               component: TakeInventoryView,
               meta: {
-                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
+                roles: [ROLES.ADMIN, ROLES.ASISTENTE],
               },
             },
             {
@@ -79,7 +84,7 @@ const router = createRouter({
               path: 'proveedores',
               component: SuppliersView,
               meta: {
-                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
+                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
               },
             },
             {
@@ -138,11 +143,15 @@ const router = createRouter({
             {
               path: 'ingreso-productos',
               component: ProductEntryView,
+              meta: {
+                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
+              },
             },
           ],
         },
         {
           path: '/perfil',
+          name: 'profile',
           component: ProfileView,
         },
       ],

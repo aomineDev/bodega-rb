@@ -62,6 +62,7 @@ const {
 
 const {
   product,
+  discountStockAsync
 } = useProduct()
 
 const {
@@ -390,7 +391,7 @@ const createSale = async () => {
       await createMovementAsync({
         caja: { id: cajaId },
         tipo: 'VUELTO',
-        monto: parseFloat(vuelto.value),
+        monto: parseFloat(vuelto.value.toFixed(2)),
         comprobante: {
           id: lastComprobante.value.id,
           tipo: lastComprobante.value.tipo
@@ -404,6 +405,13 @@ const createSale = async () => {
     cajaStore.actualizarSaldo(parseFloat(totals.value.total), 'VENTA')
     if (vuelto.value > 0) {
       cajaStore.actualizarSaldo(parseFloat(vuelto.value), 'VUELTO')
+    }
+
+    for (const item of cartItems.value) {
+      await discountStockAsync({
+        id: item.producto.id,
+        cantidad: item.cantidad,
+      })
     }
   }
 
