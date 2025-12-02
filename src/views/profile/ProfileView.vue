@@ -187,37 +187,37 @@ const handleChangePassword = async () => {
               <v-row>
                 <v-col cols="12" md="6" class="pb-4">
                   <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]"
-                    :disabled="!editMode" clearable />
+                    :readonly="!editMode" />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
                   <v-text-field v-model="apellidoPaterno" label="Apellido Paterno" :rules="[rules.required, rules.text]"
-                    :disabled="!editMode" clearable />
+                    :readonly="!editMode" />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
                   <v-text-field v-model="apellidoMaterno" label="Apellido Materno" :rules="[rules.required, rules.text]"
-                    :disabled="!editMode" clearable />
+                    :readonly="!editMode" />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########" :disabled="!editMode"
-                    clearable variant="underlined" :rules="[rules.phone, rules.required]">
+                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########" :readonly="!editMode"
+                    variant="underlined" :rules="[rules.phone, rules.required]">
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" class="pb-4">
-                  <v-text-field v-model="email" label="Correo electrónico" :disabled="!editMode" :rules="[rules.email]"
-                    clearable />
+                  <v-text-field v-model="email" label="Correo electrónico" :readonly="!editMode"
+                    :rules="[rules.email]" />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-text-field v-model="direccion" label="Dirección" :disabled="!editMode" clearable />
+                  <v-text-field v-model="direccion" label="Dirección" :readonly="!editMode" />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-date-input v-model="fechaNacimiento" label="Fecha de Nacimiento" :disabled="!editMode"
-                    clearable></v-date-input>
+                  <v-date-input v-model="fechaNacimiento" label="Fecha de Nacimiento"
+                    :readonly="!editMode"></v-date-input>
                 </v-col>
               </v-row>
             </v-form>
@@ -244,12 +244,12 @@ const handleChangePassword = async () => {
               <v-row>
                 <v-col cols="12" class="pb-4">
                   <v-text-field v-model="currentPassword" label="Contraseña actual" type="password"
-                    :rules="[passwordRules.required]" clearable />
+                    :rules="[passwordRules.required]" />
                 </v-col>
 
                 <v-col cols="12" class="pb-4">
                   <v-text-field v-model="newPassword" label="Nueva contraseña" type="password"
-                    :rules="[passwordRules.required, passwordRules.min6]" clearable />
+                    :rules="[passwordRules.required, passwordRules.min6]" />
                 </v-col>
 
               </v-row>
