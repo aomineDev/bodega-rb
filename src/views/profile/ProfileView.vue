@@ -34,18 +34,20 @@ const {
   email,
   fechaNacimiento,
   imagen,
-} = useForm({
-  nombre: '',
-  apellidoPaterno: '',
-  apellidoMaterno: '',
-  direccion: '',
-  telefono: '',
-  email: '',
-  fechaNacimiento: '',
-  imagen: '',
-},
+} = useForm(
+  {
+    nombre: '',
+    apellidoPaterno: '',
+    apellidoMaterno: '',
+    direccion: '',
+    telefono: '',
+    email: '',
+    fechaNacimiento: '',
+    imagen: '',
+  },
   undefined,
-  { resetForm: false })
+  { resetForm: false },
+)
 
 // Formulario de contraseña
 const {
@@ -130,12 +132,12 @@ const handleChangePassword = async () => {
       currentPassword: currentPassword.value,
       newPassword: newPassword.value,
     })
-    showSuccessSnackbar("Contraseña actualizada correctamente")
+    showSuccessSnackbar('Contraseña actualizada correctamente')
     currentPassword.value = ''
     newPassword.value = ''
   } catch (e) {
     console.log(e)
-    showErrorSnackbar("Contraseña actual incorrecta")
+    showErrorSnackbar('Contraseña actual incorrecta')
   }
   resetForm()
 }
@@ -146,17 +148,31 @@ const handleChangePassword = async () => {
     <v-row align="stretch" class="g-6">
       <!-- Panel Izquierdo -->
       <v-col cols="12" md="4" lg="3" class="d-flex">
-        <v-card rounded="xl" class="pa-8 text-center flex-grow-1 d-flex flex-column justify-space-between">
+        <v-card
+          rounded="xl"
+          class="pa-8 text-center flex-grow-1 d-flex flex-column justify-space-between"
+        >
           <div>
             <div class="position-relative d-inline-block">
               <v-avatar size="120">
                 <v-img :src="previewUrl" alt="Perfil" cover />
               </v-avatar>
 
-              <v-btn v-if="editMode" icon="mdi-pencil" size="small" color="primary"
-                class="position-absolute bottom-0 end-0" style="transform: translate(25%, 25%)"
-                @click="$refs.fileInput.click()" />
-              <v-file-input ref="fileInput" accept="image/*" class="d-none" @update:modelValue="onImageChange" />
+              <v-btn
+                v-if="editMode"
+                icon="mdi-pencil"
+                size="small"
+                color="primary"
+                class="position-absolute bottom-0 end-0"
+                style="transform: translate(25%, 25%)"
+                @click="$refs.fileInput.click()"
+              />
+              <v-file-input
+                ref="fileInput"
+                accept="image/*"
+                class="d-none"
+                @update:modelValue="onImageChange"
+              />
             </div>
 
             <h3 class="mt-5 mb-1">{{ employee?.nombre }} {{ employee?.apellidoPaterno }}</h3>
@@ -165,10 +181,18 @@ const handleChangePassword = async () => {
             <v-divider class="my-5" />
 
             <v-list density="comfortable" nav>
-              <v-list-item prepend-icon="mdi-account" title="Información Personal" :active="activeSection === 'info'"
-                @click="activeSection = 'info'" />
-              <v-list-item prepend-icon="mdi-lock" title="Login & Password" :active="activeSection === 'password'"
-                @click="activeSection = 'password'" />
+              <v-list-item
+                prepend-icon="mdi-account"
+                title="Información Personal"
+                :active="activeSection === 'info'"
+                @click="activeSection = 'info'"
+              />
+              <v-list-item
+                prepend-icon="mdi-lock"
+                title="Login & Password"
+                :active="activeSection === 'password'"
+                @click="activeSection = 'password'"
+              />
               <v-list-item prepend-icon="mdi-logout" title="Cerrar Sesión" @click="auth.logout()" />
             </v-list>
           </div>
@@ -178,7 +202,6 @@ const handleChangePassword = async () => {
       <!-- Formulario -->
       <v-col cols="12" md="8" lg="9" class="d-flex ps-md-6">
         <v-card rounded="xl" class="pa-10 flex-grow-1 d-flex flex-column justify-space-between">
-
           <!-- FORMULARIO INFO PERSONAL-->
           <div v-if="activeSection === 'info'">
             <h2 class="text-h5 mb-8">Información Personal</h2>
@@ -186,38 +209,75 @@ const handleChangePassword = async () => {
             <v-form ref="empleadoForm">
               <v-row>
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-text-field v-model="nombre" label="Nombre" :rules="[rules.required, rules.text]"
-                    :disabled="!editMode" clearable />
+                  <v-text-field
+                    v-model="nombre"
+                    label="Nombre"
+                    :rules="[rules.required, rules.text]"
+                    :readOnly="!editMode"
+                    :clearable="editMode"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-text-field v-model="apellidoPaterno" label="Apellido Paterno" :rules="[rules.required, rules.text]"
-                    :disabled="!editMode" clearable />
+                  <v-text-field
+                    v-model="apellidoPaterno"
+                    label="Apellido Paterno"
+                    :rules="[rules.required, rules.text]"
+                    :readOnly="!editMode"
+                    :clearable="editMode"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-text-field v-model="apellidoMaterno" label="Apellido Materno" :rules="[rules.required, rules.text]"
-                    :disabled="!editMode" clearable />
+                  <v-text-field
+                    v-model="apellidoMaterno"
+                    label="Apellido Materno"
+                    :rules="[rules.required, rules.text]"
+                    :readOnly="!editMode"
+                    :clearable="editMode"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-mask-input label="Teléfono" v-model="telefono" :counter="9" mask="#########" :disabled="!editMode"
-                    clearable variant="underlined" :rules="[rules.phone, rules.required]">
+                  <v-mask-input
+                    label="Teléfono"
+                    v-model="telefono"
+                    :counter="9"
+                    mask="#########"
+                    :readOnly="!editMode"
+                    :clearable="editMode"
+                    variant="underlined"
+                    :rules="[rules.phone, rules.required]"
+                  >
                   </v-mask-input>
                 </v-col>
 
                 <v-col cols="12" class="pb-4">
-                  <v-text-field v-model="email" label="Correo electrónico" :disabled="!editMode" :rules="[rules.email]"
-                    clearable />
+                  <v-text-field
+                    v-model="email"
+                    label="Correo electrónico"
+                    :readOnly="!editMode"
+                    :rules="[rules.email]"
+                    :clearable="editMode"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-text-field v-model="direccion" label="Dirección" :disabled="!editMode" clearable />
+                  <v-text-field
+                    v-model="direccion"
+                    label="Dirección"
+                    :readOnly="!editMode"
+                    :clearable="editMode"
+                  />
                 </v-col>
 
                 <v-col cols="12" md="6" class="pb-4">
-                  <v-date-input v-model="fechaNacimiento" label="Fecha de Nacimiento" :disabled="!editMode"
-                    clearable></v-date-input>
+                  <v-date-input
+                    v-model="fechaNacimiento"
+                    label="Fecha de Nacimiento"
+                    :disabled="!editMode"
+                    :clearable="editMode"
+                  ></v-date-input>
                 </v-col>
               </v-row>
             </v-form>
@@ -225,13 +285,23 @@ const handleChangePassword = async () => {
             <!-- Botones centrados -->
             <v-row class="mt-10 justify-center" dense>
               <v-col cols="12" md="5" class="text-center">
-                <v-btn v-if="editMode" variant="outlined" color="secondary" class="w-100 py-3" text="Descartar cambios"
-                  @click="discardChanges" />
+                <v-btn
+                  v-if="editMode"
+                  variant="outlined"
+                  color="secondary"
+                  class="w-100 py-3"
+                  text="Descartar cambios"
+                  @click="discardChanges"
+                />
               </v-col>
 
               <v-col cols="12" md="5" class="text-center">
-                <v-btn color="primary" class="w-100 py-3" :text="editMode ? 'Guardar cambios' : 'Editar'"
-                  @click="editMode ? handleEmpleadoSubmit(handleUpdateEmployee) : toggleEdit()" />
+                <v-btn
+                  color="primary"
+                  class="w-100 py-3"
+                  :text="editMode ? 'Guardar cambios' : 'Editar'"
+                  @click="editMode ? handleEmpleadoSubmit(handleUpdateEmployee) : toggleEdit()"
+                />
               </v-col>
             </v-row>
           </div>
@@ -243,26 +313,38 @@ const handleChangePassword = async () => {
             <v-form ref="passwordForm">
               <v-row>
                 <v-col cols="12" class="pb-4">
-                  <v-text-field v-model="currentPassword" label="Contraseña actual" type="password"
-                    :rules="[passwordRules.required]" clearable />
+                  <v-text-field
+                    v-model="currentPassword"
+                    label="Contraseña actual"
+                    type="password"
+                    :rules="[passwordRules.required]"
+                    clearable
+                  />
                 </v-col>
 
                 <v-col cols="12" class="pb-4">
-                  <v-text-field v-model="newPassword" label="Nueva contraseña" type="password"
-                    :rules="[passwordRules.required, passwordRules.min6]" clearable />
+                  <v-text-field
+                    v-model="newPassword"
+                    label="Nueva contraseña"
+                    type="password"
+                    :rules="[passwordRules.required, passwordRules.min6]"
+                    clearable
+                  />
                 </v-col>
-
               </v-row>
 
               <v-row class="justify-center mt-6">
                 <v-col cols="12" md="5" class="text-center">
-                  <v-btn color="primary" class="w-100 py-3" text="Actualizar contraseña"
-                    @click="handlePasswordSubmit(handleChangePassword)" />
+                  <v-btn
+                    color="primary"
+                    class="w-100 py-3"
+                    text="Actualizar contraseña"
+                    @click="handlePasswordSubmit(handleChangePassword)"
+                  />
                 </v-col>
               </v-row>
             </v-form>
           </div>
-
         </v-card>
       </v-col>
     </v-row>
