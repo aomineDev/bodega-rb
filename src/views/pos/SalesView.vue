@@ -1,22 +1,21 @@
 <script setup>
-
-import FabMenu from '@/components/FabMenu.vue';
-import BaseFilter from '@/components/BaseFilter.vue';
-import { computed, ref, onMounted } from 'vue';
+import FabMenu from '@/components/FabMenu.vue'
+import BaseFilter from '@/components/BaseFilter.vue'
+import { computed, ref, onMounted } from 'vue'
 import { useSnackbar } from '@/stores/snackbar'
 import { useRouter } from 'vue-router'
-import { useProduct } from '@/composables/query/useProduct';
-import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer';
-import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer';
-import { useBill } from '@/composables/query/useBill';
-import { useTicket } from '@/composables/query/useTicket';
-import { useIntegration } from '@/composables/query/useIntegration';
+import { useProduct } from '@/composables/query/useProduct'
+import { useNaturalCustomer } from '@/composables/query/useNaturalCustomer'
+import { useJuridicalCustomer } from '@/composables/query/useJuridicalCustomer'
+import { useBill } from '@/composables/query/useBill'
+import { useTicket } from '@/composables/query/useTicket'
+import { useIntegration } from '@/composables/query/useIntegration'
 import { useDisplay } from 'vuetify'
-import { useForm } from '@/composables/useForm';
-import { watch } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-import { useCajaStore } from '@/stores/checkout';
-import { useMovement } from '@/composables/query/useMovement';
+import { useForm } from '@/composables/useForm'
+import { watch } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useCajaStore } from '@/stores/checkout'
+import { useMovement } from '@/composables/query/useMovement'
 
 /* --------------- Variables ---------------*/
 const router = useRouter()
@@ -39,9 +38,7 @@ const lastComprobante = ref(null)
 const { user } = useAuthStore()
 const { showSuccessSnackbar, showErrorSnackbar, showWarningSnackbar } = useSnackbar()
 
-const {
-  createMovementAsync,
-} = useMovement()
+const { createMovementAsync } = useMovement()
 
 const {
   formRef: asignacionForm,
@@ -50,43 +47,22 @@ const {
   ruc,
 } = useForm({
   dni: '',
-  ruc: ''
+  ruc: '',
 })
 
-const {
-  formRef: tipoPagoForm,
-  handleSubmit: handleSubmitTipoPago,
-  rules,
-} = useForm({
-})
+const { formRef: tipoPagoForm, handleSubmit: handleSubmitTipoPago, rules } = useForm({})
 
-const {
-  product,
-  discountStockAsync
-} = useProduct()
+const { product, discountStockAsync } = useProduct()
 
-const {
-  naturalCustomers,
-} = useNaturalCustomer()
+const { naturalCustomers } = useNaturalCustomer()
 
-const {
-  createCustomerByDniAsync,
-  createCustomerByRucAsync,
-} = useIntegration()
+const { createCustomerByDniAsync, createCustomerByRucAsync } = useIntegration()
 
-const {
-  juridicalCustomers,
-} = useJuridicalCustomer()
+const { juridicalCustomers } = useJuridicalCustomer()
 
-const {
-  createBillAsync,
-  generatePdfBill,
-} = useBill()
+const { createBillAsync, generatePdfBill } = useBill()
 
-const {
-  createTicketAsync,
-  generatePdfTicket,
-} = useTicket()
+const { createTicketAsync, generatePdfTicket } = useTicket()
 
 const cajaStore = useCajaStore()
 onMounted(async () => {
@@ -120,13 +96,12 @@ const items = computed(() => product.value || [])
 watch(search, (newValue) => {
   if (!newValue) return
 
-  const found = product.value?.find(p => p.codigoBarra === newValue.trim())
+  const found = product.value?.find((p) => p.codigoBarra === newValue.trim())
 
   if (found) {
     search.value = ''
     viewProduct(found)
   }
-
 })
 
 /* --------------- Metodos ---------------*/
@@ -140,24 +115,24 @@ function irAperturarCaja() {
 }
 
 const searchCustomer = async () => {
-
-  const isNatural = customerType.value === 'natural';
-  const value = isNatural ? dni.value : ruc.value;
+  const isNatural = customerType.value === 'natural'
+  const value = isNatural ? dni.value : ruc.value
 
   const validations = {
     natural: { length: 8, message: 'Ingrese un DNI válido' },
     juridical: { length: 11, message: 'Ingrese un RUC válido' },
-  };
+  }
 
-  const rule = validations[customerType.value];
+  const rule = validations[customerType.value]
   if (!value || value.length < rule.length) {
-    showWarningSnackbar(rule.message);
-    return;
+    showWarningSnackbar(rule.message)
+    return
   }
 
   try {
-    let foundCustomer = (isNatural ? naturalCustomers.value : juridicalCustomers.value)
-      .find(c => (isNatural ? c.dni : c.ruc) === value);
+    let foundCustomer = (isNatural ? naturalCustomers.value : juridicalCustomers.value).find(
+      (c) => (isNatural ? c.dni : c.ruc) === value,
+    )
 
     if (!foundCustomer) {
       foundCustomer = isNatural
@@ -166,16 +141,15 @@ const searchCustomer = async () => {
     }
 
     if (foundCustomer) {
-      customer.value = foundCustomer;
-      showSuccessSnackbar('Cliente encontrado exitosamente');
-      showClientDialog.value = false;
+      customer.value = foundCustomer
+      showSuccessSnackbar('Cliente encontrado exitosamente')
+      showClientDialog.value = false
     }
-
   } catch (error) {
-    console.error(error);
-    showErrorSnackbar('Ocurrió un error al buscar el cliente');
+    console.error(error)
+    showErrorSnackbar('Ocurrió un error al buscar el cliente')
   }
-};
+}
 
 const cambiarCliente = () => {
   customer.value = null
@@ -194,9 +168,7 @@ const customerName = computed(() => {
 
 const customerIdValue = computed(() => {
   if (!customer.value) return '—'
-  return customerType.value === 'natural'
-    ? customer.value.dni
-    : customer.value.ruc
+  return customerType.value === 'natural' ? customer.value.dni : customer.value.ruc
 })
 
 /* --------------------   Modal Producto   ------------------- */
@@ -251,7 +223,7 @@ const addProduct = () => {
   const precioUnitario = parseFloat(product.precioUnitario) || 0
   const subTotal = cantidadSeleccionada * precioUnitario
 
-  const existing = cartItems.value.find(i => i.producto.id === product.id)
+  const existing = cartItems.value.find((i) => i.producto.id === product.id)
 
   if (existing) {
     existing.cantidad += cantidadSeleccionada
@@ -278,13 +250,13 @@ const totals = computed(() => {
   return {
     gravado: gravado.toFixed(2),
     igv: igv.toFixed(2),
-    total: total.toFixed(2)
+    total: total.toFixed(2),
   }
 })
 
 // Eliminar del carrito
 const removeProduct = (id) => {
-  cartItems.value = cartItems.value.filter(p => p.producto.id !== id)
+  cartItems.value = cartItems.value.filter((p) => p.producto.id !== id)
 }
 
 /* --------------------   Tipo de Pago  ------------------- */
@@ -318,11 +290,11 @@ const finalizarCompra = async () => {
 }
 
 const createSale = async () => {
-  const detalleVentas = cartItems.value.map(item => ({
+  const detalleVentas = cartItems.value.map((item) => ({
     cantidad: item.cantidad,
     precioUnitario: item.precioUnitario,
     subTotal: item.subTotal,
-    producto: { id: item.producto.id }
+    producto: { id: item.producto.id },
   }))
 
   const now = new Date()
@@ -353,16 +325,15 @@ const createSale = async () => {
   if (customerType.value === 'natural') {
     dataToSend = {
       ...comprobante,
-      tipo: "BOLETA",
+      tipo: 'BOLETA',
       clienteNatural: { id: customer.value.id },
     }
 
     lastComprobante.value = await createTicketAsync(dataToSend)
-
   } else {
     dataToSend = {
       ...comprobante,
-      tipo: "FACTURA",
+      tipo: 'FACTURA',
       clienteJuridico: { id: customer.value.id },
     }
 
@@ -379,12 +350,11 @@ const createSale = async () => {
       monto: parseFloat(totals.value.total),
       comprobante: {
         id: lastComprobante.value.id,
-        tipo: lastComprobante.value.tipo  // <<-- Esto es clave
+        tipo: lastComprobante.value.tipo, // <<-- Esto es clave
       },
       empleado: { id: user.id },
-      detalle: 'Venta en efectivo'
+      detalle: 'Venta en efectivo',
     })
-
 
     // Movimiento VUELTO (solo si hay vuelto)
     if (vuelto.value > 0) {
@@ -394,10 +364,10 @@ const createSale = async () => {
         monto: parseFloat(vuelto.value.toFixed(2)),
         comprobante: {
           id: lastComprobante.value.id,
-          tipo: lastComprobante.value.tipo
+          tipo: lastComprobante.value.tipo,
         },
         empleado: { id: user.id },
-        detalle: 'Vuelto al cliente'
+        detalle: 'Vuelto al cliente',
       })
     }
 
@@ -414,7 +384,6 @@ const createSale = async () => {
       })
     }
   }
-
 
   cartItems.value = []
   montoEfectivo.value = 1
@@ -443,11 +412,9 @@ const imprimirComprobante = async () => {
     showErrorSnackbar('No se pudo generar el comprobante')
   }
 }
-
 </script>
 
 <template>
-
   <h1>Ventas</h1>
 
   <!-- Modal Cierre Caja -->
@@ -469,7 +436,6 @@ const imprimirComprobante = async () => {
     </v-card>
   </v-dialog>
 
-
   <!-- Modal Asignacion -->
   <v-dialog v-model="showClientDialog" persistent max-width="480">
     <v-card elevation="1" rounded="lg">
@@ -484,9 +450,7 @@ const imprimirComprobante = async () => {
         <v-form ref="asignacionForm">
           <v-col cols="12" class="text-center">
             <v-icon size="48" color="primary">mdi-account-search-outline</v-icon>
-            <div class="text-body-1 font-weight-medium mt-2">
-              Seleccione el tipo de cliente
-            </div>
+            <div class="text-body-1 font-weight-medium mt-2">Seleccione el tipo de cliente</div>
           </v-col>
 
           <v-col cols="12" class="mt-2">
@@ -503,23 +467,39 @@ const imprimirComprobante = async () => {
               {{ customerType === 'natural' ? 'Ingrese DNI' : 'Ingrese RUC' }}
             </v-label>
 
-            <v-otp-input v-if="customerType === 'natural'" v-model="dni" :length="8" type="number" variant="underlined"
-              class="mt-3" autofocus />
+            <v-otp-input
+              v-if="customerType === 'natural'"
+              v-model="dni"
+              :length="8"
+              type="number"
+              variant="underlined"
+              class="mt-3"
+              autofocus
+            />
 
-            <v-otp-input v-else v-model="ruc" :length="11" type="number" variant="underlined" class="mt-3" autofocus />
+            <v-otp-input
+              v-else
+              v-model="ruc"
+              :length="11"
+              type="number"
+              variant="underlined"
+              class="mt-3"
+              autofocus
+            />
           </v-col>
         </v-form>
-
       </v-card-text>
 
       <v-card-actions class="justify-end pa-4">
         <v-btn variant="text" color="grey" @click="cancelSale">Cancelar</v-btn>
-        <v-btn color="primary" variant="flat" @click="handleSubmit(searchCustomer)">Continuar</v-btn>
+        <v-btn color="primary" variant="flat" @click="handleSubmit(searchCustomer)"
+          >Continuar</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
 
-  <v-container fluid class="pa-0" style="overflow: visible;">
+  <v-container fluid class="pa-0" style="overflow: visible">
     <v-row>
       <!-- COLUMNA IZQUIERDA: Productos -->
       <v-col cols="12" md="8" class="pa-4">
@@ -552,7 +532,12 @@ const imprimirComprobante = async () => {
                     </div>
                   </v-card-text>
                   <v-card-actions class="justify-center pt-3">
-                    <v-btn color="primary" variant="flat" prepend-icon="mdi-cart-plus" @click="viewProduct(item.raw)">
+                    <v-btn
+                      color="primary"
+                      variant="flat"
+                      prepend-icon="mdi-cart-plus"
+                      @click="viewProduct(item.raw)"
+                    >
                       Agregar
                     </v-btn>
                   </v-card-actions>
@@ -573,16 +558,25 @@ const imprimirComprobante = async () => {
             </div>
           </template>
 
-
           <template #footer="{ page, pageCount, prevPage, nextPage }">
-            <div class="d-flex align-center justify-center pa-4" style="min-height: 60px;">
-              <v-btn :disabled="page === 1" density="comfortable" icon="mdi-arrow-left" variant="tonal" rounded
-                @click="prevPage" />
-              <div class="mx-2 text-caption">
-                Página {{ page }} de {{ pageCount }}
-              </div>
-              <v-btn :disabled="page >= pageCount" density="comfortable" icon="mdi-arrow-right" variant="tonal" rounded
-                @click="nextPage" />
+            <div class="d-flex align-center justify-center pa-4" style="min-height: 60px">
+              <v-btn
+                :disabled="page === 1"
+                density="comfortable"
+                icon="mdi-arrow-left"
+                variant="tonal"
+                rounded
+                @click="prevPage"
+              />
+              <div class="mx-2 text-caption">Página {{ page }} de {{ pageCount }}</div>
+              <v-btn
+                :disabled="page >= pageCount"
+                density="comfortable"
+                icon="mdi-arrow-right"
+                variant="tonal"
+                rounded
+                @click="nextPage"
+              />
             </div>
           </template>
         </v-data-iterator>
@@ -590,22 +584,41 @@ const imprimirComprobante = async () => {
 
       <!-- COLUMNA DERECHA: Resumen de Venta -->
       <v-col cols="12" md="4" class="pa-4">
-        <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px;">
+        <v-card elevation="1" rounded="lg" class="pa-4 position-sticky" style="top: 80px">
           <v-alert type="info" class="mb-4" border="start" colored-border>
             Saldo actual en caja: <strong>S/ {{ saldoActual }}</strong>
           </v-alert>
           <!-- Cliente -->
           <div class="d-flex justify-space-between align-center mb-3">
-            <v-btn elevation="0" color="primary" prepend-icon="mdi-account-plus-outline" @click="cambiarCliente">
+            <v-btn
+              elevation="0"
+              color="primary"
+              prepend-icon="mdi-account-plus-outline"
+              @click="cambiarCliente"
+            >
               Cambiar cliente
             </v-btn>
           </div>
 
-          <v-text-field label="N° Identificación" density="comfortable" variant="underlined" readonly hide-details
-            :model-value="customerIdValue" class="mt-2 my-4" />
+          <v-text-field
+            label="N° Identificación"
+            density="comfortable"
+            variant="underlined"
+            readonly
+            hide-details
+            :model-value="customerIdValue"
+            class="mt-2 my-4"
+          />
 
-          <v-text-field label="Cliente" density="comfortable" variant="underlined" readonly hide-details
-            :model-value="customerName" class="mt-2 my-4" />
+          <v-text-field
+            label="Cliente"
+            density="comfortable"
+            variant="underlined"
+            readonly
+            hide-details
+            :model-value="customerName"
+            class="mt-2 my-4"
+          />
 
           <v-divider class="my-4 mt-7" />
 
@@ -614,13 +627,22 @@ const imprimirComprobante = async () => {
             <div class="text-subtitle-1 font-weight-medium mb-2">Resumen de venta</div>
 
             <v-list v-if="cartItems.length" density="compact" class="rounded-lg bg-grey-lighten-4">
-              <v-list-item v-for="item in cartItems" :key="item.id" :title="item.nombre"
-                :subtitle="`Cant. ${item.cantidad}`">
+              <v-list-item
+                v-for="item in cartItems"
+                :key="item.id"
+                :title="item.nombre"
+                :subtitle="`Cant. ${item.cantidad}`"
+              >
                 <template #append>
                   <div class="d-flex align-center">
                     <span class="mr-2">S/ {{ item.subTotal.toFixed(2) }}</span>
-                    <v-btn icon="mdi-delete-outline" size="small" variant="text" color="red"
-                      @click="removeProduct(item.producto.id)" />
+                    <v-btn
+                      icon="mdi-delete-outline"
+                      size="small"
+                      variant="text"
+                      color="red"
+                      @click="removeProduct(item.producto.id)"
+                    />
                   </div>
                 </template>
               </v-list-item>
@@ -651,20 +673,33 @@ const imprimirComprobante = async () => {
 
             <!-- Tipo de pago -->
             <v-form ref="tipoPagoForm">
-
-              <v-select v-model="tipoPago" label="Tipo de pago" :items="['Efectivo', 'Tarjeta', 'Yape', 'Plin']"
-                variant="underlined" density="comfortable" class="mb-3" />
+              <v-select
+                v-model="tipoPago"
+                label="Tipo de pago"
+                :items="['Efectivo', 'Tarjeta', 'Yape', 'Plin']"
+                variant="underlined"
+                density="comfortable"
+                class="mb-3"
+              />
 
               <template v-if="tipoPago === 'Efectivo'">
-                <v-text-field v-model.number="montoEfectivo" label="Efectivo" prefix="S/" variant="underlined"
-                  type="number" min="0"
-                  :rules="[rules.precio, rules.montoSuficiente(totals.total), rules.saldoDisponible(cajaStore.saldoActual)]" />
+                <v-text-field
+                  v-model.number="montoEfectivo"
+                  label="Efectivo"
+                  prefix="S/"
+                  variant="underlined"
+                  type="number"
+                  min="0"
+                  :rules="[
+                    rules.precio,
+                    rules.montoSuficiente(totals.total),
+                    rules.saldoDisponible(saldoActual, vuelto),
+                  ]"
+                />
 
                 <div class="d-flex justify-space-between mt-2 text-subtitle-2">
                   <span>Vuelto</span>
-                  <span class="font-weight-medium">
-                    S/ {{ vuelto.toFixed(2) }}
-                  </span>
+                  <span class="font-weight-medium"> S/ {{ vuelto.toFixed(2) }} </span>
                 </div>
               </template>
               <template v-else>
@@ -677,8 +712,15 @@ const imprimirComprobante = async () => {
           </div>
 
           <!-- Botón Finalizar -->
-          <v-btn block color="primary" size="large" class="mt-5" prepend-icon="mdi-check-circle-outline"
-            :disabled="!cartItems.length || !customer" @click="handleSubmitTipoPago(validForm)">
+          <v-btn
+            block
+            color="primary"
+            size="large"
+            class="mt-5"
+            prepend-icon="mdi-check-circle-outline"
+            :disabled="!cartItems.length || !customer"
+            @click="handleSubmitTipoPago(validForm)"
+          >
             Finalizar Venta
           </v-btn>
         </v-card>
@@ -691,7 +733,12 @@ const imprimirComprobante = async () => {
     <v-card>
       <v-row no-gutters>
         <v-col cols="12" md="6" class="d-flex align-center justify-center pa-0">
-          <v-img :src="selectedProduct.imagen" alt="Producto" cover class="w-100 h-100 rounded-l-lg" />
+          <v-img
+            :src="selectedProduct.imagen"
+            alt="Producto"
+            cover
+            class="w-100 h-100 rounded-l-lg"
+          />
         </v-col>
 
         <v-col cols="12" md="6" class="pa-6">
@@ -712,18 +759,37 @@ const imprimirComprobante = async () => {
           </p>
 
           <template v-if="selectedProduct.unidadMedida === 'Unidad'">
-            <v-mask-input label="Cantidad (unidades)" v-model="cantidad" mask="########" variant="underlined">
+            <v-mask-input
+              label="Cantidad (unidades)"
+              v-model="cantidad"
+              mask="########"
+              variant="underlined"
+            >
             </v-mask-input>
           </template>
 
           <template v-else-if="selectedProduct.unidadMedida === 'Kilogramo'">
-            <v-text-field v-model.number="peso" label="Peso (kg)" variant="underlined" type="number" min="0.1"
-              step="0.1" class="mb-2" />
+            <v-text-field
+              v-model.number="peso"
+              label="Peso (kg)"
+              variant="underlined"
+              type="number"
+              min="0.1"
+              step="0.1"
+              class="mb-2"
+            />
           </template>
 
           <template v-else-if="selectedProduct.unidadMedida === 'Litro'">
-            <v-text-field v-model.number="litro" label="Volumen (litros)" variant="underlined" type="number" min="0.1"
-              step="0.1" class="mb-2" />
+            <v-text-field
+              v-model.number="litro"
+              label="Volumen (litros)"
+              variant="underlined"
+              type="number"
+              min="0.1"
+              step="0.1"
+              class="mb-2"
+            />
           </template>
 
           <div class="d-flex justify-end text-body-2 font-weight-medium mb-4">
@@ -742,9 +808,7 @@ const imprimirComprobante = async () => {
   <!-- Modal Confirmar venta -->
   <v-dialog v-model="confirmSaleModal" max-width="420">
     <v-card>
-      <v-card-title class="text-h6 font-weight-bold">
-        Confirmar venta
-      </v-card-title>
+      <v-card-title class="text-h6 font-weight-bold"> Confirmar venta </v-card-title>
 
       <v-card-text>
         <div class="d-flex justify-space-between my-1">
@@ -778,7 +842,7 @@ const imprimirComprobante = async () => {
       <p class="text-subtitle-2 mt-1">La operación se realizó correctamente.</p>
 
       <v-card-actions class="justify-center mt-4">
-        <v-btn color="primary" @click="showClientDialog = true, ventaCompletadaModal = false">
+        <v-btn color="primary" @click="((showClientDialog = true), (ventaCompletadaModal = false))">
           Nueva venta
         </v-btn>
         <v-btn @click="imprimirComprobante">Imprimir comprobante</v-btn>
@@ -802,7 +866,6 @@ const imprimirComprobante = async () => {
   </v-dialog>
 
   <fab-menu v-model:filterDialog="filterDialog" />
-
 </template>
 
 <style scoped></style>

@@ -36,11 +36,12 @@ export const rules = {
     if (montoNum > saldoActual) return `No se puede retirar más de S/ ${saldoActual}`
     return true
   },
-  saldoDisponible: (saldoActual) => (vuelto) => {
+  saldoDisponible: (saldoActual, vuelto) => () => {
     const vueltoNum = parseFloat(vuelto) || 0
-    if (vueltoNum > saldoActual) {
+
+    if (vueltoNum > saldoActual)
       return `No hay suficiente saldo en caja para dar S/ ${vueltoNum.toFixed(2)} de vuelto`
-    }
+
     return true
   },
 

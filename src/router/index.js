@@ -21,6 +21,7 @@ import { ROLES } from '@/utils/constants/roles'
 import ProfileView from '@/views/profile/ProfileView.vue'
 import CashClosureView from '@/views/pos/CashClosureView.vue'
 import { useAuthStore } from '@/stores'
+import SoonToExpireView from '@/views/warehouse/SoonToExpireView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -143,6 +144,13 @@ const router = createRouter({
             {
               path: 'ingreso-productos',
               component: ProductEntryView,
+              meta: {
+                roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
+              },
+            },
+            {
+              path: 'proximos-a-vencer',
+              component: SoonToExpireView,
               meta: {
                 roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
               },

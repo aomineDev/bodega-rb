@@ -65,12 +65,15 @@
         <v-list-subheader v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN]">Almacen</v-list-subheader>
 
         <v-list-item
-          title="Ingreso de productos"
-          prepend-icon="mdi-package-variant-plus"
-          value="ingreso"
+          v-for="item in almacenItems"
+          v-role="item.roles"
+          :key="item.value"
+          :title="item.title"
+          :prepend-icon="item.icon"
+          :value="item.value"
+          :to="item.to"
           color="primary"
-          to="/almacen/ingreso-productos"
-          v-role="[ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE]"
+          exact
         ></v-list-item>
 
         <v-divider></v-divider>
@@ -230,6 +233,16 @@ const inventarioItems = [
     value: 'reporte-inventario',
     to: '/inventario/reporte',
     roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN],
+  },
+]
+// proximos-a-vencer
+const almacenItems = [
+  {
+    title: 'Ingreso de productos',
+    icon: 'mdi-package-variant-plus',
+    value: 'ingreso',
+    to: '/almacen/ingreso-productos',
+    roles: [ROLES.ADMIN, ROLES.JEFE_ALMACEN, ROLES.ASISTENTE],
   },
 ]
 
